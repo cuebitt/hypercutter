@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "extract-data"
+version = "0.1.0"
+description = "Extract metatiles from pokeemerald ROM files"
+requires-python = ">=3.10"
+
+[project.scripts]
+extract-data = "cli.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["extract_data", "cli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

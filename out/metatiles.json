@@ -1,0 +1,1443 @@
+{
+    "General": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": null
+    },
+    "Petalburg": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137600520,
+            "palettes_ptr": 137602820,
+            "metatiles_ptr": 137987312,
+            "name": "Petalburg",
+            "tiles_length": 2300,
+            "palettes_len": 512
+        }
+    },
+    "Rustboro": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137603332,
+            "palettes_ptr": 137608896,
+            "metatiles_ptr": 137989904,
+            "name": "Rustboro",
+            "tiles_length": 5564,
+            "palettes_len": 512
+        }
+    },
+    "Dewford": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137609408,
+            "palettes_ptr": 137614656,
+            "metatiles_ptr": 137996204,
+            "name": "Dewford",
+            "tiles_length": 5248,
+            "palettes_len": 512
+        }
+    },
+    "Slateport": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137615168,
+            "palettes_ptr": 137623304,
+            "metatiles_ptr": 138003026,
+            "name": "Slateport",
+            "tiles_length": 8136,
+            "palettes_len": 512
+        }
+    },
+    "Mauville": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137623816,
+            "palettes_ptr": 137631532,
+            "metatiles_ptr": 138010334,
+            "name": "Mauville",
+            "tiles_length": 7716,
+            "palettes_len": 512
+        }
+    },
+    "Lavaridge": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137632044,
+            "palettes_ptr": 137637416,
+            "metatiles_ptr": 138019514,
+            "name": "Lavaridge",
+            "tiles_length": 5372,
+            "palettes_len": 512
+        }
+    },
+    "Fallarbor": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137637928,
+            "palettes_ptr": 137643936,
+            "metatiles_ptr": 138027452,
+            "name": "Fallarbor",
+            "tiles_length": 6008,
+            "palettes_len": 512
+        }
+    },
+    "Fortree": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137644448,
+            "palettes_ptr": 137650208,
+            "metatiles_ptr": 138034058,
+            "name": "Fortree",
+            "tiles_length": 5760,
+            "palettes_len": 512
+        }
+    },
+    "Lilycove": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137650720,
+            "palettes_ptr": 137655744,
+            "metatiles_ptr": 138039098,
+            "name": "Lilycove",
+            "tiles_length": 5024,
+            "palettes_len": 512
+        }
+    },
+    "Mossdeep": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137656256,
+            "palettes_ptr": 137661968,
+            "metatiles_ptr": 138045416,
+            "name": "Mossdeep",
+            "tiles_length": 5712,
+            "palettes_len": 512
+        }
+    },
+    "EverGrande": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137662480,
+            "palettes_ptr": 137665576,
+            "metatiles_ptr": 138053588,
+            "name": "EverGrande",
+            "tiles_length": 3096,
+            "palettes_len": 512
+        }
+    },
+    "Pacifidlog": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137666088,
+            "palettes_ptr": 137672116,
+            "metatiles_ptr": 138056612,
+            "name": "Pacifidlog",
+            "tiles_length": 6028,
+            "palettes_len": 512
+        }
+    },
+    "Sootopolis": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137672628,
+            "palettes_ptr": 137676468,
+            "metatiles_ptr": 138060266,
+            "name": "Sootopolis",
+            "tiles_length": 3840,
+            "palettes_len": 512
+        }
+    },
+    "BattleFrontierOutsideWest": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137676980,
+            "palettes_ptr": 137683940,
+            "metatiles_ptr": 138064838,
+            "name": "BattleFrontierOutsideWest",
+            "tiles_length": 6960,
+            "palettes_len": 512
+        }
+    },
+    "BattleFrontierOutsideEast": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137684452,
+            "palettes_ptr": 137689476,
+            "metatiles_ptr": 138074018,
+            "name": "BattleFrontierOutsideEast",
+            "tiles_length": 5024,
+            "palettes_len": 512
+        }
+    },
+    "InsideBuilding": {
+        "primary": null,
+        "secondary": null
+    },
+    "Shop": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137693884,
+            "palettes_ptr": 137699548,
+            "metatiles_ptr": 138083342,
+            "name": "Shop",
+            "tiles_length": 5664,
+            "palettes_len": 512
+        }
+    },
+    "PokemonCenter": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137700060,
+            "palettes_ptr": 137704820,
+            "metatiles_ptr": 138088544,
+            "name": "PokemonCenter",
+            "tiles_length": 4760,
+            "palettes_len": 512
+        }
+    },
+    "Cave": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137705332,
+            "palettes_ptr": 137712224,
+            "metatiles_ptr": 138092720,
+            "name": "Cave",
+            "tiles_length": 6892,
+            "palettes_len": 512
+        }
+    },
+    "PokemonSchool": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137712736,
+            "palettes_ptr": 137714600,
+            "metatiles_ptr": 138100172,
+            "name": "PokemonSchool",
+            "tiles_length": 1864,
+            "palettes_len": 512
+        }
+    },
+    "PokemonFanClub": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137715112,
+            "palettes_ptr": 137717460,
+            "metatiles_ptr": 138101216,
+            "name": "PokemonFanClub",
+            "tiles_length": 2348,
+            "palettes_len": 512
+        }
+    },
+    "Unused1": {
+        "primary": null,
+        "secondary": null
+    },
+    "MeteorFalls": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137718560,
+            "palettes_ptr": 137726016,
+            "metatiles_ptr": 138103124,
+            "name": "MeteorFalls",
+            "tiles_length": 7456,
+            "palettes_len": 512
+        }
+    },
+    "OceanicMuseum": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137726528,
+            "palettes_ptr": 137730508,
+            "metatiles_ptr": 138105986,
+            "name": "OceanicMuseum",
+            "tiles_length": 3980,
+            "palettes_len": 512
+        }
+    },
+    "CableClub": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": false,
+            "is_secondary": true,
+            "tiles_ptr": 137731020,
+            "palettes_ptr": 137751244,
+            "metatiles_ptr": 138108182,
+            "name": "CableClub",
+            "tiles_length": 16384,
+            "palettes_len": 512
+        }
+    },
+    "SeashoreHouse": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137751756,
+            "palettes_ptr": 137754024,
+            "metatiles_ptr": 138112790,
+            "name": "SeashoreHouse",
+            "tiles_length": 2268,
+            "palettes_len": 512
+        }
+    },
+    "PrettyPetalFlowerShop": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137754536,
+            "palettes_ptr": 137757600,
+            "metatiles_ptr": 138113798,
+            "name": "PrettyPetalFlowerShop",
+            "tiles_length": 3064,
+            "palettes_len": 512
+        }
+    },
+    "PokemonDayCare": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137758112,
+            "palettes_ptr": 137760732,
+            "metatiles_ptr": 138115094,
+            "name": "PokemonDayCare",
+            "tiles_length": 2620,
+            "palettes_len": 512
+        }
+    },
+    "Facility": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137761244,
+            "palettes_ptr": 137768592,
+            "metatiles_ptr": 138116318,
+            "name": "Facility",
+            "tiles_length": 7348,
+            "palettes_len": 512
+        }
+    },
+    "BikeShop": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137769104,
+            "palettes_ptr": 137774016,
+            "metatiles_ptr": 138125516,
+            "name": "BikeShop",
+            "tiles_length": 4912,
+            "palettes_len": 512
+        }
+    },
+    "RusturfTunnel": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137774528,
+            "palettes_ptr": 137777160,
+            "metatiles_ptr": 138129980,
+            "name": "RusturfTunnel",
+            "tiles_length": 2632,
+            "palettes_len": 512
+        }
+    },
+    "SecretBaseSecondary": {
+        "primary": null,
+        "secondary": null
+    },
+    "InsideOfTruck": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137804256,
+            "palettes_ptr": 137804860,
+            "metatiles_ptr": 138137306,
+            "name": "InsideOfTruck",
+            "tiles_length": 604,
+            "palettes_len": 512
+        }
+    },
+    "Contest": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137805372,
+            "palettes_ptr": 137808272,
+            "metatiles_ptr": 138137990,
+            "name": "Contest",
+            "tiles_length": 2900,
+            "palettes_len": 512
+        }
+    },
+    "LilycoveMuseum": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137808784,
+            "palettes_ptr": 137813676,
+            "metatiles_ptr": 138142184,
+            "name": "LilycoveMuseum",
+            "tiles_length": 4892,
+            "palettes_len": 512
+        }
+    },
+    "BrendansMaysHouse": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137814188,
+            "palettes_ptr": 137818488,
+            "metatiles_ptr": 138144758,
+            "name": "BrendansMaysHouse",
+            "tiles_length": 4300,
+            "palettes_len": 512
+        }
+    },
+    "Lab": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137819000,
+            "palettes_ptr": 137823196,
+            "metatiles_ptr": 138148286,
+            "name": "Lab",
+            "tiles_length": 4196,
+            "palettes_len": 512
+        }
+    },
+    "Underwater": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137823708,
+            "palettes_ptr": 137828248,
+            "metatiles_ptr": 138151130,
+            "name": "Underwater",
+            "tiles_length": 4540,
+            "palettes_len": 512
+        }
+    },
+    "GenericBuilding": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137828760,
+            "palettes_ptr": 137835460,
+            "metatiles_ptr": 138155378,
+            "name": "GenericBuilding",
+            "tiles_length": 6700,
+            "palettes_len": 512
+        }
+    },
+    "MauvilleGameCorner": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137835972,
+            "palettes_ptr": 137839240,
+            "metatiles_ptr": 138164594,
+            "name": "MauvilleGameCorner",
+            "tiles_length": 3268,
+            "palettes_len": 512
+        }
+    },
+    "Unused2": {
+        "primary": null,
+        "secondary": null
+    },
+    "RustboroGym": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137841584,
+            "palettes_ptr": 137842484,
+            "metatiles_ptr": 138167366,
+            "name": "RustboroGym",
+            "tiles_length": 900,
+            "palettes_len": 512
+        }
+    },
+    "DewfordGym": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137842996,
+            "palettes_ptr": 137843712,
+            "metatiles_ptr": 138168374,
+            "name": "DewfordGym",
+            "tiles_length": 716,
+            "palettes_len": 512
+        }
+    },
+    "MauvilleGym": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137844224,
+            "palettes_ptr": 137846148,
+            "metatiles_ptr": 138169616,
+            "name": "MauvilleGym",
+            "tiles_length": 1924,
+            "palettes_len": 512
+        }
+    },
+    "LavaridgeGym": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137846660,
+            "palettes_ptr": 137847468,
+            "metatiles_ptr": 138171722,
+            "name": "LavaridgeGym",
+            "tiles_length": 808,
+            "palettes_len": 512
+        }
+    },
+    "PetalburgGym": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137847980,
+            "palettes_ptr": 137849680,
+            "metatiles_ptr": 138172820,
+            "name": "PetalburgGym",
+            "tiles_length": 1700,
+            "palettes_len": 512
+        }
+    },
+    "FortreeGym": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137850192,
+            "palettes_ptr": 137851076,
+            "metatiles_ptr": 138176852,
+            "name": "FortreeGym",
+            "tiles_length": 884,
+            "palettes_len": 512
+        }
+    },
+    "MossdeepGym": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137851588,
+            "palettes_ptr": 137852720,
+            "metatiles_ptr": 138178292,
+            "name": "MossdeepGym",
+            "tiles_length": 1132,
+            "palettes_len": 512
+        }
+    },
+    "SootopolisGym": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137853232,
+            "palettes_ptr": 137857732,
+            "metatiles_ptr": 138180398,
+            "name": "SootopolisGym",
+            "tiles_length": 4500,
+            "palettes_len": 512
+        }
+    },
+    "TrickHousePuzzle": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137858244,
+            "palettes_ptr": 137861752,
+            "metatiles_ptr": 138182594,
+            "name": "TrickHousePuzzle",
+            "tiles_length": 3508,
+            "palettes_len": 512
+        }
+    },
+    "InsideShip": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137862264,
+            "palettes_ptr": 137865288,
+            "metatiles_ptr": 138185996,
+            "name": "InsideShip",
+            "tiles_length": 3024,
+            "palettes_len": 512
+        }
+    },
+    "SecretBasePrimary": {
+        "primary": null,
+        "secondary": null
+    },
+    "EliteFour": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137899080,
+            "palettes_ptr": 137903300,
+            "metatiles_ptr": 138190568,
+            "name": "EliteFour",
+            "tiles_length": 4220,
+            "palettes_len": 512
+        }
+    },
+    "BattleFrontier": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137903812,
+            "palettes_ptr": 137907144,
+            "metatiles_ptr": 138196544,
+            "name": "BattleFrontier",
+            "tiles_length": 3332,
+            "palettes_len": 512
+        }
+    },
+    "BattlePalace": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137907656,
+            "palettes_ptr": 137909568,
+            "metatiles_ptr": 138205706,
+            "name": "BattlePalace",
+            "tiles_length": 1912,
+            "palettes_len": 512
+        }
+    },
+    "BattleDome": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137910080,
+            "palettes_ptr": 137914768,
+            "metatiles_ptr": 138208838,
+            "name": "BattleDome",
+            "tiles_length": 4688,
+            "palettes_len": 512
+        }
+    },
+    "BattleFactory": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137915280,
+            "palettes_ptr": 137919868,
+            "metatiles_ptr": 138216524,
+            "name": "BattleFactory",
+            "tiles_length": 4588,
+            "palettes_len": 512
+        }
+    },
+    "BattlePike": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137920380,
+            "palettes_ptr": 137925200,
+            "metatiles_ptr": 138222896,
+            "name": "BattlePike",
+            "tiles_length": 4820,
+            "palettes_len": 512
+        }
+    },
+    "BattleArena": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137925712,
+            "palettes_ptr": 137928588,
+            "metatiles_ptr": 138229142,
+            "name": "BattleArena",
+            "tiles_length": 2876,
+            "palettes_len": 512
+        }
+    },
+    "BattlePyramid": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137929100,
+            "palettes_ptr": 137933724,
+            "metatiles_ptr": 138232328,
+            "name": "BattlePyramid",
+            "tiles_length": 4624,
+            "palettes_len": 512
+        }
+    },
+    "MirageTower": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137934236,
+            "palettes_ptr": 137940964,
+            "metatiles_ptr": 138236306,
+            "name": "MirageTower",
+            "tiles_length": 6728,
+            "palettes_len": 512
+        }
+    },
+    "MossdeepGameCorner": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137941476,
+            "palettes_ptr": 137942532,
+            "metatiles_ptr": 138243758,
+            "name": "MossdeepGameCorner",
+            "tiles_length": 1056,
+            "palettes_len": 512
+        }
+    },
+    "IslandHarbor": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137943044,
+            "palettes_ptr": 137949652,
+            "metatiles_ptr": 138244712,
+            "name": "IslandHarbor",
+            "tiles_length": 6608,
+            "palettes_len": 512
+        }
+    },
+    "TrainerHill": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137950164,
+            "palettes_ptr": 137954500,
+            "metatiles_ptr": 138253172,
+            "name": "TrainerHill",
+            "tiles_length": 4336,
+            "palettes_len": 512
+        }
+    },
+    "NavelRock": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137955012,
+            "palettes_ptr": 137962072,
+            "metatiles_ptr": 138261920,
+            "name": "NavelRock",
+            "tiles_length": 7060,
+            "palettes_len": 512
+        }
+    },
+    "BattleFrontierRankingHall": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137962584,
+            "palettes_ptr": 137964716,
+            "metatiles_ptr": 138270038,
+            "name": "BattleFrontierRankingHall",
+            "tiles_length": 2132,
+            "palettes_len": 512
+        }
+    },
+    "BattleTent": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 148721680,
+            "palettes_ptr": 148721168,
+            "metatiles_ptr": 137978096,
+            "name": "General",
+            "tiles_length": 8912,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137965228,
+            "palettes_ptr": 137967888,
+            "metatiles_ptr": 138271730,
+            "name": "BattleTent",
+            "tiles_length": 2660,
+            "palettes_len": 512
+        }
+    },
+    "MysteryEventsHouse": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137968400,
+            "palettes_ptr": 137974904,
+            "metatiles_ptr": 138276572,
+            "name": "MysteryEventsHouse",
+            "tiles_length": 6504,
+            "palettes_len": 512
+        }
+    },
+    "UnionRoom": {
+        "primary": {
+            "is_compressed": true,
+            "is_secondary": false,
+            "tiles_ptr": 137689988,
+            "palettes_ptr": 137693372,
+            "metatiles_ptr": 138083198,
+            "name": "Building",
+            "tiles_length": 3384,
+            "palettes_len": 512
+        },
+        "secondary": {
+            "is_compressed": true,
+            "is_secondary": true,
+            "tiles_ptr": 137975928,
+            "palettes_ptr": 137975416,
+            "metatiles_ptr": 138277778,
+            "name": "UnionRoom",
+            "tiles_length": 2168,
+            "palettes_len": 512
+        }
+    }
+}
