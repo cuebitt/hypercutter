@@ -396,8 +396,12 @@ def extract(sym_data: str | bytes, rom_data: str | bytes) -> dict[str, Any]:
     map_table = extract_map_table(rom, rel_offset, map_table_count)
     layouts = [extract_map_layout(rom, addr - start_sym_offset) for addr in map_table]
 
+    logger.debug("Building tileset name pairs")
     tileset_name_pairs = build_tileset_name_pairs(layouts, symbols)
+    logger.debug("Extracting %d tilesets", len(tileset_name_pairs))
     tilesets = extract_all_tilesets(symbols, rom, start_sym_offset)
+    logger.debug("Extracting metatiles")
     metatiles = extract_metatiles(tileset_name_pairs, tilesets, symbols)
 
+    logger.info("Extraction complete: %d metatiles", len(metatiles))
     return metatiles
