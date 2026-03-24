@@ -1,9 +1,36 @@
 """
 Extraction functions for pokeemerald ROM data.
 
-Struct layout reference (32-bit, little-endian):
-- MapLayout (24 bytes): width, height, border_ptr, map_ptr, primary_tileset_ptr, secondary_tileset_ptr
-- Tileset (24 bytes): is_compressed, is_secondary, tiles_ptr, palettes_ptr, metatiles_ptr, metatile_attributes_ptr, callback_ptr
+Struct layouts (32-bit, little-endian):
+
+MapLayout (24 bytes)
+~~~~~~~~~~~~~~~~~~~~
+
+================ ============= =====================
+Field           Type          Description
+================ ============= =====================
+width           int32         Map width in tiles
+height          int32         Map height in tiles
+border_ptr      uint32        Pointer to border data
+map_ptr         uint32        Pointer to map data
+primary_tileset_ptr    uint32     Pointer to primary tileset
+secondary_tileset_ptr  uint32     Pointer to secondary tileset
+================ ============= =====================
+
+Tileset (24 bytes)
+~~~~~~~~~~~~~~~~~~
+
+======================== ============= =======================
+Field                    Type          Description
+======================== ============= =======================
+is_compressed            bool          Tiles are LZ77 compressed
+is_secondary             bool          Is secondary tileset
+tiles_ptr                uint32        Pointer to tile graphics
+palettes_ptr             uint32        Pointer to palette data
+metatiles_ptr            uint32        Pointer to metatile data
+metatile_attributes_ptr  uint32        Pointer to metatile attributes
+callback_ptr             uint32        Pointer to callback function
+======================== ============= =======================
 """
 
 import logging

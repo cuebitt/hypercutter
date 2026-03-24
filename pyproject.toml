@@ -9,6 +9,9 @@ description = "GBA Pokemon ROM data extraction tool"
 requires-python = ">=3.10"
 dependencies = ["Pillow"]
 
+[project.optional-dependencies]
+docs = ["sphinx", "sphinx-rtd-theme"]
+
 [project.scripts]
 hypercutter = "cli.__main__:main"
 
