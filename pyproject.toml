@@ -3,16 +3,17 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "extract-data"
+name = "hypercutter"
 version = "0.1.0"
-description = "Extract metatiles from pokeemerald ROM files"
+description = "Pokemon Emerald image ripper - rips tilesets and sprites"
 requires-python = ">=3.10"
+dependencies = []
 
 [project.scripts]
-extract-data = "cli.__main__:main"
+hypercutter = "cli.__main__:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["extract_data", "cli"]
+packages = ["hypercutter", "cli"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
