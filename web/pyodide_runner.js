@@ -7,7 +7,7 @@ const runButton = document.getElementById('run');
 const output = document.getElementById('output');
 const status = document.getElementById('status');
 
-const PACKAGE_URL = 'https://github.com/YOUR_USERNAME/YOUR_REPO/archive/refs/heads/main.tar.gz';
+const PACKAGE_URL = 'https://github.com/cuebitt/hypercutter/archive/refs/heads/main.tar.gz';
 
 async function initPyodide() {
     status.textContent = 'Loading Pyodide...';
