@@ -1,109 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extract Data - Metatile Extractor</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: #f5f5f5;
-        }
-        h1 {
-            color: #333;
-        }
-        .upload-section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-        }
-        .file-input {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        label {
-            font-weight: 600;
-            color: #555;
-        }
-        input[type="file"] {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background: #0066cc;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background: #0052a3;
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        #output {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            padding: 1rem;
-            border-radius: 8px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 500px;
-            overflow-y: auto;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.875rem;
-            display: none;
-        }
-        #status {
-            margin-top: 1rem;
-            color: #666;
-            font-style: italic;
-        }
-        .error {
-            color: #dc3545;
-        }
-        .loading {
-            color: #0066cc;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 </head>
+
 <body>
-    <h1>Extract Metatiles</h1>
-    
-    <div class="upload-section">
-        <div class="file-input">
-            <label for="sym-file">Symbol File (.sym)</label>
-            <input type="file" id="sym-file" accept=".sym">
-        </div>
-        
-        <div class="file-input">
-            <label for="rom-file">ROM File (.gba)</label>
-            <input type="file" id="rom-file" accept=".gba">
-        </div>
-        
-        <button id="run" disabled>Extract</button>
-    </div>
-    
-    <div id="status"></div>
-    <pre id="output"></pre>
-    
+    <header class="container">
+        <hgroup>
+            <h1>Hypercutter</h1>
+            <h2>Extract Metatiles from a Pokemon Emerald ROM!</h2>
+        </hgroup>
+    </header>
+
+    <main class="container">
+        <article style="max-width: 520px; margin: auto;">
+            <header>Extract Metatile Info</header>
+            <form id="metatile-info-form">
+                <fieldset>
+                    <label for="sym-file">
+                        Symbol File (.sym)
+                        <input type="file" id="sym-file" accept=".sym" required>
+                    </label>
+
+                    <label for="rom-file">
+                        ROM File (.gba)
+                        <input type="file" id="rom-file" accept=".gba" required>
+                    </label>
+                </fieldset>
+                <input type="submit" value="Extract Metatiles" id="submit-metatile-info-btn" disabled>
+            </form>
+        </article>
+
+        <article id="status-article" style="display: none; margin-top: 1rem;">
+            <header id="status"></header>
+            <pre id="output"></pre>
+        </article>
+    </main>
+
     <script src="https://cdn.jsdelivr.net/pyodide/v0.29.3/full/pyodide.js"></script>
     <script src="pyodide_runner.js"></script>
 </body>
+
 </html>

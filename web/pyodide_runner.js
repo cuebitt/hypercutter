@@ -3,27 +3,29 @@ let isReady = false;
 
 const offsetsFileInput = document.getElementById('sym-file');
 const romFileInput = document.getElementById('rom-file');
-const runButton = document.getElementById('run');
 const output = document.getElementById('output');
-const status = document.getElementById('status');
+const statusView = document.getElementById('status');
+
+const metatileInfoForm = document.getElementById('metatile-info-form');
+const runButton = metatileInfoForm.querySelector("input[type=submit]");
 
 async function initPyodide() {
-    status.textContent = 'Loading Pyodide...';
-    status.className = 'loading';
+    statusView.textContent = 'Loading Pyodide...';
+    statusView.className = 'loading';
 
     pyodide = await loadPyodide({
         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/'
     });
 
-    status.textContent = 'Installing package...';
+    statusView.textContent = 'Installing package...';
 
     await pyodide.loadPackage('micropip');
     const micropip = pyodide.pyimport('micropip');
     await micropip.install('hypercutter');
 
     isReady = true;
-    status.textContent = 'Ready';
-    status.className = '';
+    statusView.textContent = 'Ready';
+    statusView.className = '';
     updateRunButton();
 }
 
@@ -34,11 +36,13 @@ function updateRunButton() {
 offsetsFileInput.addEventListener('change', updateRunButton);
 romFileInput.addEventListener('change', updateRunButton);
 
-runButton.addEventListener('click', async () => {
+
+metatileInfoForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
     if (!isReady) return;
 
-    status.textContent = 'Extracting...';
-    status.className = 'loading';
+    statusView.textContent = 'Extracting...';
+    statusView.className = 'loading';
     output.style.display = 'none';
     runButton.disabled = true;
 
@@ -57,23 +61,35 @@ runButton.addEventListener('click', async () => {
 
         await pyodide.runPythonAsync(`
 from hypercutter import extract
+import json
 import os
 
 os.makedirs('/tmp/output', exist_ok=True)
 
 metatiles = extract('/tmp/emerald_offsets.yaml', '/tmp/pokeemerald.gba')
 print(f'Extracted {len(metatiles)} metatiles')
-for name in metatiles:
-    print(name)
+
+with open('/tmp/metatiles.json', 'w') as f:
+    json.dump(metatiles, f, indent=2)
+
+print('Saved to /tmp/metatiles.json')
 `);
 
-        status.textContent = 'Done';
-        status.className = '';
-        output.textContent = 'Tiles extracted to /tmp/output/';
+        const jsonBlob = new Blob([pyodide.FS.readFile('/tmp/metatiles.json')], { type: 'application/json' });
+        const jsonUrl = URL.createObjectURL(jsonBlob);
+        const a = document.createElement('a');
+        a.href = jsonUrl;
+        a.download = 'metatiles.json';
+        a.click();
+        URL.revokeObjectURL(jsonUrl);
+
+        statusView.textContent = 'Done';
+        statusView.className = '';
+        output.textContent = 'Metatiles extracted to metatiles.json';
         output.style.display = 'block';
     } catch (error) {
-        status.textContent = `Error: ${error.message}`;
-        status.className = 'error';
+        statusView.textContent = `Error: ${error.message}`;
+        statusView.className = 'error';
         output.style.display = 'none';
     } finally {
         runButton.disabled = false;
