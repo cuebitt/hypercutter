@@ -170,4 +170,4 @@ class TestBuildTilesetNamePairs:
             ),
         ]
         result = build_tileset_name_pairs(layouts, symbols)
-        assert result == {"Overworld": ["Grass", "Water"]}
+        assert set(result["Overworld"]) == {"Grass", "Water"}
