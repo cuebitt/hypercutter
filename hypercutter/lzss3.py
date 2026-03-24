@@ -26,7 +26,10 @@ THE SOFTWARE.
 # removed decompress_overlay
 # removed main
 
+import logging
 from struct import unpack
+
+logger = logging.getLogger(__name__)
 
 __all__ = (
     "decompress_bytes",
@@ -97,6 +100,7 @@ def decompress_raw_lzss10(indata, decompressed_size, _overlay=False):
                 break
 
     if len(data) != decompressed_size:
+        logger.warning("Decompressed size mismatch: expected %d, got %d", decompressed_size, len(data))
         raise DecompressionError("decompressed size does not match the expected size")
 
     return data
@@ -172,6 +176,7 @@ def decompress_bytes(data):
     elif header[0] == 0x11:
         decompress_raw = decompress_raw_lzss11
     else:
+        logger.warning("Invalid LZSS compression header: %02x", header[0])
         raise DecompressionError("not as lzss-compressed file")
 
     (decompressed_size,) = unpack("<L", header[1:] + b"\x00")
