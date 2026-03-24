@@ -1,6 +1,6 @@
 # hypercutter
 
-Extract and render tilesets from Pokemon Emerald GBA ROM dumps.
+`hypercutter` is a binary extraction tool for GBA Pokemon ROMs. Using `hypercutter`, you can distribute your Pokemon fangame without including copyrighted assets!
 
 ## Features
 
@@ -8,6 +8,17 @@ Extract and render tilesets from Pokemon Emerald GBA ROM dumps.
 - Decompress LZ77-compressed tileset data
 - Render metatiles as PNG images
 - CLI and Python API
+
+### Roadmap
+
+- [ ] Support other GBA ROMs
+	- [ ] Fire Red/Leaf Green
+	- [ ] Ruby/Sapphire
+- [ ] Dump sprites
+	- [ ] Characters
+	- [ ] Pokemon
+	- [ ] Other (fonts, etc)
+- [ ] Dump music (maybe)
 
 ## Requirements
 
@@ -30,7 +41,7 @@ uvx hypercutter
 ## Usage
 
 ```bash
-hypercutter data/pokeemerald.sym data/pokeemerald.gba
+hypercutter pokeemerald.gba
 ```
 
 Options:
@@ -51,3 +62,5 @@ MIT
 The following open-source libraries are used:
 
 - [magical/nlzss](https://github.com/magical/nlzss)
+- [pret/pokeemerald](https://github.com/pret/pokeemerald/tree/symbols)
+	- Only the memory map is used. This project contains no content from any Pokemon ROM dump.
