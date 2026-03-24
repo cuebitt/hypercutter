@@ -21,7 +21,7 @@ async function initPyodide() {
     const micropip = pyodide.pyimport('micropip');
     await micropip.install("hypercutter");
 
-    const { extract } = pyodide.pyimport('extract_data');
+    const { extract } = pyodide.pyimport('hypercutter');
     pyodide.extract = extract;
 
     isReady = true;

@@ -6,7 +6,7 @@ import logging
 import sys
 from pathlib import Path
 
-from extract_data import extract
+from hypercutter import extract
 
 
 def setup_logging(verbose: bool = False) -> None:

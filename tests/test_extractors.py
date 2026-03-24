@@ -1,13 +1,13 @@
 import struct
-from extract_data.classes import MapLayout, Offset, OffsetType, Tileset
-from extract_data.extractors import (
+from hypercutter.classes import MapLayout, Offset, OffsetType, Tileset
+from hypercutter.extractors import (
     build_tileset_name_pairs,
     extract_map_layout,
     extract_map_table,
     extract_tileset,
     extract_tileset_info,
 )
-from extract_data.utils import find_by_field, find_primary_from_secondary
+from hypercutter.utils import find_by_field, find_primary_from_secondary
 
 
 class TestFindByField:
