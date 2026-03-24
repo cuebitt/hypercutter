@@ -1,4 +1,4 @@
-name: Build Wheel
+name: Build and Publish
 
 on:
   push:
@@ -28,24 +28,21 @@ jobs:
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wheel
+          name: dist
           path: dist/
 
-  release:
+  publish:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      contents: write
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: wheel
+          name: dist
           path: dist/
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          files: dist/*
-          generate_release_notes: true
+          password: ${{ secrets.PYPI_API_TOKEN }}
