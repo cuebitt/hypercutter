@@ -7,8 +7,6 @@ const runButton = document.getElementById('run');
 const output = document.getElementById('output');
 const status = document.getElementById('status');
 
-const PACKAGE_URL = 'https://github.com/cuebitt/hypercutter/releases/download/v0.1.0/hypercutter-0.1.0-py3-none-any.whl';
-
 async function initPyodide() {
     status.textContent = 'Loading Pyodide...';
     status.className = 'loading';
@@ -21,7 +19,7 @@ async function initPyodide() {
 
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport('micropip');
-    await micropip.install(PACKAGE_URL);
+    await micropip.install("hypercutter");
 
     const { extract } = pyodide.pyimport('extract_data');
     pyodide.extract = extract;
