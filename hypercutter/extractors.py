@@ -50,13 +50,25 @@ from .lzss3 import decompress_bytes
 
 logger = logging.getLogger(__name__)
 
+# ROM header location and expected game code for Pokemon Emerald
 GAME_CODE_OFFSET = 0xAC
 GAME_CODE_LENGTH = 4
 EXPECTED_GAME_CODE = b"BPEE"
 
 
 def validate_rom(rom_data: bytes) -> bool:
-    """Validate that the ROM has the expected game code."""
+    """
+    Validate that the ROM has the expected game code.
+
+    Pokemon Emerald ROMs have the game code "BPEE" at offset 0xAC.
+    This helps verify we're working with the correct ROM file.
+
+    Args:
+        rom_data: Raw ROM bytes.
+
+    Returns:
+        True if validation passed (even with warnings).
+    """
     if len(rom_data) < GAME_CODE_OFFSET + GAME_CODE_LENGTH:
         logger.warning("ROM file too small to validate")
         return True
@@ -69,7 +81,19 @@ def validate_rom(rom_data: bytes) -> bool:
 
 
 def _parse_symbols(data: str) -> list[Offset]:
-    """Parse symbol data into Offset objects."""
+    """
+    Parse symbol data into Offset objects.
+
+    Symbol file format (one symbol per line):
+    08abcde0 l 00000010 gSymbolName
+    [address] [type] [length] [name]
+
+    Args:
+        data: Raw symbol file contents.
+
+    Returns:
+        List of Offset objects.
+    """
     return [
         Offset(
             address=int(f"0x{line[0]}", 0),
@@ -101,7 +125,22 @@ def read_rom(filepath_or_data: str | bytes) -> bytes:
 
 
 def extract_map_layout(binary_data: bytes, offset: int) -> MapLayout:
-    """Extract a MapLayout struct from binary data at the given offset."""
+    """
+    Extract a MapLayout struct from binary data at the given offset.
+
+    MapLayout defines the structure of a game map including its dimensions
+    and which tilesets it uses.
+
+    Args:
+        binary_data: Raw ROM bytes.
+        offset: Byte offset where the MapLayout struct begins.
+
+    Returns:
+        A MapLayout object with all fields populated.
+
+    Raises:
+        ValueError: If the offset is out of range.
+    """
     if offset < 0 or offset + MAP_LAYOUT_SIZE > len(binary_data):
         raise ValueError(
             f"Offset 0x{offset:X} is out of range "
@@ -121,7 +160,20 @@ def extract_map_layout(binary_data: bytes, offset: int) -> MapLayout:
 
 
 def extract_map_table(rom: bytes, map_table_sym_offset: int, count: int) -> list[int]:
-    """Extract map addresses from the ROM's map table."""
+    """
+    Extract map addresses from the ROM's map table.
+
+    The map table is an array of pointers to MapLayout structs.
+    Each pointer is a 32-bit ROM address.
+
+    Args:
+        rom: Raw ROM bytes.
+        map_table_sym_offset: File offset where the map table starts.
+        count: Number of map entries to extract.
+
+    Returns:
+        List of ROM addresses pointing to MapLayout structs.
+    """
     return [
         int.from_bytes(
             rom[map_table_sym_offset + i * 4 : map_table_sym_offset + (i + 1) * 4],
@@ -132,7 +184,22 @@ def extract_map_table(rom: bytes, map_table_sym_offset: int, count: int) -> list
 
 
 def extract_tileset_info(tileset_name: str, symbols: list[Offset]) -> dict[str, int]:
-    """Extract tileset tile and palette lengths from symbols."""
+    """
+    Extract tileset tile and palette lengths from symbols.
+
+    Symbol files contain the sizes of tiles and palette data.
+    We look for gTilesetTiles_{name} and gTilesetPalettes_{name} symbols.
+
+    Some tilesets have variant names (e.g., Building/InsideBuilding), so we
+    try both if the primary name doesn't match.
+
+    Args:
+        tileset_name: Name of the tileset (e.g., "Overworld", "Building").
+        symbols: List of symbol offsets from the .sym file.
+
+    Returns:
+        Dictionary with 'tiles_length' and 'palettes_len' values.
+    """
     variants = {tileset_name}
     if tileset_name == "Building":
         variants.add("InsideBuilding")
@@ -155,7 +222,19 @@ def extract_tileset_info(tileset_name: str, symbols: list[Offset]) -> dict[str, 
 
 
 def extract_metatile_info(metatile_name: str, symbols: list[Offset]) -> int:
-    """Extract metatile count from symbols."""
+    """
+    Extract metatile data length from symbols.
+
+    Looks for gMetatiles_{name} symbol which contains the length
+    of the metatile data in bytes.
+
+    Args:
+        metatile_name: Name of the metatile (usually matches tileset name).
+        symbols: List of symbol offsets from the .sym file.
+
+    Returns:
+        Length of metatile data in bytes, or 0 if not found.
+    """
     sym = find_by_field(symbols, "name", f"gMetatiles_{metatile_name}")
     return sym.length if sym else 0
 
@@ -163,7 +242,21 @@ def extract_metatile_info(metatile_name: str, symbols: list[Offset]) -> int:
 def build_tileset_name_pairs(
     layouts: list[MapLayout], symbols: list[Offset]
 ) -> dict[str, list[str]]:
-    """Build a mapping of primary tilesets to their secondary tilesets."""
+    """
+    Build a mapping of primary tilesets to their secondary tilesets.
+
+    Each map uses a primary tileset (always loaded) and optionally a
+    secondary tileset (specific to that map). This function maps which
+    secondary tilesets belong to which primary.
+
+    Args:
+        layouts: List of extracted MapLayout objects.
+        symbols: List of symbol offsets for name lookups.
+
+    Returns:
+        Dictionary mapping primary tileset name to list of secondary names.
+        Example: {"Overworld": ["Grass", "Water", "Building"]}
+    """
     tileset_pairs: dict[int, set[int]] = {}
     for layout in layouts:
         if layout.primary_tileset_ptr not in tileset_pairs:
@@ -229,7 +322,22 @@ def extract_raw_data(
     start_sym_offset: int,
     is_compressed: bool = False,
 ) -> bytes:
-    """Extract and optionally decompress raw data from the ROM."""
+    """
+    Extract and optionally decompress raw data from the ROM.
+
+    GBA ROMs use LZ77 compression for many assets. This function reads
+    data from a ROM address and optionally decompresses it.
+
+    Args:
+        binary_data: Raw ROM bytes.
+        ptr: ROM address where data starts.
+        length: Expected length (for uncompressed) or max length (for compressed).
+        start_sym_offset: Base address for ROM pointers (typically 0x8000000).
+        is_compressed: Whether to decompress the data using LZ77.
+
+    Returns:
+        Extracted (and possibly decompressed) data bytes.
+    """
     offset = ptr - start_sym_offset
     if offset < 0 or offset >= len(binary_data):
         return b""
@@ -251,7 +359,24 @@ def extract_tileset_with_raw(
     tileset_info: dict[str, int],
     metatile_length: int = 0,
 ) -> dict[str, Any]:
-    """Extract a Tileset struct and its raw data."""
+    """
+    Extract a Tileset struct and its raw data.
+
+    This is the main extraction function for a single tileset. It reads:
+    - Tile graphics (may be LZ77 compressed)
+    - Palette data (16 palettes × 16 colors × 2 bytes)
+    - Metatile definitions (16 bytes per metatile)
+
+    Args:
+        rom: Raw ROM bytes.
+        offset: File offset where the Tileset struct begins.
+        start_sym_offset: Base address for ROM pointers.
+        tileset_info: Dictionary with 'tiles_length' and 'palettes_len'.
+        metatile_length: Length of metatile data in bytes.
+
+    Returns:
+        Dictionary containing the Tileset struct plus raw data fields.
+    """
     tileset = extract_tileset(rom, offset)
     from dataclasses import asdict
 
@@ -390,13 +515,12 @@ def extract(sym_data: str | bytes, rom_data: str | bytes) -> dict[str, Any]:
     map_table_sym = find_by_field(symbols, "name", "gMapLayouts")
     if not map_table_sym:
         raise ValueError("Symbol 'gMapLayouts' not found in symbols file")
-    map_table_sym_offset = map_table_sym.address
 
     map_table_sym_idx = symbols.index(map_table_sym)
-    map_table_length = symbols[map_table_sym_idx + 1].address - map_table_sym_offset
-    map_table_count = map_table_length // 0x4
+    map_table_length = symbols[map_table_sym_idx + 1].address - map_table_sym.address
+    map_table_count = map_table_length // 4
 
-    rel_offset = map_table_sym_offset - start_sym_offset
+    rel_offset = map_table_sym.address - start_sym_offset
     logger.info("Found %d maps at 0x%x", map_table_count, rel_offset)
 
     map_table = extract_map_table(rom, rel_offset, map_table_count)

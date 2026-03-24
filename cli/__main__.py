@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -95,7 +96,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Extract metatiles from pokeemerald ROM"
     )
-    parser.add_argument("sym", help="Path to .sym file")
+    parser.add_argument(
+        "sym",
+        nargs="?",
+        help="Path to .sym file (will download if not provided)",
+    )
     parser.add_argument("rom", help="Path to .gba ROM file")
     parser.add_argument(
         "-o",
@@ -116,13 +121,22 @@ def main() -> None:
     args = parser.parse_args()
     setup_logging(args.verbose)
 
+    # Download sym file if not provided
+    sym_path = args.sym
+    if not sym_path:
+        SYM_URL = "https://cdn.jsdelivr.net/gh/pret/pokeemerald@symbols/pokeemerald.sym"
+        sym_path = "pokeemerald.sym"
+        logging.info("Downloading symbol file from %s", SYM_URL)
+        urllib.request.urlretrieve(SYM_URL, sym_path)
+        logging.info("Downloaded to %s", sym_path)
+
     # Default paths if not specified
     output_path = args.output if args.output else "out/metatiles.json"
     export_dir = args.export if args.export else "out/tilesets"
 
     try:
         run(
-            args.sym,
+            sym_path,
             args.rom,
             output_path,
             export_dir if args.export is not None or args.output is None else None,
