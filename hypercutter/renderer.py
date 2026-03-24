@@ -3,7 +3,11 @@ from typing import Any
 
 from PIL import Image
 
-from .constants import DEFAULT_ROM_BASE_ADDRESS, PALETTE_SIZE, PRIMARY_TILESET_TILE_COUNT
+from .constants import (
+    DEFAULT_ROM_BASE_ADDRESS,
+    PALETTE_SIZE,
+    PRIMARY_TILESET_TILE_COUNT,
+)
 from .lzss3 import decompress_bytes
 from .utils import decode_bgr555, decode_tile_4bpp, parse_metatile_entry
 
