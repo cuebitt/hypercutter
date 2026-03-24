@@ -49,15 +49,9 @@ romFilePng.addEventListener('change', updateButtons);
 async function writeFiles(symFile, romFile) {
     const offsetsBuffer = await symFile.arrayBuffer();
     const romBuffer = await romFile.arrayBuffer();
-    try {
-        pyodide.FS.unlink('/tmp/emerald_offsets.yaml');
-    } catch (e) { }
-    try {
-        pyodide.FS.unlink('/tmp/pokeemerald.gba');
-    } catch (e) { }
-    try {
-        pyodide.FS.unlink('/tmp/metatiles.json');
-    } catch (e) { }
+    for (const path of ['/tmp/emerald_offsets.yaml', '/tmp/pokeemerald.gba', '/tmp/metatiles.json']) {
+        try { pyodide.FS.unlink(path); } catch (e) { }
+    }
     pyodide.FS.writeFile('/tmp/emerald_offsets.yaml', new Uint8Array(offsetsBuffer));
     pyodide.FS.writeFile('/tmp/pokeemerald.gba', new Uint8Array(romBuffer));
 }
