@@ -45,3 +45,9 @@ See [docs.readthedocs.io](https://hypercutter.readthedocs.io)
 ## License
 
 MIT
+
+## Attribution
+
+The following open-source libraries are used:
+
+- [magical/nlzss](https://github.com/magical/nlzss)

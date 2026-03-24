@@ -5,6 +5,8 @@ import json
 import logging
 from pathlib import Path
 
+from tqdm import tqdm
+
 from hypercutter import extract
 from hypercutter.renderer import TilesetRenderer
 
@@ -34,7 +36,7 @@ def save_output(data: dict, output_path: Path) -> None:
 def export_images(metatiles: dict, output_dir: Path) -> None:
     """Render and save metatiles as PNG images."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    for name, data in metatiles.items():
+    for name, data in tqdm(metatiles.items(), desc="Rendering tilesets", unit="tileset"):
         try:
             renderer = TilesetRenderer(data)
             img = renderer.render()
