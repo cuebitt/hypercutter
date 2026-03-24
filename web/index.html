@@ -17,23 +17,41 @@
     </header>
 
     <main class="container">
-        <article style="max-width: 520px; margin: auto;">
-            <header>Extract Metatile Info</header>
-            <form id="metatile-info-form">
-                <fieldset>
-                    <label for="sym-file">
-                        Symbol File (.sym)
-                        <input type="file" id="sym-file" accept=".sym" required>
-                    </label>
+        <div class="grid">
+            <article>
+                <header>Extract Metadata (JSON)</header>
+                <form id="json-form">
+                    <fieldset>
+                        <label for="sym-file-json">
+                            Symbol File (.sym)
+                            <input type="file" id="sym-file-json" accept=".sym" required>
+                        </label>
+                        <label for="rom-file-json">
+                            ROM File (.gba)
+                            <input type="file" id="rom-file-json" accept=".gba" required>
+                        </label>
+                    </fieldset>
+                    <input type="submit" value="Extract JSON" id="json-btn" disabled>
+                </form>
+            </article>
 
-                    <label for="rom-file">
-                        ROM File (.gba)
-                        <input type="file" id="rom-file" accept=".gba" required>
-                    </label>
-                </fieldset>
-                <input type="submit" value="Extract Metatiles" id="submit-metatile-info-btn" disabled>
-            </form>
-        </article>
+            <article>
+                <header>Extract Images (PNG)</header>
+                <form id="png-form">
+                    <fieldset>
+                        <label for="json-file-png">
+                            Metatiles JSON (from Metadata step)
+                            <input type="file" id="json-file-png" accept=".json" required>
+                        </label>
+                        <label for="rom-file-png">
+                            ROM File (.gba)
+                            <input type="file" id="rom-file-png" accept=".gba" required>
+                        </label>
+                    </fieldset>
+                    <input type="submit" value="Extract PNGs" id="png-btn" disabled>
+                </form>
+            </article>
+        </div>
 
         <article id="status-article" style="display: none; margin-top: 1rem;">
             <header id="status"></header>
