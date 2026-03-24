@@ -58,20 +58,11 @@ class TilesetRenderer:
 
     def _ensure_raw_data(self) -> None:
         """Ensure raw data is present, re-extracting from ROM if needed."""
-        if self.primary:
-            if not self.primary.get("palettes_raw"):
-                self._extract_raw_from_rom(self.primary)
-            if not self.primary.get("tiles_raw"):
-                self._extract_raw_from_rom(self.primary)
-            if not self.primary.get("metatiles_raw"):
-                self._extract_raw_from_rom(self.primary)
-        if self.secondary:
-            if not self.secondary.get("palettes_raw"):
-                self._extract_raw_from_rom(self.secondary)
-            if not self.secondary.get("tiles_raw"):
-                self._extract_raw_from_rom(self.secondary)
-            if not self.secondary.get("metatiles_raw"):
-                self._extract_raw_from_rom(self.secondary)
+        for tileset in (self.primary, self.secondary):
+            if tileset:
+                for field in ("palettes_raw", "tiles_raw", "metatiles_raw"):
+                    if not tileset.get(field):
+                        self._extract_raw_from_rom(tileset)
 
     def _get_palettes(
         self, tileset: dict[str, Any]
@@ -129,6 +120,7 @@ class TilesetRenderer:
         Returns:
             A PIL Image of the rendered tileset.
         """
+        logger.debug("Starting render")
         if not self.primary:
             raise ValueError("Primary tileset data is required for rendering")
 
@@ -220,4 +212,5 @@ class TilesetRenderer:
             gy = (mt_idx // grid_width) * 16
             output.paste(metatile_img, (gx, gy))
 
+        logger.debug("Render complete: %d metatiles", num_metatiles)
         return output
