@@ -7,7 +7,7 @@ name = "hypercutter"
 version = "0.2.0"
 description = "GBA Pokemon ROM data extraction tool"
 requires-python = ">=3.10"
-dependencies = ["Pillow"]
+dependencies = ["Pillow", "tqdm"]
 
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx-rtd-theme"]
