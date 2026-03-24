@@ -11,6 +11,15 @@ dependencies = ["Pillow", "tqdm"]
 
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx-rtd-theme"]
+lint = ["ruff"]
+test = ["pytest"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.format]
+quote-style = "double"
 
 [project.scripts]
 hypercutter = "cli.__main__:main"

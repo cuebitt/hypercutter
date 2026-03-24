@@ -38,7 +38,13 @@ import struct
 from typing import Any
 
 from .classes import MapLayout, Offset, OffsetType, Tileset
-from .constants import MAP_LAYOUT_FORMAT, MAP_LAYOUT_SIZE, TILESET_FORMAT, TILESET_SIZE
+from .constants import (
+    MAP_LAYOUT_FORMAT,
+    MAP_LAYOUT_SIZE,
+    PALETTE_SIZE,
+    TILESET_FORMAT,
+    TILESET_SIZE,
+)
 from .utils import find_by_field, find_primary_from_secondary
 from .lzss3 import decompress_bytes
 
@@ -253,7 +259,7 @@ def extract_tileset_with_raw(
     data.pop("callback_ptr", None)
 
     tiles_len = tileset_info.get("tiles_length", 0)
-    palettes_len = 512  # Standard GBA palette size
+    palettes_len = PALETTE_SIZE
 
     # Extract tiles
     data["tiles_raw"] = extract_raw_data(
@@ -404,4 +410,4 @@ def extract(sym_data: str | bytes, rom_data: str | bytes) -> dict[str, Any]:
     metatiles = extract_metatiles(tileset_name_pairs, tilesets, symbols)
 
     logger.info("Extraction complete: %d metatiles", len(metatiles))
-    return metatiles
+    return metatiles, start_sym_offset
