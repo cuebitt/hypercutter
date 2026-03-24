@@ -13,6 +13,7 @@ from typing import Any
 from .classes import MapLayout, Offset, OffsetType, Tileset
 from .constants import MAP_LAYOUT_FORMAT, MAP_LAYOUT_SIZE, TILESET_FORMAT, TILESET_SIZE
 from .utils import find_by_field, find_primary_from_secondary
+from .lzss3 import decompress_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -22,15 +23,7 @@ EXPECTED_GAME_CODE = b"BPEE"
 
 
 def validate_rom(rom_data: bytes) -> bool:
-    """
-    Validate that the ROM has the expected game code.
-
-    Args:
-        rom_data: Raw ROM bytes.
-
-    Returns:
-        True if valid or too small to validate.
-    """
+    """Validate that the ROM has the expected game code."""
     if len(rom_data) < GAME_CODE_OFFSET + GAME_CODE_LENGTH:
         logger.warning("ROM file too small to validate")
         return True
@@ -43,7 +36,7 @@ def validate_rom(rom_data: bytes) -> bool:
 
 
 def _parse_symbols(data: str) -> list[Offset]:
-    """Parse symbol data into Offset objects. Used by both file and bytes variants."""
+    """Parse symbol data into Offset objects."""
     return [
         Offset(
             address=int(f"0x{line[0]}", 0),
@@ -56,15 +49,7 @@ def _parse_symbols(data: str) -> list[Offset]:
 
 
 def load_symbols(filepath_or_data: str | bytes) -> list[Offset]:
-    """
-    Load symbols from a .sym file or raw data.
-
-    Args:
-        filepath_or_data: Path to the .sym file, or raw file contents as bytes.
-
-    Returns:
-        List of Offset objects representing each symbol.
-    """
+    """Load symbols from a .sym file or raw data."""
     logger.debug(f"load_symbols: {filepath_or_data}")
     if isinstance(filepath_or_data, str):
         with open(filepath_or_data, "r", encoding="utf-8") as f:
@@ -75,15 +60,7 @@ def load_symbols(filepath_or_data: str | bytes) -> list[Offset]:
 
 
 def read_rom(filepath_or_data: str | bytes) -> bytes:
-    """
-    Read a ROM file into memory.
-
-    Args:
-        filepath_or_data: Path to the .gba ROM file, or raw ROM data as bytes.
-
-    Returns:
-        Raw ROM bytes.
-    """
+    """Read a ROM file into memory."""
     if isinstance(filepath_or_data, str):
         with open(filepath_or_data, "rb") as f:
             return f.read()
@@ -91,19 +68,7 @@ def read_rom(filepath_or_data: str | bytes) -> bytes:
 
 
 def extract_map_layout(binary_data: bytes, offset: int) -> MapLayout:
-    """
-    Extract a MapLayout struct from binary data at the given offset.
-
-    Args:
-        binary_data: Raw ROM bytes.
-        offset: Byte offset where the struct begins.
-
-    Returns:
-        A MapLayout object with all fields populated.
-
-    Raises:
-        ValueError: If the offset is out of range.
-    """
+    """Extract a MapLayout struct from binary data at the given offset."""
     if offset < 0 or offset + MAP_LAYOUT_SIZE > len(binary_data):
         raise ValueError(
             f"Offset 0x{offset:X} is out of range "
@@ -120,6 +85,75 @@ def extract_map_layout(binary_data: bytes, offset: int) -> MapLayout:
         primary_tileset_ptr=fields[4],
         secondary_tileset_ptr=fields[5],
     )
+
+
+def extract_map_table(rom: bytes, map_table_sym_offset: int, count: int) -> list[int]:
+    """Extract map addresses from the ROM's map table."""
+    return [
+        int.from_bytes(
+            rom[map_table_sym_offset + i * 4 : map_table_sym_offset + (i + 1) * 4],
+            "little",
+        )
+        for i in range(count)
+    ]
+
+
+def extract_tileset_info(tileset_name: str, symbols: list[Offset]) -> dict[str, int]:
+    """Extract tileset tile and palette lengths from symbols."""
+    variants = {tileset_name}
+    if tileset_name == "Building":
+        variants.add("InsideBuilding")
+    elif tileset_name == "InsideBuilding":
+        variants.add("Building")
+
+    tiles_length = 0
+    palettes_len = 0
+    for variant in variants:
+        tiles_sym = find_by_field(symbols, "name", f"gTilesetTiles_{variant}")
+        palettes_sym = find_by_field(symbols, "name", f"gTilesetPalettes_{variant}")
+        if tiles_sym:
+            tiles_length = tiles_sym.length
+        if palettes_sym:
+            palettes_len = palettes_sym.length
+        if tiles_length or palettes_len:
+            break
+
+    return {"tiles_length": tiles_length, "palettes_len": palettes_len}
+
+
+def extract_metatile_info(metatile_name: str, symbols: list[Offset]) -> int:
+    """Extract metatile count from symbols."""
+    sym = find_by_field(symbols, "name", f"gMetatiles_{metatile_name}")
+    return sym.length if sym else 0
+
+
+def build_tileset_name_pairs(
+    layouts: list[MapLayout], symbols: list[Offset]
+) -> dict[str, list[str]]:
+    """Build a mapping of primary tilesets to their secondary tilesets."""
+    tileset_pairs: dict[int, set[int]] = {}
+    for layout in layouts:
+        if layout.primary_tileset_ptr not in tileset_pairs:
+            tileset_pairs[layout.primary_tileset_ptr] = set()
+        tileset_pairs[layout.primary_tileset_ptr].add(layout.secondary_tileset_ptr)
+
+    tileset_name_pairs: dict[str, list[str]] = {}
+    for primary, secondary_set in tileset_pairs.items():
+        primary_sym = find_by_field(symbols, "address", primary)
+        if not primary_sym:
+            continue
+
+        secondary_names = []
+        for addr in secondary_set:
+            secondary_sym = find_by_field(symbols, "address", addr)
+            if secondary_sym:
+                secondary_names.append(secondary_sym.name.replace("gTileset_", ""))
+
+        tileset_name_pairs[primary_sym.name.replace("gTileset_", "")] = list(
+            set(secondary_names)
+        )
+
+    return tileset_name_pairs
 
 
 def extract_tileset(binary_data: bytes, offset: int) -> Tileset:
@@ -155,97 +189,76 @@ def extract_tileset(binary_data: bytes, offset: int) -> Tileset:
     )
 
 
-def extract_map_table(rom: bytes, map_table_sym_offset: int, count: int) -> list[int]:
-    """
-    Extract map addresses from the ROM's map table.
+def extract_raw_data(
+    binary_data: bytes,
+    ptr: int,
+    length: int,
+    start_sym_offset: int,
+    is_compressed: bool = False,
+) -> bytes:
+    """Extract and optionally decompress raw data from the ROM."""
+    offset = ptr - start_sym_offset
+    if offset < 0 or offset >= len(binary_data):
+        return b""
 
-    Args:
-        rom: Raw ROM bytes.
-        map_table_sym_offset: Offset to the start of the map table.
-        count: Number of map addresses to extract.
-
-    Returns:
-        List of map addresses (as integers).
-    """
-    return [
-        int.from_bytes(
-            rom[map_table_sym_offset + i * 4 : map_table_sym_offset + (i + 1) * 4],
-            "little",
-        )
-        for i in range(count)
-    ]
-
-
-def extract_tileset_info(tileset_name: str, symbols: list[Offset]) -> dict[str, int]:
-    """
-    Extract tileset tile and palette lengths from symbols.
-
-    Handles the Building/InsideBuilding naming quirk by trying both variants.
-
-    Args:
-        tileset_name: Name of the tileset.
-        symbols: List of symbol offsets.
-
-    Returns:
-        Dictionary with 'tiles_length' and 'palettes_len' keys.
-    """
-    variants = {tileset_name}
-    if tileset_name == "Building":
-        variants.add("InsideBuilding")
-    elif tileset_name == "InsideBuilding":
-        variants.add("Building")
-
-    tiles_length = 0
-    palettes_len = 0
-    for variant in variants:
-        tiles_sym = find_by_field(symbols, "name", f"gTilesetTiles_{variant}")
-        palettes_sym = find_by_field(symbols, "name", f"gTilesetPalettes_{variant}")
-        if tiles_sym:
-            tiles_length = tiles_sym.length
-        if palettes_sym:
-            palettes_len = palettes_sym.length
-        if tiles_length or palettes_len:
-            break
-
-    return {"tiles_length": tiles_length, "palettes_len": palettes_len}
+    if is_compressed:
+        try:
+            return bytes(decompress_bytes(binary_data[offset:]))
+        except Exception as e:
+            logger.warning(f"Decompression failed at 0x{offset:X}: {e}, using raw data")
+            return binary_data[offset : offset + length]
+    else:
+        return binary_data[offset : offset + length]
 
 
-def build_tileset_name_pairs(
-    layouts: list[MapLayout], symbols: list[Offset]
-) -> dict[str, list[str]]:
-    """
-    Build a mapping of primary tilesets to their secondary tilesets.
+def extract_tileset_with_raw(
+    rom: bytes,
+    offset: int,
+    start_sym_offset: int,
+    tileset_info: dict[str, int],
+    metatile_length: int = 0,
+) -> dict[str, Any]:
+    """Extract a Tileset struct and its raw data."""
+    tileset = extract_tileset(rom, offset)
+    from dataclasses import asdict
 
-    Args:
-        layouts: List of map layouts.
-        symbols: List of symbol offsets.
+    data = asdict(tileset)
+    data.pop("callback_ptr", None)
 
-    Returns:
-        Dictionary mapping primary tileset names to lists of secondary tileset names.
-    """
-    tileset_pairs: dict[int, set[int]] = {}
-    for layout in layouts:
-        if layout.primary_tileset_ptr not in tileset_pairs:
-            tileset_pairs[layout.primary_tileset_ptr] = set()
-        tileset_pairs[layout.primary_tileset_ptr].add(layout.secondary_tileset_ptr)
+    tiles_len = tileset_info.get("tiles_length", 0)
+    palettes_len = 512  # Standard GBA palette size
 
-    tileset_name_pairs: dict[str, list[str]] = {}
-    for primary, secondary_set in tileset_pairs.items():
-        primary_sym = find_by_field(symbols, "address", primary)
-        if not primary_sym:
-            continue
+    # Extract tiles
+    data["tiles_raw"] = extract_raw_data(
+        rom,
+        tileset.tiles_ptr,
+        tiles_len,
+        start_sym_offset,
+        tileset.is_compressed,
+    )
+    data["tiles_length"] = len(data["tiles_raw"])
 
-        secondary_names = []
-        for addr in secondary_set:
-            secondary_sym = find_by_field(symbols, "address", addr)
-            if secondary_sym:
-                secondary_names.append(secondary_sym.name.replace("gTileset_", ""))
+    # Extract palettes (16 colors * 16 palettes * 2 bytes = 512 bytes)
+    data["palettes_raw"] = extract_raw_data(
+        rom,
+        tileset.palettes_ptr,
+        palettes_len,
+        start_sym_offset,
+        False,  # Palettes are rarely compressed
+    )
+    data["palettes_length"] = len(data["palettes_raw"])
 
-        tileset_name_pairs[primary_sym.name.replace("gTileset_", "")] = list(
-            set(secondary_names)
-        )
+    # Extract metatiles (16 bytes per metatile)
+    data["metatiles_raw"] = extract_raw_data(
+        rom,
+        tileset.metatiles_ptr,
+        metatile_length,
+        start_sym_offset,
+        False,
+    )
+    data["metatiles_length"] = len(data["metatiles_raw"])
 
-    return tileset_name_pairs
+    return data
 
 
 def extract_all_tilesets(
@@ -262,15 +275,16 @@ def extract_all_tilesets(
     Returns:
         Dictionary mapping tileset names to their extracted data.
     """
-    from dataclasses import asdict
-
     tileset_syms = [s for s in symbols if s.name.startswith("gTileset_")]
-    return {
-        sym.name.replace("gTileset_", ""): asdict(
-            extract_tileset(rom, sym.address - start_sym_offset)
+    results = {}
+    for sym in tileset_syms:
+        name = sym.name.replace("gTileset_", "")
+        info = extract_tileset_info(name, symbols)
+        mt_len = extract_metatile_info(name, symbols)
+        results[name] = extract_tileset_with_raw(
+            rom, sym.address - start_sym_offset, start_sym_offset, info, mt_len
         )
-        for sym in tileset_syms
-    }
+    return results
 
 
 def extract_metatiles(
@@ -294,37 +308,28 @@ def extract_metatiles(
 
     for sym in metatile_syms:
         mt_name = sym.name.replace("gMetatiles_", "")
-        metatiles[mt_name] = {"primary": None, "secondary": None}
 
         p_name = find_primary_from_secondary(tileset_name_pairs, mt_name)
+
+        # If not found in pairs, try using the metatile name directly as primary
         if not p_name:
+            p_name = mt_name
+
+        primary_tileset = tilesets.get(p_name)
+        if not primary_tileset:
             continue
 
         if p_name != mt_name:
-            primary_tileset = tilesets[p_name]
-            primary_tileset["name"] = p_name
-            primary_tileset.update(extract_tileset_info(p_name, symbols))
-
-            secondary_tileset = tilesets[mt_name]
-            secondary_tileset["name"] = mt_name
-            secondary_tileset.update(extract_tileset_info(mt_name, symbols))
+            secondary_tileset = tilesets.get(mt_name)
+            if not secondary_tileset:
+                continue
 
             metatiles[mt_name] = {
                 "primary": primary_tileset,
                 "secondary": secondary_tileset,
             }
         else:
-            tileset = tilesets[mt_name]
-            tileset["name"] = mt_name
-            metatiles[mt_name] = {"primary": tileset, "secondary": None}
-
-    for mt in metatiles.values():
-        if mt["primary"]:
-            mt["primary"].pop("callback_ptr", None)
-            mt["primary"].pop("metatile_attributes_ptr", None)
-        if mt["secondary"]:
-            mt["secondary"].pop("callback_ptr", None)
-            mt["secondary"].pop("metatile_attributes_ptr", None)
+            metatiles[mt_name] = {"primary": primary_tileset, "secondary": None}
 
     return metatiles
 
