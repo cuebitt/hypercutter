@@ -3,21 +3,75 @@ from typing import Any
 
 from PIL import Image
 
+from .lzss3 import decompress_bytes
 from .utils import decode_bgr555, decode_tile_4bpp, parse_metatile_entry
 
 logger = logging.getLogger(__name__)
 
 
 class TilesetRenderer:
-    def __init__(self, tileset_data: dict[str, Any]):
+    def __init__(self, tileset_data: dict[str, Any], rom_data: bytes = None):
         """
         Initialize the renderer with tileset data.
 
         Args:
             tileset_data: Extracted tileset data containing primary and secondary tilesets.
+            rom_data: Optional ROM bytes for re-extracting raw data if not present.
         """
+        self.rom = rom_data
         self.primary = tileset_data.get("primary")
         self.secondary = tileset_data.get("secondary")
+        self._ensure_raw_data()
+
+    def _extract_raw_from_rom(self, tileset: dict[str, Any]) -> None:
+        """Extract raw data from ROM using pointers if not present."""
+        if self.rom is None:
+            return
+        if tileset.get("palettes_raw") is None:
+            ptr = tileset.get("palettes_ptr")
+            if ptr:
+                offset = ptr - 0x8000000
+                if offset > 0 and offset + 512 <= len(self.rom):
+                    tileset["palettes_raw"] = bytes(self.rom[offset : offset + 512])
+        if tileset.get("tiles_raw") is None:
+            ptr = tileset.get("tiles_ptr")
+            length = tileset.get("tiles_length", 0)
+            is_compressed = tileset.get("is_compressed", False)
+            if ptr and length:
+                offset = ptr - 0x8000000
+                if offset > 0 and offset + length <= len(self.rom):
+                    raw_data = bytes(self.rom[offset : offset + length])
+                    if is_compressed:
+                        try:
+                            tileset["tiles_raw"] = bytes(decompress_bytes(raw_data))
+                        except Exception:
+                            tileset["tiles_raw"] = raw_data
+                    else:
+                        tileset["tiles_raw"] = raw_data
+        if tileset.get("metatiles_raw") is None:
+            ptr = tileset.get("metatiles_ptr")
+            length = tileset.get("metatiles_length", 0)
+            if ptr and length:
+                offset = ptr - 0x8000000
+                if offset > 0 and offset + length <= len(self.rom):
+                    tileset["metatiles_raw"] = bytes(self.rom[offset : offset + length])
+
+    def _ensure_raw_data(self) -> None:
+        """Ensure raw data is present, re-extracting from ROM if needed."""
+        if self.primary:
+            if not self.primary.get("palettes_raw"):
+                self._extract_raw_from_rom(self.primary)
+            if not self.primary.get("tiles_raw"):
+                self._extract_raw_from_rom(self.primary)
+            if not self.primary.get("metatiles_raw"):
+                self._extract_raw_from_rom(self.primary)
+        if self.secondary:
+            if not self.secondary.get("palettes_raw"):
+                self._extract_raw_from_rom(self.secondary)
+            if not self.secondary.get("tiles_raw"):
+                self._extract_raw_from_rom(self.secondary)
+            if not self.secondary.get("metatiles_raw"):
+                self._extract_raw_from_rom(self.secondary)
 
     def _get_palettes(
         self, tileset: dict[str, Any]
