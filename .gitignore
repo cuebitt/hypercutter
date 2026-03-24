@@ -48,6 +48,7 @@ out/
 *.gbc
 *.nds
 *.sym
+data/
 
 # OS
 .DS_Store
