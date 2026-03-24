@@ -9,12 +9,16 @@ class TestTilesetRenderer:
             TilesetRenderer({}).render()
 
     def test_stores_rom_base_address(self):
-        data = {"primary": {"tiles_raw": b"", "palettes_raw": b"", "metatiles_raw": b""}}
+        data = {
+            "primary": {"tiles_raw": b"", "palettes_raw": b"", "metatiles_raw": b""}
+        }
         renderer = TilesetRenderer(data, rom_base_address=0x9000000)
         assert renderer.rom_base_address == 0x9000000
 
     def test_uses_default_rom_base_address(self):
-        data = {"primary": {"tiles_raw": b"", "palettes_raw": b"", "metatiles_raw": b""}}
+        data = {
+            "primary": {"tiles_raw": b"", "palettes_raw": b"", "metatiles_raw": b""}
+        }
         renderer = TilesetRenderer(data)
         assert renderer.rom_base_address == 0x8000000
 
