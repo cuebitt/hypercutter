@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hypercutter"
-version = "0.1.3"
-description = "Pokemon Emerald image ripper - rips tilesets and sprites"
+version = "0.2.0"
+description = "GBA Pokemon ROM data extraction tool"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["Pillow"]
 
 [project.scripts]
 hypercutter = "cli.__main__:main"
