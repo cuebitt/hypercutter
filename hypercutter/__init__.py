@@ -1,5 +1,11 @@
 from .classes import MapLayout, Offset, OffsetType, Tileset
-from .constants import MAP_LAYOUT_FORMAT, MAP_LAYOUT_SIZE, TILESET_FORMAT, TILESET_SIZE
+from .constants import (
+    DEFAULT_ROM_BASE_ADDRESS,
+    MAP_LAYOUT_FORMAT,
+    MAP_LAYOUT_SIZE,
+    TILESET_FORMAT,
+    TILESET_SIZE,
+)
 from .extractors import (
     build_tileset_name_pairs,
     extract,
@@ -19,6 +25,7 @@ __all__ = [
     "Offset",
     "MapLayout",
     "Tileset",
+    "DEFAULT_ROM_BASE_ADDRESS",
     "MAP_LAYOUT_SIZE",
     "MAP_LAYOUT_FORMAT",
     "TILESET_SIZE",
