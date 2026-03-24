@@ -1,7 +1,7 @@
 let pyodide = null;
 let isReady = false;
 
-const symFileInput = document.getElementById('sym-file');
+const offsetsFileInput = document.getElementById('sym-file');
 const romFileInput = document.getElementById('rom-file');
 const runButton = document.getElementById('run');
 const output = document.getElementById('output');
@@ -17,12 +17,9 @@ async function initPyodide() {
 
     status.textContent = 'Installing package...';
 
-    await pyodide.loadPackage("micropip");
+    await pyodide.loadPackage('micropip');
     const micropip = pyodide.pyimport('micropip');
-    await micropip.install("hypercutter");
-
-    const { extract } = pyodide.pyimport('hypercutter');
-    pyodide.extract = extract;
+    await micropip.install('hypercutter');
 
     isReady = true;
     status.textContent = 'Ready';
@@ -31,10 +28,10 @@ async function initPyodide() {
 }
 
 function updateRunButton() {
-    runButton.disabled = !isReady || !symFileInput.files[0] || !romFileInput.files[0];
+    runButton.disabled = !isReady || !offsetsFileInput.files[0] || !romFileInput.files[0];
 }
 
-symFileInput.addEventListener('change', updateRunButton);
+offsetsFileInput.addEventListener('change', updateRunButton);
 romFileInput.addEventListener('change', updateRunButton);
 
 runButton.addEventListener('click', async () => {
@@ -46,24 +43,34 @@ runButton.addEventListener('click', async () => {
     runButton.disabled = true;
 
     try {
-        const symFile = symFileInput.files[0];
+        const offsetsFile = offsetsFileInput.files[0];
         const romFile = romFileInput.files[0];
 
-        const symBuffer = await symFile.arrayBuffer();
+        const offsetsBuffer = await offsetsFile.arrayBuffer();
         const romBuffer = await romFile.arrayBuffer();
 
-        const symData = new Uint8Array(symBuffer);
+        const offsetsData = new Uint8Array(offsetsBuffer);
         const romData = new Uint8Array(romBuffer);
 
-        const result = pyodide.runPython(`
-import json
-json.dumps(pyodide.extract(sym_data.to_py(), rom_data.to_py()))
-        `, { globals: pyodide.toPy({ sym_data: symData, rom_data: romData }) });
+        pyodide.FS.writeFile('/tmp/emerald_offsets.yaml', offsetsData);
+        pyodide.FS.writeFile('/tmp/pokeemerald.gba', romData);
 
-        output.textContent = JSON.stringify(JSON.parse(result), null, 2);
-        output.style.display = 'block';
+        await pyodide.runPythonAsync(`
+from hypercutter import extract
+import os
+
+os.makedirs('/tmp/output', exist_ok=True)
+
+metatiles = extract('/tmp/emerald_offsets.yaml', '/tmp/pokeemerald.gba')
+print(f'Extracted {len(metatiles)} metatiles')
+for name in metatiles:
+    print(name)
+`);
+
         status.textContent = 'Done';
         status.className = '';
+        output.textContent = 'Tiles extracted to /tmp/output/';
+        output.style.display = 'block';
     } catch (error) {
         status.textContent = `Error: ${error.message}`;
         status.className = 'error';

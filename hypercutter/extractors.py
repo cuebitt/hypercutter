@@ -65,6 +65,7 @@ def load_symbols(filepath_or_data: str | bytes) -> list[Offset]:
     Returns:
         List of Offset objects representing each symbol.
     """
+    logger.debug(f"load_symbols: {filepath_or_data}")
     if isinstance(filepath_or_data, str):
         with open(filepath_or_data, "r", encoding="utf-8") as f:
             filepath_or_data = f.read()
