@@ -1,198 +1,193 @@
+// DOM elements
+const elements = {
+    form: document.getElementById('extract-form'),
+    btn: document.getElementById('extract-btn'),
+    romInput: document.getElementById('rom-file'),
+    status: document.getElementById('status'),
+    statusArticle: document.getElementById('status-article'),
+    output: document.getElementById('output'),
+    progressBar: document.getElementById('progress-bar'),
+    versionText: document.getElementById('version-text'),
+    aboutDialog: document.getElementById('about-dlg'),
+    aboutDialogTrigger: document.getElementById('about-dlg-trigger'),
+};
+
 let pyodide = null;
 let isReady = false;
 
-const output = document.getElementById('output');
-const statusView = document.getElementById('status');
+// Helper: Download file from Pyodide filesystem
+function downloadFile(data, filename, mimeType) {
+    const blob = new Blob([data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
-const jsonForm = document.getElementById('json-form');
-const pngForm = document.getElementById('png-form');
-const jsonBtn = document.getElementById('json-btn');
-const pngBtn = document.getElementById('png-btn');
+// Helper: Run Python code
+async function runPython(code) {
+    await pyodide.runPythonAsync(code);
+}
 
-const symFileJson = document.getElementById('sym-file-json');
-const romFileJson = document.getElementById('rom-file-json');
-const jsonFilePng = document.getElementById('json-file-png');
-const romFilePng = document.getElementById('rom-file-png');
+// Helper: Cache sym file
+async function loadSymFile() {
+    const url = 'https://cdn.jsdelivr.net/gh/pret/pokeemerald@symbols/pokeemerald.sym';
+    elements.status.textContent = 'Loading symbol file...';
 
+    const cached = localStorage.getItem('hypercutter_sym');
+    if (cached) {
+        pyodide.FS.writeFile('/tmp/pokeemerald.sym', cached);
+        return;
+    }
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to download');
+        const text = await response.text();
+        localStorage.setItem('hypercutter_sym', text);
+        pyodide.FS.writeFile('/tmp/pokeemerald.sym', text);
+    } catch (e) {
+        throw new Error(`Failed to load sym file: ${e.message}`);
+    }
+}
+
+// Initialize Pyodide
 async function initPyodide() {
-    statusView.textContent = 'Loading Pyodide...';
-    statusView.className = 'loading';
+    elements.status.textContent = 'Loading Pyodide...';
+    elements.status.className = 'loading';
 
-    pyodide = await loadPyodide({
-        indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/'
-    });
+    pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/' });
 
-    statusView.textContent = 'Installing package...';
+    // Expose progress bar updater to Python
+    globalThis.updateProgressBar = (value) => { elements.progressBar.value = value; };
 
-    await pyodide.loadPackage('micropip');
-    const micropip = pyodide.pyimport('micropip');
+    elements.status.textContent = 'Installing package...';
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
     await micropip.install('hypercutter');
-    // await micropip.install('http://localhost:8000/dist/hypercutter-0.2.0-py3-none-any.whl');
-    await micropip.install('Pillow');
+
+    globalThis.setPackageVersionText = (value) => {
+        elements.versionText.textContent = `v${value}`
+    }
+
+    await runPython(`
+from js import setPackageVersionText
+import hypercutter
+import micropip
+import json
+
+j = json.loads(micropip.freeze())
+hc_ver = j["packages"]["hypercutter"]["version"]
+
+setPackageVersionText(hc_ver)
+`);
 
     isReady = true;
-    statusView.textContent = 'Ready';
-    statusView.className = '';
-    updateButtons();
+    elements.status.textContent = 'Ready';
+    elements.status.className = '';
+    elements.btn.disabled = !elements.romInput.files[0];
 }
 
-function updateButtons() {
-    jsonBtn.disabled = !isReady || !symFileJson.files[0] || !romFileJson.files[0];
-    pngBtn.disabled = !isReady || !jsonFilePng.files[0] || !romFilePng.files[0];
-}
-
-symFileJson.addEventListener('change', updateButtons);
-romFileJson.addEventListener('change', updateButtons);
-jsonFilePng.addEventListener('change', updateButtons);
-romFilePng.addEventListener('change', updateButtons);
-
-async function writeFiles(symFile, romFile) {
-    const offsetsBuffer = await symFile.arrayBuffer();
-    const romBuffer = await romFile.arrayBuffer();
-    for (const path of ['/tmp/emerald_offsets.yaml', '/tmp/pokeemerald.gba', '/tmp/metatiles.json']) {
-        try { pyodide.FS.unlink(path); } catch (e) { }
+// Clean up temp files
+async function cleanup() {
+    const files = ['/tmp/pokeemerald.sym', '/tmp/pokeemerald.gba', '/tmp/metatiles.json', '/tmp/tilesets.zip'];
+    for (const path of files) {
+        try { pyodide.FS.unlink(path); } catch (e) { /* ignore */ }
     }
-    pyodide.FS.writeFile('/tmp/emerald_offsets.yaml', new Uint8Array(offsetsBuffer));
-    pyodide.FS.writeFile('/tmp/pokeemerald.gba', new Uint8Array(romBuffer));
 }
 
-jsonForm.addEventListener('submit', async (event) => {
+// Main extraction handler
+elements.form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!isReady) return;
 
-    statusView.textContent = 'Extracting...';
-    statusView.className = 'loading';
-    output.style.display = 'none';
-    jsonBtn.disabled = true;
+    const format = document.querySelector('input[name="format"]:checked').value;
+    elements.status.textContent = 'Extracting...';
+    elements.status.className = 'loading';
+    elements.output.style.display = 'none';
+    elements.statusArticle.style.display = 'block';
+    elements.btn.disabled = true;
 
     try {
-        await writeFiles(symFileJson.files[0], romFileJson.files[0]);
+        // Load ROM and Python module
+        const romBuffer = await elements.romInput.files[0].arrayBuffer();
+        const extractorCode = await fetch('extractor.py').then(r => r.text());
 
-        await pyodide.runPythonAsync(`
-from hypercutter import extract
-import json
-import os
-import sys
+        globalThis.extractorCode = extractorCode;
 
-os.makedirs('/tmp/output', exist_ok=True)
+        await runPython(`
+import importlib
+from pathlib import Path
+from js import extractorCode
 
-def strip_raw(obj):
-    if isinstance(obj, dict):
-        return {k: strip_raw(v) for k, v in obj.items() if not k.endswith('_raw')}
-    elif isinstance(obj, list):
-        return [strip_raw(i) for i in obj]
-    return obj
-
-try:
-    metatiles = extract('/tmp/emerald_offsets.yaml', '/tmp/pokeemerald.gba')
-    print(f'Extracted {len(metatiles)} metatiles')
-
-    cleaned = strip_raw(metatiles)
-    with open('/tmp/metatiles.json', 'w') as f:
-        json.dump(cleaned, f, indent=2)
-
-    print('Saved to /tmp/metatiles.json')
-except Exception as e:
-    print(f'Error: {e}', file=sys.stderr)
-    raise
+Path('extractor.py').write_text(extractorCode)
+importlib.invalidate_caches()
 `);
-        const jsonData = pyodide.FS.readFile('/tmp/metatiles.json');
-        console.log('JSON data length:', jsonData.length);
-        const jsonBlob = new Blob([jsonData], { type: 'application/json' });
-        const jsonUrl = URL.createObjectURL(jsonBlob);
-        const a = document.createElement('a');
-        a.href = jsonUrl;
-        a.download = 'metatiles.json';
-        a.click();
-        URL.revokeObjectURL(jsonUrl);
 
-        statusView.textContent = 'Done';
-        statusView.className = '';
-        output.textContent = 'Extraction complete';
-        output.style.display = 'block';
+        await cleanup();
+        await loadSymFile();
+        pyodide.FS.writeFile('/tmp/pokeemerald.gba', new Uint8Array(romBuffer));
+
+        // Extract metatiles
+        await runPython(`
+import json
+from extractor import extract_metatiles
+
+metatiles = extract_metatiles('/tmp/pokeemerald.sym', '/tmp/pokeemerald.gba')
+with open('/tmp/metatiles.json', 'w') as f:
+    json.dump(metatiles, f, indent=2)
+`);
+
+        // Download JSON
+        if (format === 'json' || format === 'both') {
+            downloadFile(pyodide.FS.readFile('/tmp/metatiles.json'), 'metatiles.json', 'application/json');
+        }
+
+        // Render PNGs
+        if (format === 'png' || format === 'both') {
+            elements.status.textContent = 'Rendering images...';
+            elements.progressBar.style.display = 'block';
+            elements.progressBar.value = 0;
+
+            await runPython(`
+import json
+from extractor import render_images
+
+with open('/tmp/metatiles.json', 'r') as f:
+    render_images(json.load(f), '/tmp/pokeemerald.gba')
+`);
+
+            downloadFile(pyodide.FS.readFile('/tmp/tilesets.zip'), 'tilesets.zip', 'application/zip');
+        }
+
+        elements.status.textContent = 'Done';
+        elements.status.className = '';
+        elements.output.textContent = `Extraction complete (${format} format)`;
+        elements.output.style.display = 'block';
+        elements.progressBar.style.display = 'none';
+
+        setTimeout(() => { elements.statusArticle.style.display = 'none'; }, 2500);
     } catch (error) {
-        statusView.textContent = `Error: ${error.message}`;
-        statusView.className = 'error';
-        output.style.display = 'none';
+        elements.status.textContent = `Error: ${error.message}`;
+        elements.status.className = 'error';
+        elements.progressBar.style.display = 'none';
     } finally {
-        jsonBtn.disabled = false;
-        updateButtons();
+        elements.btn.disabled = false;
     }
 });
 
-pngForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!isReady) return;
+elements.romInput.addEventListener('change', () => {
+    elements.btn.disabled = !isReady || !elements.romInput.files[0];
+});
 
-    statusView.textContent = 'Extracting...';
-    statusView.className = 'loading';
-    output.style.display = 'none';
-    pngBtn.disabled = true;
+elements.aboutDialogTrigger.addEventListener('click', () => {
+    elements.aboutDialog.showModal();
+});
 
-    try {
-        const jsonFile = jsonFilePng.files[0];
-        const romFile = romFilePng.files[0];
-
-        const jsonBuffer = await jsonFile.arrayBuffer();
-        const romBuffer = await romFile.arrayBuffer();
-
-        pyodide.FS.writeFile('/tmp/metatiles.json', new Uint8Array(jsonBuffer));
-        pyodide.FS.writeFile('/tmp/pokeemerald.gba', new Uint8Array(romBuffer));
-
-        await pyodide.runPythonAsync(`
-import json
-import zipfile
-from hypercutter.renderer import TilesetRenderer
-import os
-import sys
-
-os.makedirs('/tmp/output', exist_ok=True)
-
-with open('/tmp/pokeemerald.gba', 'rb') as f:
-    rom_data = f.read()
-
-with open('/tmp/metatiles.json', 'r') as f:
-    metatiles = json.load(f)
-
-print(f'Loaded {len(metatiles)} metatiles')
-
-for name, data in metatiles.items():
-    try:
-        renderer = TilesetRenderer(data, rom_data)
-        img = renderer.render()
-        img.save(f'/tmp/output/{name}.png')
-        print(f'Saved {name}.png')
-    except Exception as e:
-        print(f'Error rendering {name}: {e}')
-
-with zipfile.ZipFile('/tmp/tilesets.zip', 'w') as zf:
-    for name in os.listdir('/tmp/output'):
-        if name.endswith('.png'):
-            zf.write(f'/tmp/output/{name}', name)
-print('Created tilesets.zip')
-`);
-        console.log('Python execution complete');
-        const zipData = pyodide.FS.readFile('/tmp/tilesets.zip');
-        const zipBlob = new Blob([zipData], { type: 'application/zip' });
-        const zipUrl = URL.createObjectURL(zipBlob);
-        const a = document.createElement('a');
-        a.href = zipUrl;
-        a.download = 'tilesets.zip';
-        a.click();
-        URL.revokeObjectURL(zipUrl);
-
-        statusView.textContent = 'Done';
-        statusView.className = '';
-        output.textContent = 'Extraction complete';
-        output.style.display = 'block';
-    } catch (error) {
-        statusView.textContent = `Error: ${error.message}`;
-        statusView.className = 'error';
-        output.style.display = 'none';
-    } finally {
-        pngBtn.disabled = false;
-        updateButtons();
-    }
+elements.aboutDialog.querySelector("button[rel=prev]").addEventListener("click", () => {
+    elements.aboutDialog.close();
 });
 
 initPyodide();

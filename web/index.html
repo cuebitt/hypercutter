@@ -4,60 +4,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extract Data - Metatile Extractor</title>
+    <title>Hypercutter</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="icon" href="https://fav.farm/🔪" />
 </head>
 
 <body>
     <header class="container">
         <hgroup>
-            <h1>Hypercutter</h1>
-            <h2>Extract Metatiles from a Pokemon Emerald ROM!</h2>
+            <h1>Hypercutter <span id="version-text"
+                    style="font-size: medium; font-weight: normal; font-style: italic;"></span></h1>
+            <h2>Extract data from a Pokemon Emerald ROM!</h2>
         </hgroup>
     </header>
 
     <main class="container">
-        <div class="grid">
-            <article>
-                <header>Extract Metadata (JSON)</header>
-                <form id="json-form">
-                    <fieldset>
-                        <label for="sym-file-json">
-                            Symbol File (.sym)
-                            <input type="file" id="sym-file-json" accept=".sym" required>
-                        </label>
-                        <label for="rom-file-json">
-                            ROM File (.gba)
-                            <input type="file" id="rom-file-json" accept=".gba" required>
-                        </label>
-                    </fieldset>
-                    <input type="submit" value="Extract JSON" id="json-btn" disabled>
-                </form>
-            </article>
+        <article style="max-width: 520px; margin: auto;">
+            <header>Extract Tilesets</header>
+            <form id="extract-form">
+                <fieldset>
+                    <label for="rom-file">
+                        ROM File (.gba)
+                        <input type="file" id="rom-file" accept=".gba" required>
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <legend>Export Format</legend>
+                    <label for="format-json">
+                        <input type="radio" id="format-json" name="format" value="json" checked>
+                        JSON (Metadata)
+                    </label>
+                    <label for="format-png">
+                        <input type="radio" id="format-png" name="format" value="png">
+                        PNG (Rendered Images)
+                    </label>
+                    <label for="format-both">
+                        <input type="radio" id="format-both" name="format" value="both">
+                        Both
+                    </label>
+                </fieldset>
+                <input type="submit" value="Extract" id="extract-btn" disabled>
+            </form>
 
-            <article>
-                <header>Extract Images (PNG)</header>
-                <form id="png-form">
-                    <fieldset>
-                        <label for="json-file-png">
-                            Metatiles JSON (from Metadata step)
-                            <input type="file" id="json-file-png" accept=".json" required>
-                        </label>
-                        <label for="rom-file-png">
-                            ROM File (.gba)
-                            <input type="file" id="rom-file-png" accept=".gba" required>
-                        </label>
-                    </fieldset>
-                    <input type="submit" value="Extract PNGs" id="png-btn" disabled>
-                </form>
+            <article id="status-article" style="display: none; margin-top: 0.5rem;">
+                <header id="status"></header>
+                <progress id="progress-bar" value="0" max="100" style="width: 100%; display: none;"></progress>
+                <pre id="output"></pre>
             </article>
-        </div>
-
-        <article id="status-article" style="display: none; margin-top: 1rem;">
-            <header id="status"></header>
-            <pre id="output"></pre>
         </article>
     </main>
+
+    <footer class="container">
+        <nav style="margin: 0 auto; width: fit-content;">
+            <ul>
+                <li>
+                    <a href="http://github.com/cuebitt/hypercutter" target="_blank" rel="noopener noreferrer">Source</a>
+                </li>
+                <li>
+                    <button id="about-dlg-trigger" role="link" style="border: none; background-color: transparent; padding: 0;">About</button>
+                </li>
+            </ul>
+        </nav>
+    </footer>
+
+    <dialog id="about-dlg">
+        <article>
+            <header>
+                <button aria-label="Close" rel="prev"></button>
+                <p>
+                    ℹ️ About
+                </p>
+            </header>
+            <p>
+                This web page contains a web interface for <code>hypercutter</code>!
+            </p>
+            <p>
+                No data is collected. All operations occur locally in your browser, there is no server.
+            </p>
+            <p>
+                This web page is made using <a href="https://picocss.com" target="_blank"
+                    rel="noopener noreferrer">PicoCSS</a> and <a href="https://pyodide.org/en/stable/" target="_blank"
+                    rel="noopener noreferrer">Pyodide</a>!
+            </p>
+        </article>
+    </dialog>
 
     <script src="https://cdn.jsdelivr.net/pyodide/v0.29.3/full/pyodide.js"></script>
     <script src="pyodide_runner.js"></script>
