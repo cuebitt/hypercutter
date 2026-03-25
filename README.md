@@ -8,6 +8,7 @@
 - Decompress LZ77-compressed tileset data
 - Render metatiles as PNG images
 - CLI and Python API
+- Pyodide-based web version
 
 ### Roadmap
 
@@ -23,7 +24,8 @@
 ## Requirements
 
 - Python 3.10+
-- Pokemon Emerald ROM and symbol file
+- Pokemon Emerald ROM (not included)
+- Pokemon Emerald [memory map](https://github.com/pret/pokeemerald/tree/symbols) (optional)
 
 ## Installation
 
