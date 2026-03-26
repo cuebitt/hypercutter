@@ -4,13 +4,14 @@ import zipfile
 
 from hypercutter import extract
 from hypercutter.renderer import TilesetRenderer
-from js import updateProgressBar # type: ignore
+from js import updateProgressBar  # type: ignore
 import os
+
 
 def extract_metatiles(sym_path: str, rom_path: str) -> dict:
     """Extract metatiles from ROM, returning JSON-serializable data."""
     os.makedirs("/tmp/output", exist_ok=True)
-    
+
     updateProgressBar(0)
 
     metatiles, _ = extract(sym_path, rom_path)
@@ -31,7 +32,7 @@ def extract_metatiles(sym_path: str, rom_path: str) -> dict:
 def render_images(metatiles: dict, rom_path: str) -> None:
     """Render metatiles as PNG images and create zip archive."""
     os.makedirs("/tmp/output", exist_ok=True)
-    
+
     updateProgressBar(60)
 
     with open(rom_path, "rb") as f:

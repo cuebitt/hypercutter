@@ -26,11 +26,6 @@ function downloadFile(data, filename, mimeType) {
     URL.revokeObjectURL(url);
 }
 
-// Helper: Run Python code
-async function runPython(code) {
-    await pyodide.runPythonAsync(code);
-}
-
 // Helper: Cache sym file
 async function loadSymFile() {
     const url = 'https://cdn.jsdelivr.net/gh/pret/pokeemerald@symbols/pokeemerald.sym';
@@ -68,21 +63,9 @@ async function initPyodide() {
     const micropip = pyodide.pyimport("micropip");
     await micropip.install('hypercutter');
 
-    globalThis.setPackageVersionText = (value) => {
-        elements.versionText.textContent = `v${value}`
-    }
-
-    await runPython(`
-from js import setPackageVersionText
-import hypercutter
-import micropip
-import json
-
-j = json.loads(micropip.freeze())
-hc_ver = j["packages"]["hypercutter"]["version"]
-
-setPackageVersionText(hc_ver)
-`);
+    // Set the hypercutter package version text in header
+    const micropip_packages = JSON.parse(micropip.freeze());
+    elements.versionText.textContent = `v${micropip_packages.packages.hypercutter.version}`
 
     isReady = true;
     elements.status.textContent = 'Ready';
@@ -115,34 +98,38 @@ elements.form.addEventListener('submit', async (event) => {
         const romBuffer = await elements.romInput.files[0].arrayBuffer();
         const extractorCode = await fetch('extractor.py').then(r => r.text());
 
-        globalThis.extractorCode = extractorCode;
+        const importlib = await pyodide.pyimport('importlib');
+        const pathlib = await pyodide.pyimport('pathlib');
 
-        await runPython(`
-import importlib
-from pathlib import Path
-from js import extractorCode
-
-Path('extractor.py').write_text(extractorCode)
-importlib.invalidate_caches()
-`);
+        pathlib.Path('extractor.py').write_text(extractorCode);
+        importlib.invalidate_caches();
 
         await cleanup();
         await loadSymFile();
         pyodide.FS.writeFile('/tmp/pokeemerald.gba', new Uint8Array(romBuffer));
 
-        // Extract metatiles
-        await runPython(`
-import json
-from extractor import extract_metatiles
+        const extractor = await pyodide.pyimport('extractor');
+        const metatiles = JSON.stringify(extractor.extract_metatiles('/tmp/pokeemerald.sym', '/tmp/pokeemerald.gba'));
 
-metatiles = extract_metatiles('/tmp/pokeemerald.sym', '/tmp/pokeemerald.gba')
-with open('/tmp/metatiles.json', 'w') as f:
-    json.dump(metatiles, f, indent=2)
-`);
+        // Ensure each metatiles object has a "primary" and "secondary" key
+        let mt_json = JSON.parse(metatiles);
+        Object
+            .keys(mt_json)
+            .forEach((k) => {
+                mt_json[k]["primary"] = mt_json[k]["primary"] ?? null;
+                mt_json[k]["secondary"] = mt_json[k]["secondary"] ?? null;
+            });
 
         // Download JSON
         if (format === 'json' || format === 'both') {
-            downloadFile(pyodide.FS.readFile('/tmp/metatiles.json'), 'metatiles.json', 'application/json');
+            const blob = new Blob([JSON.stringify(mt_json, null, 4)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "metatiles.json";
+
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         // Render PNGs
@@ -150,14 +137,10 @@ with open('/tmp/metatiles.json', 'w') as f:
             elements.status.textContent = 'Rendering images...';
             elements.progressBar.style.display = 'block';
             elements.progressBar.value = 0;
-
-            await runPython(`
-import json
-from extractor import render_images
-
-with open('/tmp/metatiles.json', 'r') as f:
-    render_images(json.load(f), '/tmp/pokeemerald.gba')
-`);
+            
+            const py_json = pyodide.pyimport('json');
+            const _mt_json = py_json.loads(JSON.stringify(mt_json));
+            extractor.render_images(_mt_json, '/tmp/pokeemerald.gba');
 
             downloadFile(pyodide.FS.readFile('/tmp/tilesets.zip'), 'tilesets.zip', 'application/zip');
         }
