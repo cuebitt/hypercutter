@@ -26,28 +26,61 @@ function downloadFile(data, filename, mimeType) {
     URL.revokeObjectURL(url);
 }
 
-// Helper: Run Python code
-async function runPython(code) {
-    await pyodide.runPythonAsync(code);
+// Helper: Compute SHA256 using Web Crypto API
+async function sha256(buffer) {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Helper: Cache sym file
-async function loadSymFile() {
-    const url = 'https://cdn.jsdelivr.net/gh/pret/pokeemerald@symbols/pokeemerald.sym';
+async function loadSymFile(romBuffer) {
+    elements.status.textContent = 'Identifying ROM...';
+
+    // Compute SHA256 hash using Web Crypto API
+    const romHash = await sha256(romBuffer);
+
+    // Map of SHA256 hashes to {symFilename, repo, gameName}
+    const knownRoms = {
+        '53d591215de2cab847d14fbcf8c516f0128cfa8556f1236065e0535aa5936d4e': { sym: 'pokeruby.sym', repo: 'pokeruby', game: 'Pokemon Ruby' },
+        '0d80909998a901c7edef5942068585bc855a85aec7e083aa6aeff84a5b2f8ec0': { sym: 'pokeruby_rev1.sym', repo: 'pokeruby', game: 'Pokemon Ruby v1.1' },
+        '0fdd36e92b75bed65d09df4635ab0b707b288c2bf1dc4c6e7a4a4f0eebe9d64c': { sym: 'pokeruby_rev2.sym', repo: 'pokeruby', game: 'Pokemon Ruby v1.2' },
+        'c36c1b899503e8823ee7eb607eea583adcef7ea92ff804838b193c227f2c6657': { sym: 'pokesapphire.sym', repo: 'pokeruby', game: 'Pokemon Sapphire' },
+        '2f680a43e5c57aede4cb3b2cb04f7e15079efc122c88edaacfd6026db6e920ac': { sym: 'pokesapphire_rev1.sym', repo: 'pokeruby', game: 'Pokemon Sapphire v1.1' },
+        '02ca41513580a8b780989dee428df747b52a0b1a55bec617886b4059eb1152fb': { sym: 'pokesapphire_rev2.sym', repo: 'pokeruby', game: 'Pokemon Sapphire v1.2' },
+        'a9dec84dfe7f62ab2220bafaef7479da0929d066ece16a6885f6226db19085af': { sym: 'pokeemerald.sym', repo: 'pokeemerald', game: 'Pokemon Emerald' },
+        '3d0c79f1627022e18765766f6cb5ea067f6b5bf7dca115552189ad65a5c3a8ac': { sym: 'pokefirered.sym', repo: 'pokefirered', game: 'Pokemon FireRed' },
+        '729041b940afe031302d630fdbe57c0c145f3f7b6d9b8eca5e98678d0ca4d059': { sym: 'pokefirered_rev1.sym', repo: 'pokefirered', game: 'Pokemon FireRed v1.1' },
+        '78d310d557ceebc593bd393acc52d1b19a8f023fec40bc200e6063880d8531fc': { sym: 'pokeleafgreen.sym', repo: 'pokefirered', game: 'Pokemon LeafGreen' },
+        '2f978f635b9593f6ca26ec42481c53a6b39f6cddd894ad5c062c1419fac58825': { sym: 'pokeleafgreen_rev1.sym', repo: 'pokefirered', game: 'Pokemon LeafGreen v1.1' },
+    };
+
+    const romInfo = knownRoms[romHash];
+    if (!romInfo) {
+        throw new Error(`Unidentified ROM. SHA256: ${romHash}. This ROM is not supported.`);
+    }
+
+    elements.status.textContent = `Detected: ${romInfo.game}`;
+
+    const cacheKey = `hypercutter_sym_${romInfo.sym}`;
+    const filename = `/tmp/${romInfo.sym}`;
     elements.status.textContent = 'Loading symbol file...';
 
-    const cached = localStorage.getItem('hypercutter_sym');
+    const cached = localStorage.getItem(cacheKey);
     if (cached) {
-        pyodide.FS.writeFile('/tmp/pokeemerald.sym', cached);
-        return;
+        pyodide.FS.writeFile(filename, cached);
+        return { filename, symFilename: romInfo.sym, gameName: romInfo.game };
     }
+
+    const url = `https://cdn.jsdelivr.net/gh/pret/${romInfo.repo}@symbols/${romInfo.sym}`;
 
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to download');
         const text = await response.text();
-        localStorage.setItem('hypercutter_sym', text);
-        pyodide.FS.writeFile('/tmp/pokeemerald.sym', text);
+        localStorage.setItem(cacheKey, text);
+        pyodide.FS.writeFile(filename, text);
+        return { filename, symFilename: romInfo.sym, gameName: romInfo.game };
     } catch (e) {
         throw new Error(`Failed to load sym file: ${e.message}`);
     }
@@ -66,23 +99,13 @@ async function initPyodide() {
     elements.status.textContent = 'Installing package...';
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-    await micropip.install('hypercutter');
 
-    globalThis.setPackageVersionText = (value) => {
-        elements.versionText.textContent = `v${value}`
-    }
+    // await micropip.install('hypercutter');
+    await micropip.install("http://localhost:8000/dist/hypercutter-0.2.1-py3-none-any.whl")
 
-    await runPython(`
-from js import setPackageVersionText
-import hypercutter
-import micropip
-import json
-
-j = json.loads(micropip.freeze())
-hc_ver = j["packages"]["hypercutter"]["version"]
-
-setPackageVersionText(hc_ver)
-`);
+    // Set version text in header
+    const freeze = JSON.parse(micropip.freeze());
+    elements.versionText.textContent = `v${freeze["packages"]["hypercutter"]["version"]}`;
 
     isReady = true;
     elements.status.textContent = 'Ready';
@@ -91,8 +114,8 @@ setPackageVersionText(hc_ver)
 }
 
 // Clean up temp files
-async function cleanup() {
-    const files = ['/tmp/pokeemerald.sym', '/tmp/pokeemerald.gba', '/tmp/metatiles.json', '/tmp/tilesets.zip'];
+async function cleanup(symFilename) {
+    const files = [`/tmp/${symFilename}`, '/tmp/metatiles.json', '/tmp/tilesets.zip'];
     for (const path of files) {
         try { pyodide.FS.unlink(path); } catch (e) { /* ignore */ }
     }
@@ -115,30 +138,19 @@ elements.form.addEventListener('submit', async (event) => {
         const romBuffer = await elements.romInput.files[0].arrayBuffer();
         const extractorCode = await fetch('extractor.py').then(r => r.text());
 
-        globalThis.extractorCode = extractorCode;
+        const importlib = await pyodide.pyimport("importlib");
+        const pathlib = await pyodide.pyimport("pathlib");
 
-        await runPython(`
-import importlib
-from pathlib import Path
-from js import extractorCode
+        pathlib.Path("extractor.py").write_text(extractorCode);
+        importlib.invalidate_caches();
 
-Path('extractor.py').write_text(extractorCode)
-importlib.invalidate_caches()
-`);
-
-        await cleanup();
-        await loadSymFile();
-        pyodide.FS.writeFile('/tmp/pokeemerald.gba', new Uint8Array(romBuffer));
+        const { filename: symPath, symFilename, gameName } = await loadSymFile(romBuffer);
+        const romFilename = `/tmp/rom.gba`;
+        pyodide.FS.writeFile(romFilename, new Uint8Array(romBuffer));
 
         // Extract metatiles
-        await runPython(`
-import json
-from extractor import extract_metatiles
-
-metatiles = extract_metatiles('/tmp/pokeemerald.sym', '/tmp/pokeemerald.gba')
-with open('/tmp/metatiles.json', 'w') as f:
-    json.dump(metatiles, f, indent=2)
-`);
+        const extractor = await pyodide.pyimport('extractor');
+        extractor.extract_metatiles(symPath, romFilename);
 
         // Download JSON
         if (format === 'json' || format === 'both') {
@@ -151,13 +163,9 @@ with open('/tmp/metatiles.json', 'w') as f:
             elements.progressBar.style.display = 'block';
             elements.progressBar.value = 0;
 
-            await runPython(`
-import json
-from extractor import render_images
-
-with open('/tmp/metatiles.json', 'r') as f:
-    render_images(json.load(f), '/tmp/pokeemerald.gba')
-`);
+            const jsonModule = await pyodide.pyimport('json');
+            const metatilesData = jsonModule.loads(pathlib.Path('/tmp/metatiles.json').read_text());
+            extractor.render_images(metatilesData, romFilename);
 
             downloadFile(pyodide.FS.readFile('/tmp/tilesets.zip'), 'tilesets.zip', 'application/zip');
         }

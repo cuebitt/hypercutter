@@ -1,4 +1,17 @@
-from .classes import MapLayout, Offset, OffsetType, Tileset
+from .classes import (
+    GAME_CODE_OFFSET,
+    GAME_CODE_LENGTH,
+    GameProfile,
+    IdentifiedRom,
+    MapLayout,
+    Offset,
+    OffsetType,
+    SUPPORTED_GAMES,
+    Tileset,
+    compute_rom_sha256,
+    identify_rom,
+    get_game_by_name,
+)
 from .constants import (
     DEFAULT_ROM_BASE_ADDRESS,
     MAP_LAYOUT_FORMAT,
@@ -25,6 +38,14 @@ __all__ = [
     "Offset",
     "MapLayout",
     "Tileset",
+    "GameProfile",
+    "IdentifiedRom",
+    "SUPPORTED_GAMES",
+    "GAME_CODE_OFFSET",
+    "GAME_CODE_LENGTH",
+    "compute_rom_sha256",
+    "identify_rom",
+    "get_game_by_name",
     "DEFAULT_ROM_BASE_ADDRESS",
     "MAP_LAYOUT_SIZE",
     "MAP_LAYOUT_FORMAT",

@@ -6,7 +6,9 @@ from PIL import Image
 from .constants import (
     DEFAULT_ROM_BASE_ADDRESS,
     PALETTE_SIZE,
-    PRIMARY_TILESET_TILE_COUNT,
+    TILE_SIZE,
+    METATILE_SIZE,
+    METATILE_TILE_COUNT,
 )
 from .lzss3 import decompress_bytes
 from .utils import decode_bgr555, decode_tile_4bpp, parse_metatile_entry
@@ -110,7 +112,7 @@ class TilesetRenderer:
         """
         Extract tile graphics from ROM, handling LZ77 compression.
 
-        Pokemon Emerald uses LZ77 compression for many tilesets to save space.
+        GBA Pokemon ROMs use LZ77 compression for many tilesets to save space.
         """
         if tileset.get("tiles_raw") is not None:
             return
@@ -221,13 +223,17 @@ class TilesetRenderer:
         p_tiles = self.primary.get("tiles_raw", b"")
         s_tiles = self.secondary.get("tiles_raw", b"") if self.secondary else b""
 
+        # Calculate actual tile counts from raw data length
+        p_tile_count = len(p_tiles) // TILE_SIZE if p_tiles else 0
+        s_tile_count = len(s_tiles) // TILE_SIZE if s_tiles else 0
+
         # Metatiles are 16-bit indices (8 per metatile)
         mt_data = (
             self.secondary.get("metatiles_raw", b"")
             if self.secondary
             else self.primary.get("metatiles_raw", b"")
         )
-        num_metatiles = len(mt_data) // 16
+        num_metatiles = len(mt_data) // METATILE_SIZE
 
         # Standard grid width: 8 metatiles
         grid_width = 8
@@ -236,11 +242,11 @@ class TilesetRenderer:
         output = Image.new("RGBA", (grid_width * 16, grid_height * 16))
 
         for mt_idx in range(num_metatiles):
-            mt_offset = mt_idx * 16
+            mt_offset = mt_idx * METATILE_SIZE
             metatile_img = Image.new("RGBA", (16, 16))
 
             # Each metatile has 8 tiles: 4 bottom layer, 4 top layer
-            for i in range(8):
+            for i in range(METATILE_TILE_COUNT):
                 entry_offset = mt_offset + i * 2
                 entry = int.from_bytes(
                     mt_data[entry_offset : entry_offset + 2], "little"
@@ -248,52 +254,44 @@ class TilesetRenderer:
                 tile_idx, h_flip, v_flip, pal_idx = parse_metatile_entry(entry)
 
                 # Determine which tileset to pull from
-                # Primary tileset has 512 tiles (0x200)
-                # If tile_idx < 0x200, it's primary. Else, it's secondary (relative to 0x200)
-                is_secondary_tile = tile_idx >= PRIMARY_TILESET_TILE_COUNT
-                if self.secondary:
-                    current_tiles = s_tiles if is_secondary_tile else p_tiles
-                    local_tile_idx = (
-                        tile_idx - PRIMARY_TILESET_TILE_COUNT
-                        if is_secondary_tile
-                        else tile_idx
-                    )
-                elif self.primary.get("is_secondary"):
-                    current_tiles = p_tiles
-                    local_tile_idx = (
-                        tile_idx - PRIMARY_TILESET_TILE_COUNT
-                        if is_secondary_tile
-                        else tile_idx
-                    )
-                else:
+                # Primary tileset has tiles up to p_tile_count
+                # Secondary tiles are indexed relative to primary tileset
+                if tile_idx < p_tile_count:
                     current_tiles = p_tiles
                     local_tile_idx = tile_idx
+                elif self.secondary and tile_idx < p_tile_count + s_tile_count:
+                    current_tiles = s_tiles
+                    local_tile_idx = tile_idx - p_tile_count
+                elif self.secondary:
+                    # Index beyond both tilesets, try secondary
+                    current_tiles = s_tiles
+                    local_tile_idx = tile_idx - p_tile_count
+                    if local_tile_idx >= s_tile_count:
+                        local_tile_idx = 0
+                else:
+                    # No secondary, clamp to primary
+                    current_tiles = p_tiles
+                    local_tile_idx = min(tile_idx, max(0, p_tile_count - 1))
 
-                tile_bytes_offset = local_tile_idx * 32
-                if tile_bytes_offset + 32 > len(current_tiles):
-                    tile_bytes = b"\x00" * 32
+                tile_bytes_offset = local_tile_idx * TILE_SIZE
+                if tile_bytes_offset + TILE_SIZE > len(current_tiles):
+                    tile_bytes = b"\x00" * TILE_SIZE
                 else:
                     tile_bytes = current_tiles[
-                        tile_bytes_offset : tile_bytes_offset + 32
+                        tile_bytes_offset : tile_bytes_offset + TILE_SIZE
                     ]
 
-                # Palette index 0 is always transparent for both layers in many GBA games,
-                # but especially for the top layer to show the bottom layer.
-                # Usually, the first color of every palette is transparent.
-                # is_top_layer = i >= 4
                 tile_img = self._render_tile(
                     tile_bytes,
-                    combined_palettes[pal_idx],
+                    combined_palettes[pal_idx % len(combined_palettes)],
                     h_flip,
                     v_flip,
-                    is_transparent=True,  # Both layers respect transparency in Metatiles
+                    is_transparent=True,
                 )
 
                 # Paste into the 16x16 metatile
-                # 0: bottom-left, 1: bottom-right, 2: top-left, 3: top-right (Wait, GBA order is usually different)
-                # In Emerald:
-                # 0-3 are Layer 1 (Bottom), 4-7 are Layer 2 (Top)
-                # Each layer: [Top-Left, Top-Right, Bottom-Left, Bottom-Right]
+                # Layer 1 (bottom): tiles 0-3, Layer 2 (top): tiles 4-7
+                # Each layer arranged as: [Top-Left, Top-Right, Bottom-Left, Bottom-Right]
                 sub_idx = i % 4
                 x_off = (sub_idx % 2) * 8
                 y_off = (sub_idx // 2) * 8

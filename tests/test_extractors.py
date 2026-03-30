@@ -171,3 +171,35 @@ class TestBuildTilesetNamePairs:
         ]
         result = build_tileset_name_pairs(layouts, symbols)
         assert set(result["Overworld"]) == {"Grass", "Water"}
+
+
+class TestRomRevisionDetection:
+    def test_detect_sym_filename_firered_v1(self):
+        from hypercutter.classes import detect_sym_filename
+
+        mock_rom = bytearray(256)
+        mock_rom[0xAC:0xB0] = b"BPRE"
+        mock_rom[0xB0:0xB4] = b"1.0"
+        result = detect_sym_filename(bytes(mock_rom))
+        assert result is None
+
+    def test_detect_sym_filename_unknown_game(self):
+        from hypercutter.classes import detect_sym_filename
+
+        mock_rom = bytearray(256)
+        mock_rom[0xAC:0xB0] = b"BPEE"
+        result = detect_sym_filename(bytes(mock_rom))
+        assert result is None
+
+    def test_detect_sym_filename_too_small(self):
+        from hypercutter.classes import detect_sym_filename
+
+        result = detect_sym_filename(b"too small")
+        assert result is None
+
+    def test_compute_rom_sha256(self):
+        from hypercutter.classes import compute_rom_sha256
+
+        data = b"test data"
+        sha = compute_rom_sha256(data)
+        assert sha == "916f0027a575074ce72a331777c3478d6513f786a591bd892da1a577bf2335f9"
