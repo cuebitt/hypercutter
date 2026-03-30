@@ -15,6 +15,50 @@ const elements = {
 let pyodide = null;
 let isReady = false;
 
+// IndexedDB for sym file storage
+const DB_NAME = 'hypercutter_symdb';
+const DB_VERSION = 1;
+const STORE_NAME = 'symfiles';
+
+let db = null;
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        if (db) { resolve(db); return; }
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => { db = request.result; resolve(db); };
+        request.onupgradeneeded = (event) => {
+            const database = event.target.result;
+            if (!database.objectStoreNames.contains(STORE_NAME)) {
+                database.createObjectStore(STORE_NAME, { keyPath: 'key' });
+            }
+        };
+    });
+}
+
+async function getSymFromDB(key) {
+    const database = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = database.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.get(key);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result?.data || null);
+    });
+}
+
+async function saveSymToDB(key, data) {
+    const database = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = database.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.put({ key, data });
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve();
+    });
+}
+
 // Helper: Download file from Pyodide filesystem
 function downloadFile(data, filename, mimeType) {
     const blob = new Blob([data], { type: mimeType });
@@ -66,7 +110,8 @@ async function loadSymFile(romBuffer) {
     const filename = `/tmp/${romInfo.sym}`;
     elements.status.textContent = 'Loading symbol file...';
 
-    const cached = localStorage.getItem(cacheKey);
+    // Try IndexedDB first
+    const cached = await getSymFromDB(cacheKey);
     if (cached) {
         pyodide.FS.writeFile(filename, cached);
         return { filename, symFilename: romInfo.sym, gameName: romInfo.game };
@@ -78,7 +123,7 @@ async function loadSymFile(romBuffer) {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to download');
         const text = await response.text();
-        localStorage.setItem(cacheKey, text);
+        await saveSymToDB(cacheKey, text);
         pyodide.FS.writeFile(filename, text);
         return { filename, symFilename: romInfo.sym, gameName: romInfo.game };
     } catch (e) {
@@ -150,7 +195,8 @@ elements.form.addEventListener('submit', async (event) => {
 
         // Extract metatiles
         const extractor = await pyodide.pyimport('extractor');
-        extractor.extract_metatiles(symPath, romFilename);
+        const mt = extractor.extract_metatiles(symPath, romFilename);
+        pathlib.Path("/tmp/metatiles.json").write_text(JSON.stringify(mt));
 
         // Download JSON
         if (format === 'json' || format === 'both') {

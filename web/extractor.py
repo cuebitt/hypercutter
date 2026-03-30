@@ -1,5 +1,6 @@
 # Web extraction logic for hypercutter.
 
+import json
 import zipfile
 
 from hypercutter import extract
@@ -37,8 +38,13 @@ def extract_metatiles(sym_path: str, rom_path: str) -> dict:
             return [strip_raw(i) for i in obj]
         return obj
 
+    stripped = strip_raw(metatiles)
+
+    with open("/tmp/output/metatiles.json", "w") as f:
+        json.dump(stripped, f)
+
     updateProgressBar(40)
-    return strip_raw(metatiles)
+    return stripped
 
 
 def render_images(metatiles: dict, rom_path: str) -> None:
@@ -70,7 +76,6 @@ def render_images(metatiles: dict, rom_path: str) -> None:
 
     with zipfile.ZipFile("/tmp/tilesets.zip", "w") as zf:
         for name in __import__("os").listdir("/tmp/output"):
-            if name.endswith(".png"):
-                zf.write(f"/tmp/output/{name}", name)
+            zf.write(f"/tmp/output/{name}", name)
 
     updateProgressBar(100)
