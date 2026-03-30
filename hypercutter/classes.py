@@ -16,6 +16,7 @@ class GameProfile:
     short_name: str
     sym_repo: str
     default_sym_filename: str
+    primary_tileset_tile_count: int = 0x200  # Default 512 tiles
 
     @property
     def sym_url(self) -> str:
@@ -29,6 +30,7 @@ SUPPORTED_GAMES: dict[bytes, GameProfile] = {
         short_name="emerald",
         sym_repo="pokeemerald",
         default_sym_filename="pokeemerald.sym",
+        primary_tileset_tile_count=0x200,
     ),
     b"BPRE": GameProfile(
         game_code=b"BPRE",
@@ -36,6 +38,7 @@ SUPPORTED_GAMES: dict[bytes, GameProfile] = {
         short_name="firered",
         sym_repo="pokefirered",
         default_sym_filename="pokefirered.sym",
+        primary_tileset_tile_count=0x280,
     ),
     b"BPGE": GameProfile(
         game_code=b"BPGE",
@@ -43,6 +46,7 @@ SUPPORTED_GAMES: dict[bytes, GameProfile] = {
         short_name="leafgreen",
         sym_repo="pokefirered",
         default_sym_filename="pokefirered.sym",
+        primary_tileset_tile_count=0x280,
     ),
     b"AXVE": GameProfile(
         game_code=b"AXVE",
@@ -50,6 +54,7 @@ SUPPORTED_GAMES: dict[bytes, GameProfile] = {
         short_name="ruby",
         sym_repo="pokeruby",
         default_sym_filename="pokeruby.sym",
+        primary_tileset_tile_count=0x200,
     ),
     b"AXPE": GameProfile(
         game_code=b"AXPE",
@@ -57,6 +62,7 @@ SUPPORTED_GAMES: dict[bytes, GameProfile] = {
         short_name="sapphire",
         sym_repo="pokeruby",
         default_sym_filename="pokeruby.sym",
+        primary_tileset_tile_count=0x200,
     ),
 }
 

@@ -6,6 +6,7 @@ from PIL import Image
 from .constants import (
     DEFAULT_ROM_BASE_ADDRESS,
     PALETTE_SIZE,
+    PRIMARY_TILESET_TILE_COUNT,
     TILE_SIZE,
     METATILE_SIZE,
     METATILE_TILE_COUNT,
@@ -22,6 +23,7 @@ class TilesetRenderer:
         tileset_data: dict[str, Any],
         rom_data: bytes | None = None,
         rom_base_address: int = DEFAULT_ROM_BASE_ADDRESS,
+        primary_tile_count: int = PRIMARY_TILESET_TILE_COUNT,
     ):
         """
         Initialize the renderer with tileset data.
@@ -30,11 +32,13 @@ class TilesetRenderer:
             tileset_data: Extracted tileset data containing primary and secondary tilesets.
             rom_data: Optional ROM bytes for re-extracting raw data if not present.
             rom_base_address: Base address for ROM pointers (default: 0x8000000).
+            primary_tile_count: Number of tiles in primary tileset (default: 512).
         """
         self.rom = rom_data
         self.primary = tileset_data.get("primary")
         self.secondary = tileset_data.get("secondary")
         self.rom_base_address = rom_base_address
+        self.primary_tile_count = primary_tile_count
         self._ensure_raw_data()
 
     def _extract_raw_from_rom(self, tileset: dict[str, Any]) -> None:
@@ -223,10 +227,7 @@ class TilesetRenderer:
         p_tiles = self.primary.get("tiles_raw", b"")
         s_tiles = self.secondary.get("tiles_raw", b"") if self.secondary else b""
 
-        # Calculate actual tile counts from raw data length
-        p_tile_count = len(p_tiles) // TILE_SIZE if p_tiles else 0
-        s_tile_count = len(s_tiles) // TILE_SIZE if s_tiles else 0
-
+        # Primary tileset always has 512 tiles (0x200)
         # Metatiles are 16-bit indices (8 per metatile)
         mt_data = (
             self.secondary.get("metatiles_raw", b"")
@@ -254,24 +255,26 @@ class TilesetRenderer:
                 tile_idx, h_flip, v_flip, pal_idx = parse_metatile_entry(entry)
 
                 # Determine which tileset to pull from
-                # Primary tileset has tiles up to p_tile_count
-                # Secondary tiles are indexed relative to primary tileset
-                if tile_idx < p_tile_count:
+                # Primary tileset has tiles up to primary_tile_count
+                # If tile_idx < primary_tile_count, it's primary. Else, it's secondary
+                is_secondary_tile = tile_idx >= self.primary_tile_count
+                if self.secondary:
+                    current_tiles = s_tiles if is_secondary_tile else p_tiles
+                    local_tile_idx = (
+                        tile_idx - self.primary_tile_count
+                        if is_secondary_tile
+                        else tile_idx
+                    )
+                elif self.primary.get("is_secondary"):
+                    current_tiles = p_tiles
+                    local_tile_idx = (
+                        tile_idx - self.primary_tile_count
+                        if is_secondary_tile
+                        else tile_idx
+                    )
+                else:
                     current_tiles = p_tiles
                     local_tile_idx = tile_idx
-                elif self.secondary and tile_idx < p_tile_count + s_tile_count:
-                    current_tiles = s_tiles
-                    local_tile_idx = tile_idx - p_tile_count
-                elif self.secondary:
-                    # Index beyond both tilesets, try secondary
-                    current_tiles = s_tiles
-                    local_tile_idx = tile_idx - p_tile_count
-                    if local_tile_idx >= s_tile_count:
-                        local_tile_idx = 0
-                else:
-                    # No secondary, clamp to primary
-                    current_tiles = p_tiles
-                    local_tile_idx = min(tile_idx, max(0, p_tile_count - 1))
 
                 tile_bytes_offset = local_tile_idx * TILE_SIZE
                 if tile_bytes_offset + TILE_SIZE > len(current_tiles):
