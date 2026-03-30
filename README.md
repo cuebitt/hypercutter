@@ -4,7 +4,8 @@
 
 ## Features
 
-- Extract tiles, palettes, and metatiles from Pokemon Emerald ROMs
+- Extract tiles, palettes, and metatiles from GBA Pokemon ROMs
+- Supports: Pokemon Emerald, FireRed, LeafGreen, Ruby, Sapphire
 - Decompress LZ77-compressed tileset data
 - Render metatiles as PNG images
 - CLI and Python API
@@ -12,20 +13,21 @@
 
 ### Roadmap
 
-- [ ] Support other GBA ROMs
-	- [ ] Fire Red/Leaf Green
-	- [ ] Ruby/Sapphire
+- [ ] Support GBA ROMs
+  - [x] Fire Red/Leaf Green
+  - [ ] Ruby/Sapphire
+  - [x] Emerald
 - [ ] Dump sprites
-	- [ ] Characters
-	- [ ] Pokemon
-	- [ ] Other (fonts, etc)
+  - [ ] Characters
+  - [ ] Pokemon
+  - [ ] Other (fonts, etc)
 - [ ] Dump music (maybe)
 
 ## Requirements
 
 - Python 3.10+
-- Pokemon Emerald ROM (not included)
-- Pokemon Emerald [memory map](https://github.com/pret/pokeemerald/tree/symbols) (optional)
+- GBA Pokemon ROM (Emerald, FireRed, LeafGreen, Ruby, or Sapphire - not included)
+- ROM-specific [memory map](https://github.com/pret/pokeemerald/tree/symbols) (optional, auto-downloaded)
 
 ## Installation
 
@@ -43,10 +45,12 @@ uvx hypercutter
 ## Usage
 
 ```bash
-hypercutter pokeemerald.gba
+hypercutter -g emerald pokeemerald.gba
 ```
 
 Options:
+
+- `-g, --game` - Game to use (emerald, firered, leafgreen, ruby, sapphire)
 - `-o, --output` - Output JSON path
 - `-e, --export` - Directory for PNG exports
 - `-v, --verbose` - Verbose output
@@ -64,5 +68,5 @@ MIT
 The following open-source libraries are used:
 
 - [magical/nlzss](https://github.com/magical/nlzss)
-- [pret/pokeemerald](https://github.com/pret/pokeemerald/tree/symbols)
-	- Only the memory map is used. This project contains no content from any Pokemon ROM dump.
+- [pret/pokeemerald](https://github.com/pret/pokeemerald/tree/symbols), [pret/pokefirered](https://github.com/pret/pokefirered/tree/symbols), [pret/pokeruby](https://github.com/pret/pokeruby/tree/symbols)
+  - Only the memory maps are used. This project contains no content from any Pokemon ROM dump.

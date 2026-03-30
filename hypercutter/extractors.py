@@ -1,5 +1,5 @@
 """
-Extraction functions for pokeemerald ROM data.
+Extraction functions for GBA Pokemon ROM data.
 
 Struct layouts (32-bit, little-endian):
 
@@ -37,7 +37,15 @@ import logging
 import struct
 from typing import Any
 
-from .classes import MapLayout, Offset, OffsetType, Tileset
+from .classes import (
+    GAME_CODE_OFFSET,
+    GAME_CODE_LENGTH,
+    MapLayout,
+    Offset,
+    OffsetType,
+    SUPPORTED_GAMES,
+    Tileset,
+)
 from .constants import (
     MAP_LAYOUT_FORMAT,
     MAP_LAYOUT_SIZE,
@@ -50,21 +58,14 @@ from .lzss3 import decompress_bytes
 
 logger = logging.getLogger(__name__)
 
-# ROM header location and expected game code for Pokemon Emerald
-GAME_CODE_OFFSET = 0xAC
-GAME_CODE_LENGTH = 4
-EXPECTED_GAME_CODE = b"BPEE"
 
-
-def validate_rom(rom_data: bytes) -> bool:
+def validate_rom(rom_data: bytes, expected_game_code: bytes | None = None) -> bool:
     """
-    Validate that the ROM has the expected game code.
-
-    Pokemon Emerald ROMs have the game code "BPEE" at offset 0xAC.
-    This helps verify we're working with the correct ROM file.
+    Validate that the ROM has a supported game code.
 
     Args:
         rom_data: Raw ROM bytes.
+        expected_game_code: Optional specific game code to validate against.
 
     Returns:
         True if validation passed (even with warnings).
@@ -73,9 +74,13 @@ def validate_rom(rom_data: bytes) -> bool:
         logger.warning("ROM file too small to validate")
         return True
     game_code = rom_data[GAME_CODE_OFFSET : GAME_CODE_OFFSET + GAME_CODE_LENGTH]
-    if game_code != EXPECTED_GAME_CODE:
+    if expected_game_code is not None and game_code != expected_game_code:
         logger.warning(
-            f"ROM game code '{game_code.decode('latin-1')}' does not match expected '{EXPECTED_GAME_CODE.decode()}'"
+            f"ROM game code '{game_code.decode('latin-1')}' does not match expected '{expected_game_code.decode()}'"
+        )
+    elif game_code not in SUPPORTED_GAMES:
+        logger.warning(
+            f"ROM game code '{game_code.decode('latin-1')}' is not a supported game"
         )
     return True
 
@@ -492,20 +497,24 @@ def extract_metatiles(
     return metatiles
 
 
-def extract(sym_data: str | bytes, rom_data: str | bytes) -> dict[str, Any]:
+def extract(
+    sym_data: str | bytes, rom_data: str | bytes, validate: bool = True
+) -> dict[str, Any]:
     """
-    Extract metatiles from a pokeemerald ROM.
+    Extract metatiles from a GBA Pokemon ROM.
 
     Args:
         sym_data: Path to the .sym file, or raw .sym contents as bytes.
         rom_data: Path to the .gba ROM file, or raw ROM data as bytes.
+        validate: Whether to validate the ROM game code. Defaults to True.
 
     Returns:
         Dictionary mapping metatile names to their tileset data.
     """
     symbols = load_symbols(sym_data)
     rom = read_rom(rom_data)
-    validate_rom(rom)
+    if validate:
+        validate_rom(rom)
 
     start_sym = find_by_field(symbols, "name", "Start")
     if not start_sym:
@@ -524,7 +533,8 @@ def extract(sym_data: str | bytes, rom_data: str | bytes) -> dict[str, Any]:
     logger.info("Found %d maps at 0x%x", map_table_count, rel_offset)
 
     map_table = extract_map_table(rom, rel_offset, map_table_count)
-    layouts = [extract_map_layout(rom, addr - start_sym_offset) for addr in map_table]
+    layouts_to_extract = list(filter(lambda x: x > start_sym_offset, map_table))
+    layouts = [extract_map_layout(rom, addr - start_sym_offset) for addr in layouts_to_extract]
 
     logger.debug("Building tileset name pairs")
     tileset_name_pairs = build_tileset_name_pairs(layouts, symbols)
