@@ -534,7 +534,9 @@ def extract(
 
     map_table = extract_map_table(rom, rel_offset, map_table_count)
     layouts_to_extract = list(filter(lambda x: x > start_sym_offset, map_table))
-    layouts = [extract_map_layout(rom, addr - start_sym_offset) for addr in layouts_to_extract]
+    layouts = [
+        extract_map_layout(rom, addr - start_sym_offset) for addr in layouts_to_extract
+    ]
 
     logger.debug("Building tileset name pairs")
     tileset_name_pairs = build_tileset_name_pairs(layouts, symbols)

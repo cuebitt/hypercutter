@@ -3,14 +3,27 @@
 import zipfile
 
 from hypercutter import extract
+from hypercutter.classes import GAME_CODE_OFFSET, SUPPORTED_GAMES
 from hypercutter.renderer import TilesetRenderer
-from js import updateProgressBar # type: ignore
+from js import updateProgressBar  # type: ignore
 import os
+
+
+def get_primary_tile_count(rom_path: str) -> int:
+    """Get the primary tileset tile count based on game code."""
+    with open(rom_path, "rb") as f:
+        rom_data = f.read()
+    game_code = rom_data[GAME_CODE_OFFSET : GAME_CODE_OFFSET + 4]
+    game = SUPPORTED_GAMES.get(game_code)
+    if game:
+        return game.primary_tileset_tile_count
+    return 0x200  # Default
+
 
 def extract_metatiles(sym_path: str, rom_path: str) -> dict:
     """Extract metatiles from ROM, returning JSON-serializable data."""
     os.makedirs("/tmp/output", exist_ok=True)
-    
+
     updateProgressBar(0)
 
     metatiles, _ = extract(sym_path, rom_path)
@@ -31,16 +44,20 @@ def extract_metatiles(sym_path: str, rom_path: str) -> dict:
 def render_images(metatiles: dict, rom_path: str) -> None:
     """Render metatiles as PNG images and create zip archive."""
     os.makedirs("/tmp/output", exist_ok=True)
-    
+
     updateProgressBar(60)
 
     with open(rom_path, "rb") as f:
         rom_data = f.read()
 
+    primary_tile_count = get_primary_tile_count(rom_path)
+
     total = len(metatiles)
     for i, (name, data) in enumerate(metatiles.items()):
         try:
-            renderer = TilesetRenderer(data, rom_data)
+            renderer = TilesetRenderer(
+                data, rom_data, primary_tile_count=primary_tile_count
+            )
             img = renderer.render()
             img.save(f"/tmp/output/{name}.png")
         except Exception:
