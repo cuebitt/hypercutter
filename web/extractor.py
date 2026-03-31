@@ -21,6 +21,17 @@ def get_primary_tile_count(rom_path: str) -> int:
     return 0x200  # Default
 
 
+def get_exclude_tilesets(rom_path: str) -> list[str]:
+    """Get tilesets to exclude based on game code."""
+    with open(rom_path, "rb") as f:
+        rom_data = f.read()
+    game_code = rom_data[GAME_CODE_OFFSET : GAME_CODE_OFFSET + 4]
+    # FR/LG have a HoennBuilding tileset that should be excluded
+    if game_code in (b"BPRE", b"BPGE"):
+        return ["HoennBuilding"]
+    return []
+
+
 def extract_metatiles(sym_path: str, rom_path: str) -> dict:
     """Extract metatiles from ROM, returning JSON-serializable data."""
     os.makedirs("/tmp/output", exist_ok=True)
@@ -57,9 +68,12 @@ def render_images(metatiles: dict, rom_path: str) -> None:
         rom_data = f.read()
 
     primary_tile_count = get_primary_tile_count(rom_path)
+    exclude_tilesets = get_exclude_tilesets(rom_path)
 
     total = len(metatiles)
     for i, (name, data) in enumerate(metatiles.items()):
+        if name in exclude_tilesets:
+            continue
         try:
             renderer = TilesetRenderer(
                 data, rom_data, primary_tile_count=primary_tile_count

@@ -81,12 +81,16 @@ def export_images(
     rom_data: bytes | None = None,
     rom_base_address: int = 0x8000000,
     primary_tile_count: int = 0x200,
+    exclude_tilesets: list[str] | None = None,
 ) -> None:
     """Render and save metatiles as PNG images."""
+    exclude_tilesets = exclude_tilesets or []
     output_dir.mkdir(parents=True, exist_ok=True)
     for name, data in tqdm(
         metatiles.items(), desc="Rendering tilesets", unit="tileset"
     ):
+        if name in exclude_tilesets:
+            continue
         try:
             renderer = TilesetRenderer(
                 data, rom_data, rom_base_address, primary_tile_count
@@ -106,6 +110,7 @@ def run(
     export_dir: str | None = None,
     clear_output: bool = False,
     primary_tile_count: int = 0x200,
+    exclude_tilesets: list[str] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """
     Extract metatiles from a GBA Pokemon ROM.
@@ -117,6 +122,7 @@ def run(
         export_dir: Directory to export rendered PNGs.
         clear_output: Whether to clear output directories before writing.
         primary_tile_count: Number of tiles in primary tileset.
+        exclude_tilesets: List of tileset names to exclude from PNG export.
 
     Returns:
         The extracted metatiles dictionary.
@@ -137,7 +143,12 @@ def run(
 
     if export_dir:
         export_images(
-            metatiles, Path(export_dir), rom_data, rom_base_address, primary_tile_count
+            metatiles,
+            Path(export_dir),
+            rom_data,
+            rom_base_address,
+            primary_tile_count,
+            exclude_tilesets,
         )
         logging.info("Images exported to: %s", export_dir)
 
@@ -243,12 +254,18 @@ def main() -> None:
 
     # Get primary tileset tile count from identified game
     primary_tile_count = 0x200  # Default
+    exclude_tilesets = []
     if identified:
         primary_tile_count = identified.game.primary_tileset_tile_count
+        # FR/LG have a HoennBuilding tileset that should be excluded
+        if identified.game.game_code in (b"BPRE", b"BPGE"):
+            exclude_tilesets = ["HoennBuilding"]
     elif args.game:
         game = get_game_by_name(args.game)
         if game:
             primary_tile_count = game.primary_tileset_tile_count
+            if game.game_code in (b"BPRE", b"BPGE"):
+                exclude_tilesets = ["HoennBuilding"]
 
     # Prompt for clearing if output directory exists and not auto-confirmed
     if not clear_output and not args.clear:
@@ -264,6 +281,7 @@ def main() -> None:
             export_dir if args.export is not None or args.output is None else None,
             clear_output=clear_output,
             primary_tile_count=primary_tile_count,
+            exclude_tilesets=exclude_tilesets,
         )
     except Exception as e:
         logging.error("%s", e)
