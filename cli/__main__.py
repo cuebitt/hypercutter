@@ -4,6 +4,8 @@ import argparse
 import json
 import logging
 import shutil
+import sys
+import tempfile
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -37,9 +39,13 @@ def prompt_clear_directory(path: Path) -> bool:
 
     print(f"\nOutput directory '{path}' contains {len(existing)} existing file(s).")
     while True:
-        response = (
-            input("Clear output directory before writing? [y/N] ").strip().lower()
-        )
+        try:
+            response = (
+                input("Clear output directory before writing? [y/N] ").strip().lower()
+            )
+        except (KeyboardInterrupt, EOFError):
+            print()
+            sys.exit(0)
         if response in ("y", "yes"):
             return True
         elif response in ("", "n", "no"):
@@ -244,8 +250,16 @@ def main() -> None:
             )
             return
         logging.info("Downloading symbol file from %s", sym_url)
-        urllib.request.urlretrieve(sym_url, sym_path)
-        logging.info("Downloaded to %s", sym_path)
+        cache_dir = Path(tempfile.gettempdir()) / "hypercutter"
+        cache_dir.mkdir(exist_ok=True)
+        cached_sym_path = cache_dir / sym_path
+        if cached_sym_path.exists():
+            logging.info("Using cached symbol file: %s", cached_sym_path)
+            sym_path = str(cached_sym_path)
+        else:
+            urllib.request.urlretrieve(sym_url, cached_sym_path)
+            logging.info("Downloaded to %s", cached_sym_path)
+            sym_path = str(cached_sym_path)
 
     # Default paths if not specified
     output_path = args.output if args.output else "out/metatiles.json"
@@ -270,8 +284,11 @@ def main() -> None:
     # Prompt for clearing if output directory exists and not auto-confirmed
     if not clear_output and not args.clear:
         output_dir = Path(output_path).parent
-        if prompt_clear_directory(output_dir):
-            clear_output = True
+        try:
+            if prompt_clear_directory(output_dir):
+                clear_output = True
+        except KeyboardInterrupt:
+            return
 
     try:
         run(
@@ -283,6 +300,8 @@ def main() -> None:
             primary_tile_count=primary_tile_count,
             exclude_tilesets=exclude_tilesets,
         )
+    except KeyboardInterrupt:
+        pass
     except Exception as e:
         logging.error("%s", e)
         raise e
