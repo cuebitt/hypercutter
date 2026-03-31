@@ -8,5 +8,7 @@ DEFAULT_ROM_BASE_ADDRESS = 0x8000000
 PALETTE_SIZE = 512
 PRIMARY_TILESET_TILE_COUNT = 0x200
 TILE_SIZE = 32  # 8x8 pixels * 4 bits per pixel / 8
-METATILE_SIZE = 16  # 8 tiles * 2 bytes per tile entry
+METATILE_SIZE = 16  # 8 tiles * 2 bytes per metatile entry
 METATILE_TILE_COUNT = 8
+
+MAX_DECOMPRESS_READ_SIZE = 0x10000  # Maximum bytes to read for decompression
