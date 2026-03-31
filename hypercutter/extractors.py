@@ -49,6 +49,7 @@ from .classes import (
 from .constants import (
     MAP_LAYOUT_FORMAT,
     MAP_LAYOUT_SIZE,
+    MAX_DECOMPRESS_READ_SIZE,
     PALETTE_SIZE,
     TILESET_FORMAT,
     TILESET_SIZE,
@@ -396,7 +397,7 @@ def extract_raw_data(
         try:
             # Read a reasonable maximum for decompression
             # The calculated length may be too small for compressed data
-            max_read = min(0x10000, len(binary_data) - offset)
+            max_read = min(MAX_DECOMPRESS_READ_SIZE, len(binary_data) - offset)
             compressed_data = binary_data[offset : offset + max_read]
             result = decompress_bytes(compressed_data)
             return bytes(result)
@@ -549,7 +550,7 @@ def extract_metatiles(
 
 def extract(
     sym_data: str | bytes, rom_data: str | bytes, validate: bool = True
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], int]:
     """
     Extract metatiles from a GBA Pokemon ROM.
 
@@ -559,7 +560,7 @@ def extract(
         validate: Whether to validate the ROM game code. Defaults to True.
 
     Returns:
-        Dictionary mapping metatile names to their tileset data.
+        Tuple of (metatiles dict, start_sym_offset).
     """
     symbols = load_symbols(sym_data)
     rom = read_rom(rom_data)

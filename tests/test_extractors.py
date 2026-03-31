@@ -203,3 +203,56 @@ class TestRomRevisionDetection:
         data = b"test data"
         sha = compute_rom_sha256(data)
         assert sha == "916f0027a575074ce72a331777c3478d6513f786a591bd892da1a577bf2335f9"
+
+
+class TestParseSymbols:
+    def test_parses_symbols_correctly(self):
+        from hypercutter.extractors import load_symbols
+
+        data = "08000000 g 00000010 TestSym1\n08000020 g 00000020 TestSym2"
+        result = load_symbols(data.encode())
+        assert len(result) == 2
+        assert result[0].name == "TestSym1"
+        assert result[0].address == 0x08000000
+        assert result[0].length == 0x10
+
+    def test_calculates_length_from_next_symbol(self):
+        from hypercutter.extractors import load_symbols
+
+        data = "08000000 g 00000000 TestSym1\n08000020 g 00000010 TestSym2"
+        result = load_symbols(data.encode())
+        assert result[0].length == 0x20
+
+    def test_calculates_length_from_palette_symbol(self):
+        from hypercutter.extractors import load_symbols
+
+        data = (
+            "08000000 g 00000000 gTilesetTiles_Test\n"
+            "08001000 g 00000000 gTilesetPalettes_Test\n"
+            "08002000 g 00000010 TestSym2"
+        )
+        result = load_symbols(data.encode())
+        assert result[0].length == 0x1000
+
+
+class TestExtractRawData:
+    def test_extracts_uncompressed_data(self):
+        from hypercutter.extractors import extract_raw_data
+
+        data = b"test data here"
+        result = extract_raw_data(data, 0x8000000, 4, 0x8000000, False)
+        assert result == b"test"
+
+    def test_extracts_with_zero_length(self):
+        from hypercutter.extractors import extract_raw_data
+
+        data = b"test data"
+        result = extract_raw_data(data, 0x8000000, 0, 0x8000000, False)
+        assert result == b""
+
+    def test_extracts_with_offset_out_of_range(self):
+        from hypercutter.extractors import extract_raw_data
+
+        data = b"test"
+        result = extract_raw_data(data, 0x9000000, 4, 0x8000000, False)
+        assert result == b""
