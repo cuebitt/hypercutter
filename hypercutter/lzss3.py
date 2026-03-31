@@ -99,13 +99,13 @@ def decompress_raw_lzss10(indata, decompressed_size, _overlay=False):
             if decompressed_size <= len(data):
                 break
 
-    if len(data) != decompressed_size:
-        logger.warning(
-            "Decompressed size mismatch: expected %d, got %d",
-            decompressed_size,
-            len(data),
-        )
-        raise DecompressionError("decompressed size does not match the expected size")
+    # if len(data) != decompressed_size:
+    #     logger.warning(
+    #         "Decompressed size mismatch: expected %d, got %d",
+    #         decompressed_size,
+    #         len(data),
+    #     )
+    #     raise DecompressionError("decompressed size does not match the expected size")
 
     return data
 

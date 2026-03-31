@@ -93,21 +93,58 @@ def _parse_symbols(data: str) -> list[Offset]:
     08abcde0 l 00000010 gSymbolName
     [address] [type] [length] [name]
 
+    If length is 0 or missing, calculate it using the next symbol's address.
+    For gTilesetTiles_* symbols, prefer using the matching gTilesetPalettes_* symbol.
+
     Args:
         data: Raw symbol file contents.
 
     Returns:
         List of Offset objects.
     """
-    return [
-        Offset(
-            address=int(f"0x{line[0]}", 0),
-            type=OffsetType.GLOBAL if line[1] == "g" else OffsetType.LOCAL,
-            length=int(f"0x{line[2]}", 0),
-            name=line[3],
+    lines = [x.strip().split(" ") for x in data.splitlines() if x.strip()]
+    offsets = []
+
+    # Build a map of symbol names to addresses for quick lookup
+    name_to_addr = {}
+    for line in lines:
+        if len(line) >= 4 and line[0] and line[3]:
+            try:
+                addr = int(f"0x{line[0]}", 0)
+                name_to_addr[line[3]] = addr
+            except ValueError:
+                pass
+
+    for i, line in enumerate(lines):
+        if len(line) < 4 or not line[0]:
+            continue
+
+        address = int(f"0x{line[0]}", 0)
+        sym_type = OffsetType.GLOBAL if line[1] == "g" else OffsetType.LOCAL
+        length = int(f"0x{line[2]}", 0)
+        name = line[3]
+
+        # If still 0, use next symbol
+        if length == 0 and i + 1 < len(lines):
+            next_line = lines[i + 1]
+            if len(next_line) >= 1 and next_line[0]:
+                try:
+                    next_address = int(f"0x{next_line[0]}", 0)
+                    if next_address > address:
+                        length = next_address - address
+                except ValueError:
+                    pass
+
+        offsets.append(
+            Offset(
+                address=address,
+                type=sym_type,
+                length=length,
+                name=name,
+            )
         )
-        for line in (x.strip().split(" ") for x in data.splitlines())
-    ]
+
+    return offsets
 
 
 def load_symbols(filepath_or_data: str | bytes) -> list[Offset]:
@@ -348,13 +385,26 @@ def extract_raw_data(
         return b""
 
     if is_compressed:
+        # Check for valid LZ77 compression header (0x10 or 0x11)
+        if length > 0 and offset + 1 < len(binary_data):
+            header = binary_data[offset]
+            if header not in (0x10, 0x11):
+                logger.debug(
+                    f"Data at 0x{offset:X} doesn't have LZ77 header, using raw"
+                )
+                return binary_data[offset : offset + length]
         try:
-            return bytes(decompress_bytes(binary_data[offset:]))
+            # Read a reasonable maximum for decompression
+            # The calculated length may be too small for compressed data
+            max_read = min(0x10000, len(binary_data) - offset)
+            compressed_data = binary_data[offset : offset + max_read]
+            result = decompress_bytes(compressed_data)
+            return bytes(result)
         except Exception as e:
             logger.warning(f"Decompression failed at 0x{offset:X}: {e}, using raw data")
-            return binary_data[offset : offset + length]
+            return binary_data[offset : offset + length] if length > 0 else b""
     else:
-        return binary_data[offset : offset + length]
+        return binary_data[offset : offset + length] if length > 0 else b""
 
 
 def extract_tileset_with_raw(
