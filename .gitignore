@@ -343,21 +343,6 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
-### Web ###
-*.asp
-*.cer
-*.csr
-*.css
-*.htm
-*.html
-*.js
-*.jsp
-*.php
-*.rss
-*.wasm
-*.wat
-*.xhtml
-
 ### Windows ###
 # Windows thumbnail cache files
 Thumbs.db
@@ -384,7 +369,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/web,node,macos,windows,python
+# End of https://www.toptal.com/developers/gitignore/api/node,macos,windows,python
 
 # Docs
 docs/build/

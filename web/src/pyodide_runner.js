@@ -1,3 +1,6 @@
+import { loadPyodide, version as pyodideVersion } from "pyodide";
+import pycode from "./extractor.py?raw";
+
 // DOM elements
 const elements = {
     form: document.getElementById('extract-form'),
@@ -136,7 +139,7 @@ async function initPyodide() {
     elements.status.textContent = 'Loading Pyodide...';
     elements.status.className = 'loading';
 
-    pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/' });
+    pyodide = await loadPyodide({ indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/` });
 
     // Expose progress bar updater to Python
     globalThis.updateProgressBar = (value) => { elements.progressBar.value = value; };
@@ -181,7 +184,8 @@ elements.form.addEventListener('submit', async (event) => {
     try {
         // Load ROM and Python module
         const romBuffer = await elements.romInput.files[0].arrayBuffer();
-        const extractorCode = await fetch('extractor.py').then(r => r.text());
+        // const extractorCode = await fetch('extractor.py').then(r => r.text());
+        const extractorCode = pycode;
 
         const importlib = await pyodide.pyimport("importlib");
         const pathlib = await pyodide.pyimport("pathlib");
