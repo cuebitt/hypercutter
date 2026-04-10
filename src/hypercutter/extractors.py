@@ -150,7 +150,7 @@ def _parse_symbols(data: str) -> list[Offset]:
 
 def load_symbols(filepath_or_data: str | bytes) -> list[Offset]:
     """Load symbols from a .sym file or raw data."""
-    logger.debug(f"load_symbols: {filepath_or_data}")
+    logger.debug("load_symbols: %r", filepath_or_data)
     if isinstance(filepath_or_data, str):
         with open(filepath_or_data, "r", encoding="utf-8") as f:
             filepath_or_data = f.read()
