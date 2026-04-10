@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "devDependencies": {
+    "vite-plus": "catalog:"
+  },
+  "dependencies": {
+    "@picocss/pico": "^2.1.1",
+    "pyodide": "^0.29.3"
+  }
+}
