@@ -1,95 +1,115 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hypercutter</title>
-    <link rel="stylesheet" href="node_modules/@picocss/pico/css/pico.min.css">
+    <link rel="stylesheet" href="node_modules/@picocss/pico/css/pico.min.css" />
     <link rel="icon" href="https://fav.farm/🔪" />
-</head>
+  </head>
 
-<body>
-    <header class="container">
+  <body>
+    <div id="app">
+      <header class="container">
         <hgroup>
-            <h1>Hypercutter <span id="version-text"
-                    style="font-size: medium; font-weight: normal; font-style: italic;"></span></h1>
-            <h2>Extract data from GBA Pokemon ROMs!</h2>
+          <h1>
+            Hypercutter
+            <span
+              id="version-text"
+              style="font-size: medium; font-weight: normal; font-style: italic"
+            ></span>
+          </h1>
+          <h2>Extract data from GBA Pokemon ROMs!</h2>
         </hgroup>
-    </header>
+      </header>
 
-    <main class="container">
-        <article style="max-width: 520px; margin: auto;">
-            <header>Extract Tilesets</header>
-            <form id="extract-form">
-                <fieldset>
-                    <label for="rom-file">
-                        ROM File (.gba)
-                        <input type="file" id="rom-file" accept=".gba" required>
-                    </label>
-                </fieldset>
-                <fieldset>
-                    <legend>Export Format</legend>
-                    <label for="format-json">
-                        <input type="radio" id="format-json" name="format" value="json" checked>
-                        JSON (Metadata)
-                    </label>
-                    <label for="format-png">
-                        <input type="radio" id="format-png" name="format" value="png">
-                        PNG (Rendered Images)
-                    </label>
-                    <label for="format-both">
-                        <input type="radio" id="format-both" name="format" value="both">
-                        Both
-                    </label>
-                </fieldset>
-                <input type="submit" value="Extract" id="extract-btn" disabled>
-            </form>
+      <main class="container">
+        <article style="max-width: 520px; margin: auto">
+          <header>Extract Tilesets</header>
+          <form id="extract-form">
+            <fieldset>
+              <label for="rom-file">
+                ROM File (.gba)
+                <input type="file" id="rom-file" accept=".gba" required />
+              </label>
+            </fieldset>
+            <fieldset>
+              <legend>Export Format</legend>
+              <label for="format-json">
+                <input type="radio" id="format-json" name="format" value="json" checked />
+                JSON (Metadata)
+              </label>
+              <label for="format-png">
+                <input type="radio" id="format-png" name="format" value="png" />
+                PNG (Rendered Images)
+              </label>
+              <label for="format-both">
+                <input type="radio" id="format-both" name="format" value="both" />
+                Both
+              </label>
+            </fieldset>
+            <input type="submit" value="Extract" id="extract-btn" disabled />
+          </form>
 
-            <article id="status-article" style="display: none; margin-top: 0.5rem;">
-                <header id="status"></header>
-                <progress id="progress-bar" value="0" max="100" style="width: 100%; display: none;"></progress>
-                <pre id="output"></pre>
-            </article>
+          <article id="status-article" style="display: none; margin-top: 0.5rem">
+            <header id="status"></header>
+            <progress
+              id="progress-bar"
+              value="0"
+              max="100"
+              style="width: 100%; display: none"
+            ></progress>
+            <pre id="output"></pre>
+          </article>
         </article>
-    </main>
+      </main>
 
-    <footer class="container">
-        <nav style="margin: 0 auto; width: fit-content;">
-            <ul>
-                <li>
-                    <a href="http://github.com/cuebitt/hypercutter" target="_blank" rel="noopener noreferrer">Source</a>
-                </li>
-                <li>
-                    <button id="about-dlg-trigger" role="link" style="border: none; background-color: transparent; padding: 0;">About</button>
-                </li>
-            </ul>
+      <footer class="container">
+        <nav style="margin: 0 auto; width: fit-content">
+          <ul>
+            <li>
+              <a
+                href="http://github.com/cuebitt/hypercutter"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Source</a
+              >
+            </li>
+            <li>
+              <button
+                id="about-dlg-trigger"
+                role="link"
+                style="border: none; background-color: transparent; padding: 0"
+              >
+                About
+              </button>
+            </li>
+          </ul>
         </nav>
-    </footer>
+      </footer>
 
-    <dialog id="about-dlg">
+      <dialog id="about-dlg">
         <article>
-            <header>
-                <button aria-label="Close" rel="prev"></button>
-                <p>
-                    ℹ️ About
-                </p>
-            </header>
-            <p>
-                This web page contains a web interface for <code>hypercutter</code>!
-            </p>
-            <p>
-                No data is collected. All operations occur locally in your browser, there is no server.
-            </p>
-            <p>
-                This web page is made using <a href="https://picocss.com" target="_blank"
-                    rel="noopener noreferrer">PicoCSS</a> and <a href="https://pyodide.org/en/stable/" target="_blank"
-                    rel="noopener noreferrer">Pyodide</a>!
-            </p>
+          <header>
+            <button aria-label="Close" rel="prev"></button>
+            <p>ℹ️ About</p>
+          </header>
+          <p>This web page contains a web interface for <code>hypercutter</code>!</p>
+          <p>
+            No data is collected. All operations occur locally in your browser, there is no server.
+          </p>
+          <p>
+            This web page is made using
+            <a href="https://picocss.com" target="_blank" rel="noopener noreferrer">PicoCSS</a>
+            and
+            <a href="https://pyodide.org/en/stable/" target="_blank" rel="noopener noreferrer"
+              >Pyodide</a
+            >!
+          </p>
         </article>
-    </dialog>
-
-    <script src="src/pyodide_runner.js" type="module"></script>
-</body>
-
+      </dialog>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>
