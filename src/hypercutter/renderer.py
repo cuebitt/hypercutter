@@ -34,7 +34,7 @@ class TilesetRenderer:
             rom_base_address: Base address for ROM pointers (default: 0x8000000).
             primary_tile_count: Number of tiles in primary tileset (default: 512).
         """
-        self.rom = rom_data
+        self.rom: bytes | None = rom_data
         self.primary = tileset_data.get("primary")
         self.secondary = tileset_data.get("secondary")
         self.rom_base_address = rom_base_address
@@ -101,6 +101,7 @@ class TilesetRenderer:
         offset = ptr - self.rom_base_address
 
         # Validate offset is within ROM bounds
+        assert self.rom is not None
         if offset <= 0 or offset + length > len(self.rom):
             logger.warning(
                 "Invalid %s offset: 0x%x (ROM size: 0x%x)",
@@ -127,6 +128,7 @@ class TilesetRenderer:
             return
 
         offset = ptr - self.rom_base_address
+        assert self.rom is not None
         if offset <= 0 or offset + length > len(self.rom):
             logger.warning(
                 "Invalid tiles offset: 0x%x (ROM size: 0x%x)",
@@ -186,7 +188,12 @@ class TilesetRenderer:
         """Render a single 8x8 tile."""
         indices = decode_tile_4bpp(tile_data)
         img = Image.new("RGBA", (8, 8))
-        pixels = img.load()
+        # Explicitly handle None case to satisfy type checker
+        loaded = img.load()
+        if loaded is None:
+            msg = "Failed to load pixel data"
+            raise RuntimeError(msg)
+        pixels = loaded
 
         for y in range(8):
             for x in range(8):
@@ -198,9 +205,9 @@ class TilesetRenderer:
                     pixels[x, y] = (r, g, b, 255)
 
         if h_flip:
-            img = img.transpose(Image.FLIP_LEFT_RIGHT)
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)  # type: ignore[attr-defined]
         if v_flip:
-            img = img.transpose(Image.FLIP_TOP_BOTTOM)
+            img = img.transpose(Image.FLIP_TOP_BOTTOM)  # type: ignore[attr-defined]
 
         return img
 
