@@ -1,4 +1,5 @@
 import { defineConfig } from "vite-plus";
+import { externalDistPlugin } from "./src/plugins/dist.ts";
 
 export default defineConfig({
   staged: {
@@ -7,4 +8,5 @@ export default defineConfig({
   },
   fmt: {},
   lint: { options: { typeAware: true, typeCheck: true } },
+  plugins: [externalDistPlugin()],
 });
