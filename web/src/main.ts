@@ -1,13 +1,11 @@
-import {
-  loadPyodide,
-  version as pyodideVersion,
-  type PyodideInterface,
-} from "pyodide";
+import { loadPyodide, version as pyodideVersion, type PyodideInterface } from "pyodide";
 import { elements, getSelectedFormat } from "./elements";
 import { KNOWN_ROMS, type SymResult } from "./constants";
 import { getSymFromDB, saveSymToDB } from "./database";
 import { downloadFile, sha256 } from "./utils";
-import pycode from "./assets/extractor.py?raw";
+import extractorCode from "./assets/extractor.py?raw";
+
+const isDev = import.meta.env.DEV;
 
 let pyodide: PyodideInterface | null = null;
 let isReady = false;
@@ -44,8 +42,7 @@ async function loadSymFile(romBuffer: ArrayBuffer): Promise<SymResult> {
 }
 
 async function initPyodide(): Promise<void> {
-  if (!elements.status || !elements.progressBar || !elements.versionText)
-    return;
+  if (!elements.status || !elements.progressBar || !elements.versionText) return;
 
   elements.status.textContent = "Loading Pyodide...";
   elements.status.className = "loading";
@@ -54,23 +51,34 @@ async function initPyodide(): Promise<void> {
     indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`,
   });
 
-  (
-    globalThis as { updateProgressBar?: (value: number) => void }
-  ).updateProgressBar = (value: number) => {
+  (globalThis as { updateProgressBar?: (value: number) => void }).updateProgressBar = (
+    value: number,
+  ) => {
     elements.progressBar!.value = value;
   };
 
   elements.status.textContent = "Installing package...";
   if (!pyodide) return;
 
-  await pyodide.loadPackage("micropip");
-  const micropip = pyodide.pyimport("micropip");
-  await micropip.install(
-    "http://localhost:8000/dist/hypercutter-0.2.1-py3-none-any.whl",
-  );
+  try {
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
 
-  const freeze = JSON.parse(micropip.freeze());
-  elements.versionText.textContent = `v${freeze.packages.hypercutter.version}`;
+    if (isDev) {
+      await micropip.install("/dist/hypercutter-0.0.0-py3-none-any.whl");
+    } else {
+      await micropip.install("hypercutter");
+    }
+
+    const freeze = JSON.parse(micropip.freeze());
+    const hypercutterVersion = freeze.packages.hypercutter?.version ?? "latest";
+    elements.versionText.textContent = `v${hypercutterVersion}`;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    elements.status.textContent = `Error: ${msg}`;
+    elements.status.className = "error";
+    return;
+  }
 
   isReady = true;
   elements.status.textContent = "Ready";
@@ -88,12 +96,7 @@ function runExtraction(): void {
     if (!isReady) return;
 
     const format = getSelectedFormat();
-    if (
-      elements.status &&
-      elements.output &&
-      elements.statusArticle &&
-      elements.btn
-    ) {
+    if (elements.status && elements.output && elements.statusArticle && elements.btn) {
       elements.status.textContent = "Extracting...";
       elements.status.className = "loading";
       elements.output.style.display = "none";
@@ -110,7 +113,7 @@ function runExtraction(): void {
 
       const importlib = pyodide.pyimport("importlib");
       const pathlib = pyodide.pyimport("pathlib");
-      pathlib.Path("extractor.py").write_text(pycode);
+      pathlib.Path("extractor.py").write_text(extractorCode);
       importlib.invalidate_caches();
 
       const { filename: symPath } = await loadSymFile(romBuffer);
@@ -137,9 +140,7 @@ function runExtraction(): void {
         }
 
         const jsonModule = pyodide.pyimport("json");
-        const metatilesData = jsonModule.loads(
-          pathlib.Path("/tmp/metatiles.json").read_text(),
-        );
+        const metatilesData = jsonModule.loads(pathlib.Path("/tmp/metatiles.json").read_text());
         extractor.render_images(metatilesData, romFilename);
 
         downloadFile(
@@ -149,12 +150,7 @@ function runExtraction(): void {
         );
       }
 
-      if (
-        elements.status &&
-        elements.output &&
-        elements.statusArticle &&
-        elements.progressBar
-      ) {
+      if (elements.status && elements.output && elements.statusArticle && elements.progressBar) {
         elements.status.textContent = "Done";
         elements.status.className = "";
         elements.output.textContent = `Extraction complete (${format} format)`;
@@ -187,11 +183,9 @@ function runExtraction(): void {
     elements.aboutDialog?.showModal();
   });
 
-  elements.aboutDialog
-    ?.querySelector('button[rel="prev"]')
-    ?.addEventListener("click", () => {
-      elements.aboutDialog?.close();
-    });
+  elements.aboutDialog?.querySelector('button[rel="prev"]')?.addEventListener("click", () => {
+    elements.aboutDialog?.close();
+  });
 }
 
 async function init(): Promise<void> {
@@ -199,4 +193,4 @@ async function init(): Promise<void> {
   await initPyodide();
 }
 
-init();
+void init();

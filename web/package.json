@@ -10,9 +10,12 @@
   },
   "dependencies": {
     "@picocss/pico": "^2.1.1",
+    "localforage": "^1.10.0",
     "pyodide": "^0.29.3"
   },
   "devDependencies": {
+    "@types/semver": "^7.7.1",
+    "semver": "^7.7.4",
     "typescript": "~6.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
