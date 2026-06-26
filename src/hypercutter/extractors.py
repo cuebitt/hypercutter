@@ -35,6 +35,7 @@ callback_ptr             uint32        Pointer to callback function
 
 import logging
 import struct
+from pathlib import Path
 from typing import Any
 
 from .classes import (
@@ -168,7 +169,7 @@ def _parse_symbols(data: str) -> list[Offset]:
 def load_symbols(filepath_or_data: str | bytes) -> list[Offset]:
     """Load symbols from a .sym file or raw data."""
     logger.debug("load_symbols: %r", filepath_or_data)
-    if isinstance(filepath_or_data, str):
+    if isinstance(filepath_or_data, str) and not "\n" in filepath_or_data and Path(filepath_or_data).is_file():
         with open(filepath_or_data, "r", encoding="utf-8") as f:
             filepath_or_data = f.read()
     elif isinstance(filepath_or_data, bytes):
@@ -606,8 +607,7 @@ def extract(
     if not map_table_sym:
         raise ValueError("Symbol 'gMapLayouts' not found in symbols file")
 
-    map_table_sym_idx = symbols.index(map_table_sym)
-    map_table_length = symbols[map_table_sym_idx + 1].address - map_table_sym.address
+    map_table_length = map_table_sym.length
     map_table_count = map_table_length // 4
 
     rel_offset = map_table_sym.address - start_sym_offset
