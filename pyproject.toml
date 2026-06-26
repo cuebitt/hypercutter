@@ -7,10 +7,15 @@ name = "hypercutter"
 version = "0.2.1"
 description = "GBA Pokemon ROM data extraction tool"
 requires-python = ">=3.10"
-dependencies = ["Pillow", "tqdm"]
+dependencies = [
+    "orjson>=3.11.9",
+    "Pillow>=9.0",
+    "tqdm>=4.0",
+]
 
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx-rtd-theme"]
+fast = ["orjson>=3.0"]
 
 [tool.ruff]
 target-version = "py310"
@@ -46,6 +51,10 @@ show_column_numbers = true
 disable_error_code = ["assignment"]
 pretty = true
 
+[[tool.mypy.overrides]]
+module = ["orjson.*"]
+ignore_missing_imports = true
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
@@ -53,4 +62,12 @@ dev = [
     "ruff>=0.15.7",
     "mypy>=1.11.0",
     "types-tqdm>=0.1.0",
+    "bandit>=1.7",
+    "pyright>=1.1",
 ]
+
+[tool.pyright]
+pythonVersion = "3.10"
+typeCheckingMode = "strict"
+include = ["src"]
+exclude = ["docs", "tests", "web", "scripts"]

@@ -10,6 +10,18 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+try:
+    import orjson
+
+    def _dumps(obj: Any) -> bytes:
+        return bytes(orjson.dumps(obj))
+
+except ImportError:
+
+    def _dumps(obj: Any) -> bytes:
+        return json.dumps(obj).encode("utf-8")
+
+
 from tqdm import tqdm
 
 from hypercutter import extract, load_symbols
@@ -20,7 +32,6 @@ from hypercutter.classes import (
     identify_rom,
 )
 from hypercutter.renderer import TilesetRenderer
-from hypercutter.extractors import Offset
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -36,7 +47,8 @@ def strip_symbols(sym_data: str) -> str:
 
     symbols = load_symbols(sym_data)
     filtered = [
-        s for s in symbols
+        s
+        for s in symbols
         if s.name in needed_exact or s.name.startswith(needed_prefixes)
     ]
     filtered.sort(key=lambda s: s.address)
@@ -45,7 +57,7 @@ def strip_symbols(sym_data: str) -> str:
     for s in filtered:
         addr = f"{s.address:08x}"
         length = f"{s.length:08x}"
-        lines.append(f"{addr} {s.type.value} {length} {s.name}")
+        lines.append(f"{addr} {s.scope.value} {length} {s.name}")
 
     return "\n".join(lines)
 
@@ -99,8 +111,8 @@ def save_output(data: dict, output_path: Path) -> None:
     """Save extraction data to a JSON file (excluding raw binary data, keeping lengths)."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     cleaned = strip_raw(data)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(cleaned, f, indent=4)
+    with open(output_path, "wb") as f:
+        f.write(_dumps(cleaned))
 
 
 def export_images(
@@ -155,17 +167,15 @@ def run(
     Returns:
         The extracted metatiles dictionary.
     """
-    rom_data = None
-    if export_dir:
-        with open(rom_path, "rb") as f:
-            rom_data = f.read()
+    with open(rom_path, "rb") as f:
+        rom_data = f.read()
 
     if clear_output:
         clear_directory(Path(output_path).parent)
         if export_dir:
             clear_directory(Path(export_dir))
 
-    metatiles, rom_base_address = extract(sym_path, rom_path)
+    metatiles, rom_base_address = extract(sym_path, rom_data)
     save_output(metatiles, Path(output_path))
     logging.info("Metadata written to: %s", output_path)
 
@@ -340,7 +350,7 @@ def main() -> None:
         pass
     except Exception as e:
         logging.error("%s", e)
-        raise e
+        raise
 
 
 if __name__ == "__main__":

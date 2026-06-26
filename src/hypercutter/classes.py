@@ -187,7 +187,7 @@ class Offset:
     """Represents a symbol entry from a .sym file."""
 
     address: int
-    type: OffsetType
+    scope: OffsetType
     length: int
     name: str
 
