@@ -11,7 +11,7 @@ from PIL import Image
 
 from .constants import MON_PIC_HEIGHT, MON_PIC_WIDTH, TILE_SIZE
 from .graphics import decode_palettes, render_pixels_to_image
-from .types import SpriteEntry
+from .types import FormSpriteEntry, SpriteEntry
 from .utils import decode_tile_4bpp
 
 __all__ = ["PokemonSpriteRenderer", "get_species_name"]
@@ -165,7 +165,7 @@ class PokemonSpriteRenderer:
     @classmethod
     def from_sprite_data(
         cls,
-        sprite_data: SpriteEntry,
+        sprite_data: SpriteEntry | FormSpriteEntry,
         is_front: bool = True,
         is_shiny: bool = False,
     ) -> "PokemonSpriteRenderer":
@@ -191,7 +191,7 @@ class PokemonSpriteRenderer:
     @classmethod
     def from_back_sprite_data(
         cls,
-        sprite_data: SpriteEntry,
+        sprite_data: SpriteEntry | FormSpriteEntry,
         is_shiny: bool = False,
     ) -> "PokemonSpriteRenderer":
         """Create a renderer from extracted back sprite data."""

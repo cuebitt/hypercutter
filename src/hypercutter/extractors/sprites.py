@@ -13,13 +13,12 @@ from ..constants import (
     SPRITE_SHEET_ENTRY_SIZE,
     SPRITE_SYMBOL_NAMES,
 )
-from ..types import FormSpriteEntry, SpriteEntry
 from ..exceptions import DecompressionError
 from ..lzss3 import decompress_bytes
+from ..types import FormSpriteEntry, SpriteEntry
 from ..utils import build_field_index
-
-from .tilesets import extract_raw_data
 from .species import load_species_names
+from .tilesets import extract_raw_data
 
 logger = logging.getLogger(__name__)
 
@@ -476,7 +475,8 @@ def extract_pokemon_form_sprites(
             results[key]["back_tile_data"] = decompressed
 
     # --- Pass 2: packed form data ---
-    # Detect packed species: both front and back pic must decompress to >= 2 * POKEMON_FORM_SIZE.
+    # Detect packed species: both front and back pic must decompress
+    # to >= 2 * POKEMON_FORM_SIZE.
     # Regular species may have a front pic that decompresses larger due to LZ77 garbage,
     # but their back pic will only decompress to 1 * POKEMON_FORM_SIZE.
     packed_species: dict[str, list[str]] = {}

@@ -1,6 +1,8 @@
 import struct
 import tempfile
+
 import pytest
+
 from hypercutter.classes import MapLayout, Offset, OffsetType, Tileset
 from hypercutter.extractors import (
     build_tileset_name_pairs,
@@ -260,6 +262,7 @@ class TestExtractIntegration:
 
     def test_extract_emerald(self):
         from pathlib import Path
+
         from hypercutter.extractors import extract
 
         rom_path = Path(__file__).resolve().parent.parent / "data" / "pokeemerald.gba"

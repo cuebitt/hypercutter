@@ -27,10 +27,10 @@ from tqdm import tqdm
 
 from hypercutter import (
     extract,
-    load_symbols,
     extract_all_pokemon_sprites,
     extract_pokemon_form_sprites,
     load_species_names,
+    load_symbols,
 )
 from hypercutter.classes import (
     GAME_CODE_OFFSET,
@@ -45,7 +45,7 @@ from hypercutter.constants import (
 )
 from hypercutter.renderer import TilesetRenderer
 from hypercutter.sprite_renderer import PokemonSpriteRenderer, get_species_name
-from hypercutter.types import MetatileEntry, SpriteEntry, FormSpriteEntry
+from hypercutter.types import FormSpriteEntry, MetatileEntry, SpriteEntry
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -140,7 +140,7 @@ def strip_raw(obj: dict | list) -> dict | list:
 
 
 def save_output(data: dict, output_path: Path) -> None:
-    """Save extraction data to a JSON file (excluding raw binary data, keeping lengths)."""
+    """Save extraction data to a JSON file (excluding raw binary data)."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     cleaned = strip_raw(data)
     with open(output_path, "wb") as f:
@@ -176,7 +176,7 @@ def export_images(
 
 
 def _render_form_sprite(
-    sprite_data: FormSpriteEntry,
+    sprite_data: SpriteEntry | FormSpriteEntry,
     is_front: bool,
     is_shiny: bool = False,
 ) -> Image.Image | None:
@@ -196,7 +196,7 @@ def _render_form_sprite(
 
 
 def _render_base_sprite(
-    sprite_data: SpriteEntry,
+    sprite_data: SpriteEntry | FormSpriteEntry,
     is_front: bool,
     is_shiny: bool = False,
 ) -> Image.Image | None:
@@ -525,7 +525,7 @@ def main() -> None:
             logging.error(
                 "Unidentified ROM. Game code: %s. "
                 "If you believe this is a supported ROM, please report this issue. "
-                "You can also try specifying --game explicitly or providing a .sym file.",
+                "You can also try --game explicitly or providing a .sym file.",
                 game_code.decode("latin-1", errors="replace"),
             )
             return

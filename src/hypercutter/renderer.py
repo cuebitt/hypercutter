@@ -1,18 +1,19 @@
 import logging
+from typing import Any
 
 from PIL import Image
 
 from .constants import (
     DEFAULT_ROM_BASE_ADDRESS,
+    METATILE_SIZE,
+    METATILE_TILE_COUNT,
     PALETTE_SIZE,
     PRIMARY_TILESET_TILE_COUNT,
     TILE_SIZE,
-    METATILE_SIZE,
-    METATILE_TILE_COUNT,
 )
-from .types import MetatileEntry, TilesetData
 from .graphics import render_tile_to_image
 from .lzss3 import decompress_bytes
+from .types import MetatileEntry
 from .utils import parse_metatile_entry
 
 __all__ = ["TilesetRenderer"]
@@ -32,19 +33,19 @@ class TilesetRenderer:
         Initialize the renderer with tileset data.
 
         Args:
-            tileset_data: Extracted tileset data containing primary and secondary tilesets.
+            tileset_data: Extracted tileset data with primary and secondary tilesets.
             rom_data: Optional ROM bytes for re-extracting raw data if not present.
             rom_base_address: Base address for ROM pointers (default: 0x8000000).
             primary_tile_count: Number of tiles in primary tileset (default: 512).
         """
         self.rom: bytes | None = rom_data
-        self.primary = tileset_data.get("primary")
-        self.secondary = tileset_data.get("secondary")
+        self.primary: dict[str, Any] | None = tileset_data.get("primary")  # ty: ignore
+        self.secondary: dict[str, Any] | None = tileset_data.get("secondary")  # ty: ignore
         self.rom_base_address = rom_base_address
         self.primary_tile_count = primary_tile_count
         self._ensure_raw_data()
 
-    def _extract_raw_from_rom(self, tileset: TilesetData) -> None:
+    def _extract_raw_from_rom(self, tileset: dict[str, Any]) -> None:
         """
         Extract raw data from ROM using pointers if not already present.
 
@@ -79,7 +80,7 @@ class TilesetRenderer:
 
     def _extract_field_from_rom(
         self,
-        tileset: TilesetData,
+        tileset: dict[str, Any],
         ptr_key: str,
         raw_key: str,
         length: int,
@@ -118,7 +119,7 @@ class TilesetRenderer:
 
         tileset[raw_key] = bytes(self.rom[offset : offset + length])
 
-    def _extract_tiles_from_rom(self, tileset: TilesetData) -> None:
+    def _extract_tiles_from_rom(self, tileset: dict[str, Any]) -> None:
         """
         Extract tile graphics from ROM, handling LZ77 compression.
 
@@ -164,7 +165,9 @@ class TilesetRenderer:
                     if tileset.get(field) is None:
                         self._extract_raw_from_rom(tileset)
 
-    def _get_palettes(self, tileset: TilesetData) -> list[list[tuple[int, int, int]]]:
+    def _get_palettes(
+        self, tileset: dict[str, Any]
+    ) -> list[list[tuple[int, int, int]]]:
         """Decode all 16 palettes for a tileset."""
         from .graphics import decode_palettes
 
@@ -278,7 +281,7 @@ class TilesetRenderer:
 
                 # Paste into the 16x16 metatile
                 # Layer 1 (bottom): tiles 0-3, Layer 2 (top): tiles 4-7
-                # Each layer arranged as: [Top-Left, Top-Right, Bottom-Left, Bottom-Right]
+                # Each layer: [Top-Left, Top-Right, Bottom-Left, Bottom-Right]
                 sub_idx = i % 4
                 x_off = (sub_idx % 2) * 8
                 y_off = (sub_idx // 2) * 8

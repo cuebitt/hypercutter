@@ -48,7 +48,7 @@ def find_primary_from_secondary(
     Find the primary tileset name for a given secondary tileset.
 
     Args:
-        pairs: Dictionary mapping primary tileset names to lists of secondary tileset names.
+        pairs: Mapping of primary tileset names to lists of secondary tileset names.
         secondary: The secondary tileset name to look up.
 
     Returns:
