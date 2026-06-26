@@ -258,6 +258,7 @@ class TilesetRenderer:
 
         for mt_idx in range(num_metatiles):
             mt_offset = mt_idx * METATILE_SIZE
+            metatile_img = Image.new("RGBA", (16, 16))
 
             # Each metatile has 8 tiles: 4 bottom layer, 4 top layer
             for i in range(METATILE_TILE_COUNT):
@@ -305,14 +306,19 @@ class TilesetRenderer:
                     is_transparent=True,
                 )
 
-                # Paste into the output image at the correct position
+                # Paste into the 16x16 metatile
                 # Layer 1 (bottom): tiles 0-3, Layer 2 (top): tiles 4-7
                 # Each layer arranged as: [Top-Left, Top-Right, Bottom-Left, Bottom-Right]
                 sub_idx = i % 4
-                gx = (mt_idx % grid_width) * 16 + (sub_idx % 2) * 8
-                gy = (mt_idx // grid_width) * 16 + (sub_idx // 2) * 8
+                x_off = (sub_idx % 2) * 8
+                y_off = (sub_idx // 2) * 8
 
-                output.paste(tile_img, (gx, gy))
+                metatile_img.alpha_composite(tile_img, (x_off, y_off))
+
+            # Paste metatile into grid
+            gx = (mt_idx % grid_width) * 16
+            gy = (mt_idx // grid_width) * 16
+            output.paste(metatile_img, (gx, gy))
 
         logger.debug("Render complete: %d metatiles", num_metatiles)
         return output
