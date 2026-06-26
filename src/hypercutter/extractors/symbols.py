@@ -4,11 +4,11 @@ import logging
 from pathlib import Path
 
 from ..classes import (
-    GAME_CODE_OFFSET,
     GAME_CODE_LENGTH,
+    GAME_CODE_OFFSET,
+    SUPPORTED_GAMES,
     Offset,
     OffsetType,
-    SUPPORTED_GAMES,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,9 @@ def validate_rom(rom_data: bytes, expected_game_code: bytes | None = None) -> bo
     game_code = rom_data[GAME_CODE_OFFSET : GAME_CODE_OFFSET + GAME_CODE_LENGTH]
     if expected_game_code is not None and game_code != expected_game_code:
         logger.warning(
-            f"ROM game code '{game_code.decode('latin-1')}' does not match expected '{expected_game_code.decode()}'"
+            "ROM game code '%s' does not match expected '%s'",
+            game_code.decode("latin-1"),
+            expected_game_code.decode(),
         )
     elif game_code not in SUPPORTED_GAMES:
         logger.warning(

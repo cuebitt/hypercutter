@@ -3,6 +3,7 @@
 import logging
 import struct
 from dataclasses import asdict
+from typing import cast
 
 from ..classes import MapLayout, Offset, Tileset
 from ..constants import (
@@ -13,11 +14,10 @@ from ..constants import (
     TILESET_FORMAT,
     TILESET_SIZE,
 )
-from ..types import MetatileEntry, TilesetData
 from ..exceptions import DecompressionError
 from ..lzss3 import decompress_bytes
+from ..types import MetatileEntry, TilesetData
 from ..utils import build_field_index, find_by_field, find_primary_from_secondary
-
 from .symbols import load_symbols, read_rom, validate_rom
 
 logger = logging.getLogger(__name__)
@@ -353,7 +353,7 @@ def extract_tileset_with_raw(
     )
     data["metatiles_length"] = len(data["metatiles_raw"])
 
-    return data
+    return cast(TilesetData, data)
 
 
 def extract_all_tilesets(

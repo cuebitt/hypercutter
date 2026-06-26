@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from enum import Enum
 from hashlib import sha256
 
-
 GAME_CODE_OFFSET = 0xAC
 GAME_CODE_LENGTH = 4
 
