@@ -43,6 +43,7 @@ class TestTilesetRenderer:
         }
 
         renderer = TilesetRenderer(tileset_data, bytes(rom), rom_base_address=0x8000000)
+        assert renderer.primary is not None
         assert renderer.primary["palettes_raw"] is not None
         assert renderer.primary["tiles_raw"] is not None
 
@@ -69,7 +70,9 @@ class TestRenderTile:
 
         img = renderer._render_tile(tile_data, palette, is_transparent=True)
         # First pixel should be transparent
-        assert img.getpixel((0, 0))[3] == 0
+        pixel = img.getpixel((0, 0))
+        assert isinstance(pixel, tuple)
+        assert pixel[3] == 0
 
     def test_applies_horizontal_flip(self):
         data = {"primary": {"tiles_raw": b"", "palettes_raw": b""}}
@@ -89,6 +92,7 @@ class TestRenderTile:
         data = {"primary": {"tiles_raw": b"", "palettes_raw": b""}}
         renderer = TilesetRenderer(data)
 
+        # Create a tile with left half different from right half
         tile_data = bytes([0x10] * 16 + [0x01] * 16)
         palette = [(0, 0, 0), (255, 255, 255)]
 

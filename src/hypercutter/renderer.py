@@ -14,6 +14,8 @@ from .constants import (
 from .lzss3 import decompress_bytes
 from .utils import decode_bgr555, decode_tile_4bpp, parse_metatile_entry
 
+__all__ = ["TilesetRenderer"]
+
 logger = logging.getLogger(__name__)
 
 
@@ -97,11 +99,13 @@ class TilesetRenderer:
         if not ptr:
             return
 
+        if self.rom is None:
+            return
+
         # Convert ROM address to file offset
         offset = ptr - self.rom_base_address
 
         # Validate offset is within ROM bounds
-        assert self.rom is not None
         if offset <= 0 or offset + length > len(self.rom):
             logger.warning(
                 "Invalid %s offset: 0x%x (ROM size: 0x%x)",
@@ -127,8 +131,10 @@ class TilesetRenderer:
         if not ptr or not length:
             return
 
+        if self.rom is None:
+            return
+
         offset = ptr - self.rom_base_address
-        assert self.rom is not None
         if offset <= 0 or offset + length > len(self.rom):
             logger.warning(
                 "Invalid tiles offset: 0x%x (ROM size: 0x%x)",
@@ -187,27 +193,28 @@ class TilesetRenderer:
     ) -> Image.Image:
         """Render a single 8x8 tile."""
         indices = decode_tile_4bpp(tile_data)
-        img = Image.new("RGBA", (8, 8))
-        # Explicitly handle None case to satisfy type checker
-        loaded = img.load()
-        if loaded is None:
-            msg = "Failed to load pixel data"
-            raise RuntimeError(msg)
-        pixels = loaded
+        pixels = bytearray(64 * 4)  # 8x8 RGBA
 
-        for y in range(8):
-            for x in range(8):
-                idx = indices[y * 8 + x]
-                if is_transparent and idx == 0:
-                    pixels[x, y] = (0, 0, 0, 0)
-                else:
-                    r, g, b = palette[idx]
-                    pixels[x, y] = (r, g, b, 255)
+        for i, idx in enumerate(indices):
+            offset = i * 4
+            if is_transparent and idx == 0:
+                pixels[offset] = 0
+                pixels[offset + 1] = 0
+                pixels[offset + 2] = 0
+                pixels[offset + 3] = 0
+            else:
+                r, g, b = palette[idx]
+                pixels[offset] = r
+                pixels[offset + 1] = g
+                pixels[offset + 2] = b
+                pixels[offset + 3] = 255
+
+        img = Image.frombytes("RGBA", (8, 8), bytes(pixels))
 
         if h_flip:
-            img = img.transpose(Image.FLIP_LEFT_RIGHT)  # type: ignore[attr-defined]
+            img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
         if v_flip:
-            img = img.transpose(Image.FLIP_TOP_BOTTOM)  # type: ignore[attr-defined]
+            img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
         return img
 
@@ -251,7 +258,6 @@ class TilesetRenderer:
 
         for mt_idx in range(num_metatiles):
             mt_offset = mt_idx * METATILE_SIZE
-            metatile_img = Image.new("RGBA", (16, 16))
 
             # Each metatile has 8 tiles: 4 bottom layer, 4 top layer
             for i in range(METATILE_TILE_COUNT):
@@ -299,19 +305,14 @@ class TilesetRenderer:
                     is_transparent=True,
                 )
 
-                # Paste into the 16x16 metatile
+                # Paste into the output image at the correct position
                 # Layer 1 (bottom): tiles 0-3, Layer 2 (top): tiles 4-7
                 # Each layer arranged as: [Top-Left, Top-Right, Bottom-Left, Bottom-Right]
                 sub_idx = i % 4
-                x_off = (sub_idx % 2) * 8
-                y_off = (sub_idx // 2) * 8
+                gx = (mt_idx % grid_width) * 16 + (sub_idx % 2) * 8
+                gy = (mt_idx // grid_width) * 16 + (sub_idx // 2) * 8
 
-                metatile_img.alpha_composite(tile_img, (x_off, y_off))
-
-            # Paste metatile into grid
-            gx = (mt_idx % grid_width) * 16
-            gy = (mt_idx // grid_width) * 16
-            output.paste(metatile_img, (gx, gy))
+                output.paste(tile_img, (gx, gy))
 
         logger.debug("Render complete: %d metatiles", num_metatiles)
         return output

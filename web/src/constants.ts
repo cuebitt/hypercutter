@@ -5,6 +5,31 @@ export interface RomInfo {
 }
 
 export const KNOWN_ROMS: Record<string, RomInfo> = {
+  a9dec84dfe7f62ab2220bafaef7479da0929d066ece16a6885f6226db19085af: {
+    sym: "pokeemerald.sym",
+    repo: "pokeemerald",
+    game: "Pokemon Emerald",
+  },
+  "3d0c79f1627022e18765766f6cb5ea067f6b5bf7dca115552189ad65a5c3a8ac": {
+    sym: "pokefirered.sym",
+    repo: "pokefirered",
+    game: "Pokemon FireRed",
+  },
+  "729041b940afe031302d630fdbe57c0c145f3f7b6d9b8eca5e98678d0ca4d059": {
+    sym: "pokefirered_rev1.sym",
+    repo: "pokefirered",
+    game: "Pokemon FireRed v1.1",
+  },
+  "78d310d557ceebc593bd393acc52d1b19a8f023fec40bc200e6063880d8531fc": {
+    sym: "pokeleafgreen.sym",
+    repo: "pokefirered",
+    game: "Pokemon LeafGreen",
+  },
+  "2f978f635b9593f6ca26ec42481c53a6b39f6cddd894ad5c062c1419fac58825": {
+    sym: "pokeleafgreen_rev1.sym",
+    repo: "pokefirered",
+    game: "Pokemon LeafGreen v1.1",
+  },
   "53d591215de2cab847d14fbcf8c516f0128cfa8556f1236065e0535aa5936d4e": {
     sym: "pokeruby.sym",
     repo: "pokeruby",
@@ -34,31 +59,6 @@ export const KNOWN_ROMS: Record<string, RomInfo> = {
     sym: "pokesapphire_rev2.sym",
     repo: "pokeruby",
     game: "Pokemon Sapphire v1.2",
-  },
-  a9dec84dfe7f62ab2220bafaef7479da0929d066ece16a6885f6226db19085af: {
-    sym: "pokeemerald.sym",
-    repo: "pokeemerald",
-    game: "Pokemon Emerald",
-  },
-  "3d0c79f1627022e18765766f6cb5ea067f6b5bf7dca115552189ad65a5c3a8ac": {
-    sym: "pokefirered.sym",
-    repo: "pokefirered",
-    game: "Pokemon FireRed",
-  },
-  "729041b940afe031302d630fdbe57c0c145f3f7b6d9b8eca5e98678d0ca4d059": {
-    sym: "pokefirered_rev1.sym",
-    repo: "pokefirered",
-    game: "Pokemon FireRed v1.1",
-  },
-  "78d310d557ceebc593bd393acc52d1b19a8f023fec40bc200e6063880d8531fc": {
-    sym: "pokeleafgreen.sym",
-    repo: "pokefirered",
-    game: "Pokemon LeafGreen",
-  },
-  "2f978f635b9593f6ca26ec42481c53a6b39f6cddd894ad5c062c1419fac58825": {
-    sym: "pokeleafgreen_rev1.sym",
-    repo: "pokefirered",
-    game: "Pokemon LeafGreen v1.1",
   },
 };
 

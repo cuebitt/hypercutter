@@ -54,10 +54,27 @@ from .constants import (
     TILESET_FORMAT,
     TILESET_SIZE,
 )
-from .utils import find_by_field, find_primary_from_secondary
+from .utils import build_field_index, find_by_field, find_primary_from_secondary
 from .lzss3 import decompress_bytes
 
 logger = logging.getLogger(__name__)
+
+__all__ = [
+    "validate_rom",
+    "load_symbols",
+    "read_rom",
+    "extract_map_layout",
+    "extract_map_table",
+    "extract_tileset_info",
+    "extract_metatile_info",
+    "build_tileset_name_pairs",
+    "extract_tileset",
+    "extract_raw_data",
+    "extract_tileset_with_raw",
+    "extract_all_tilesets",
+    "extract_metatiles",
+    "extract",
+]
 
 
 def validate_rom(rom_data: bytes, expected_game_code: bytes | None = None) -> bool:
@@ -139,7 +156,7 @@ def _parse_symbols(data: str) -> list[Offset]:
         offsets.append(
             Offset(
                 address=address,
-                type=sym_type,
+                scope=sym_type,
                 length=length,
                 name=name,
             )
@@ -217,16 +234,15 @@ def extract_map_table(rom: bytes, map_table_sym_offset: int, count: int) -> list
     Returns:
         List of ROM addresses pointing to MapLayout structs.
     """
-    return [
-        int.from_bytes(
-            rom[map_table_sym_offset + i * 4 : map_table_sym_offset + (i + 1) * 4],
-            "little",
-        )
-        for i in range(count)
-    ]
+    fmt = f"<{count}I"
+    return list(struct.unpack_from(fmt, rom, map_table_sym_offset))
 
 
-def extract_tileset_info(tileset_name: str, symbols: list[Offset]) -> dict[str, int]:
+def extract_tileset_info(
+    tileset_name: str,
+    symbols: list[Offset],
+    name_index: dict[str, Offset] | None = None,
+) -> dict[str, int]:
     """
     Extract tileset tile and palette lengths from symbols.
 
@@ -239,10 +255,14 @@ def extract_tileset_info(tileset_name: str, symbols: list[Offset]) -> dict[str, 
     Args:
         tileset_name: Name of the tileset (e.g., "Overworld", "Building").
         symbols: List of symbol offsets from the .sym file.
+        name_index: Optional pre-built name-to-Offset dict for O(1) lookups.
 
     Returns:
         Dictionary with 'tiles_length' and 'palettes_len' values.
     """
+    if name_index is None:
+        name_index = build_field_index(symbols, "name")
+
     variants = {tileset_name}
     if tileset_name == "Building":
         variants.add("InsideBuilding")
@@ -252,8 +272,8 @@ def extract_tileset_info(tileset_name: str, symbols: list[Offset]) -> dict[str, 
     tiles_length = 0
     palettes_len = 0
     for variant in variants:
-        tiles_sym = find_by_field(symbols, "name", f"gTilesetTiles_{variant}")
-        palettes_sym = find_by_field(symbols, "name", f"gTilesetPalettes_{variant}")
+        tiles_sym = name_index.get(f"gTilesetTiles_{variant}")
+        palettes_sym = name_index.get(f"gTilesetPalettes_{variant}")
         if tiles_sym:
             tiles_length = tiles_sym.length
         if palettes_sym:
@@ -264,7 +284,11 @@ def extract_tileset_info(tileset_name: str, symbols: list[Offset]) -> dict[str, 
     return {"tiles_length": tiles_length, "palettes_len": palettes_len}
 
 
-def extract_metatile_info(metatile_name: str, symbols: list[Offset]) -> int:
+def extract_metatile_info(
+    metatile_name: str,
+    symbols: list[Offset],
+    name_index: dict[str, Offset] | None = None,
+) -> int:
     """
     Extract metatile data length from symbols.
 
@@ -274,11 +298,14 @@ def extract_metatile_info(metatile_name: str, symbols: list[Offset]) -> int:
     Args:
         metatile_name: Name of the metatile (usually matches tileset name).
         symbols: List of symbol offsets from the .sym file.
+        name_index: Optional pre-built name-to-Offset dict for O(1) lookups.
 
     Returns:
         Length of metatile data in bytes, or 0 if not found.
     """
-    sym = find_by_field(symbols, "name", f"gMetatiles_{metatile_name}")
+    if name_index is None:
+        name_index = build_field_index(symbols, "name")
+    sym = name_index.get(f"gMetatiles_{metatile_name}")
     return sym.length if sym else 0
 
 
@@ -300,6 +327,8 @@ def build_tileset_name_pairs(
         Dictionary mapping primary tileset name to list of secondary names.
         Example: {"Overworld": ["Grass", "Water", "Building"]}
     """
+    addr_index = build_field_index(symbols, "address")
+
     tileset_pairs: dict[int, set[int]] = {}
     for layout in layouts:
         if layout.primary_tileset_ptr not in tileset_pairs:
@@ -308,13 +337,13 @@ def build_tileset_name_pairs(
 
     tileset_name_pairs: dict[str, list[str]] = {}
     for primary, secondary_set in tileset_pairs.items():
-        primary_sym = find_by_field(symbols, "address", primary)
+        primary_sym = addr_index.get(primary)
         if not primary_sym:
             continue
 
         secondary_names = []
         for addr in secondary_set:
-            secondary_sym = find_by_field(symbols, "address", addr)
+            secondary_sym = addr_index.get(addr)
             if secondary_sym:
                 secondary_names.append(secondary_sym.name.replace("gTileset_", ""))
 
@@ -489,12 +518,13 @@ def extract_all_tilesets(
     Returns:
         Dictionary mapping tileset names to their extracted data.
     """
+    name_index = build_field_index(symbols, "name")
     tileset_syms = [s for s in symbols if s.name.startswith("gTileset_")]
     results = {}
     for sym in tileset_syms:
         name = sym.name.replace("gTileset_", "")
-        info = extract_tileset_info(name, symbols)
-        mt_len = extract_metatile_info(name, symbols)
+        info = extract_tileset_info(name, symbols, name_index)
+        mt_len = extract_metatile_info(name, symbols, name_index)
         results[name] = extract_tileset_with_raw(
             rom, sym.address - start_sym_offset, start_sym_offset, info, mt_len
         )

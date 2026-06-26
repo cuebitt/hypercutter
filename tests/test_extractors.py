@@ -1,4 +1,6 @@
 import struct
+import tempfile
+import pytest
 from hypercutter.classes import MapLayout, Offset, OffsetType, Tileset
 from hypercutter.extractors import (
     build_tileset_name_pairs,
@@ -13,8 +15,8 @@ from hypercutter.utils import find_by_field, find_primary_from_secondary
 class TestFindByField:
     def test_finds_matching_item(self):
         items = [
-            Offset(address=0x1000, type=OffsetType.GLOBAL, length=0x10, name="Start"),
-            Offset(address=0x2000, type=OffsetType.LOCAL, length=0x20, name="Test"),
+            Offset(address=0x1000, scope=OffsetType.GLOBAL, length=0x10, name="Start"),
+            Offset(address=0x2000, scope=OffsetType.LOCAL, length=0x20, name="Test"),
         ]
         result = find_by_field(items, "name", "Start")
         assert result is not None
@@ -22,7 +24,7 @@ class TestFindByField:
 
     def test_returns_none_when_not_found(self):
         items = [
-            Offset(address=0x1000, type=OffsetType.GLOBAL, length=0x10, name="Start")
+            Offset(address=0x1000, scope=OffsetType.GLOBAL, length=0x10, name="Start")
         ]
         result = find_by_field(items, "name", "Missing")
         assert result is None
@@ -56,11 +58,8 @@ class TestExtractMapLayout:
 
     def test_raises_on_invalid_offset(self):
         data = bytes(0x10)
-        try:
+        with pytest.raises(ValueError, match="out of range"):
             extract_map_layout(data, 0x100)
-            assert False, "Should have raised ValueError"
-        except ValueError as e:
-            assert "out of range" in str(e)
 
 
 class TestExtractTileset:
@@ -74,11 +73,8 @@ class TestExtractTileset:
 
     def test_raises_on_invalid_offset(self):
         data = bytes(0x10)
-        try:
+        with pytest.raises(ValueError, match="out of range"):
             extract_tileset(data, 0x100)
-            assert False, "Should have raised ValueError"
-        except ValueError as e:
-            assert "out of range" in str(e)
 
 
 class TestExtractMapTable:
@@ -94,13 +90,13 @@ class TestExtractTilesetInfo:
         symbols = [
             Offset(
                 address=0,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0x100,
                 name="gTilesetTiles_InsideBuilding",
             ),
             Offset(
                 address=0,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0x200,
                 name="gTilesetPalettes_InsideBuilding",
             ),
@@ -113,13 +109,13 @@ class TestExtractTilesetInfo:
         symbols = [
             Offset(
                 address=0,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0x300,
                 name="gTilesetTiles_Building",
             ),
             Offset(
                 address=0,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0x400,
                 name="gTilesetPalettes_Building",
             ),
@@ -158,15 +154,15 @@ class TestBuildTilesetNamePairs:
         symbols = [
             Offset(
                 address=0x1000,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0,
                 name="gTileset_Overworld",
             ),
             Offset(
-                address=0x2000, type=OffsetType.GLOBAL, length=0, name="gTileset_Grass"
+                address=0x2000, scope=OffsetType.GLOBAL, length=0, name="gTileset_Grass"
             ),
             Offset(
-                address=0x3000, type=OffsetType.GLOBAL, length=0, name="gTileset_Water"
+                address=0x3000, scope=OffsetType.GLOBAL, length=0, name="gTileset_Water"
             ),
         ]
         result = build_tileset_name_pairs(layouts, symbols)
@@ -256,3 +252,29 @@ class TestExtractRawData:
         data = b"test"
         result = extract_raw_data(data, 0x9000000, 4, 0x8000000, False)
         assert result == b""
+
+
+@pytest.mark.integration
+class TestExtractIntegration:
+    """Integration tests requiring real ROM files."""
+
+    def test_extract_emerald(self):
+        from pathlib import Path
+        from hypercutter.extractors import extract
+
+        rom_path = Path(__file__).resolve().parent.parent / "data" / "pokeemerald.gba"
+        if not rom_path.exists():
+            pytest.skip("pokeemerald.gba not found in data/")
+
+        sym_path = Path(tempfile.gettempdir()) / "hypercutter" / "pokeemerald.sym"
+        if not sym_path.exists():
+            pytest.skip("pokeemerald.sym not cached")
+
+        metatiles, start_offset = extract(str(sym_path), str(rom_path))
+        assert isinstance(metatiles, dict)
+        assert len(metatiles) > 0
+        assert start_offset > 0
+
+        for name, data in metatiles.items():
+            assert "primary" in data
+            assert isinstance(data["primary"], dict)
