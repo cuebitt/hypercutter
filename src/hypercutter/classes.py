@@ -215,3 +215,38 @@ class Tileset:
     metatiles_ptr: int
     metatile_attributes_ptr: int
     callback_ptr: int
+
+
+@dataclass
+class SpriteSheet:
+    """A compressed sprite sheet entry from the ROM."""
+
+    data_ptr: int  # ROM address of compressed tile data
+    size: int  # Uncompressed size in bytes
+    tag: int  # Species index
+
+
+@dataclass
+class SpritePalette:
+    """A compressed sprite palette entry from the ROM."""
+
+    data_ptr: int  # ROM address of compressed palette data
+    tag: int
+
+
+@dataclass
+class MonCoords:
+    """Sprite dimension metadata."""
+
+    size: int  # Packed width/height in tiles
+    y_offset: int
+
+    @property
+    def width_pixels(self) -> int:
+        """Width in pixels (1 tile = 8 pixels)."""
+        return (self.size >> 4) * 8
+
+    @property
+    def height_pixels(self) -> int:
+        """Height in pixels (1 tile = 8 pixels)."""
+        return (self.size & 0x0F) * 8
