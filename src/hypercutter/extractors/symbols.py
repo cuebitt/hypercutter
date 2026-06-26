@@ -1,7 +1,6 @@
 """Symbol loading and ROM validation."""
 
 import logging
-from pathlib import Path
 
 from ..classes import (
     GAME_CODE_LENGTH,
@@ -68,16 +67,6 @@ def _parse_symbols(data: str) -> list[Offset]:
     lines = [x.strip().split(" ") for x in data.splitlines() if x.strip()]
     offsets = []
 
-    # Build a map of symbol names to addresses for quick lookup
-    name_to_addr = {}
-    for line in lines:
-        if len(line) >= 4 and line[0] and line[3]:
-            try:
-                addr = int(f"0x{line[0]}", 0)
-                name_to_addr[line[3]] = addr
-            except ValueError:
-                pass
-
     # Sort lines by address for correct length calculation
     sorted_lines = sorted(
         (line for line in lines if len(line) >= 4 and line[0]),
@@ -113,21 +102,31 @@ def _parse_symbols(data: str) -> list[Offset]:
 def load_symbols(filepath_or_data: str | bytes) -> list[Offset]:
     """Load symbols from a .sym file or raw data."""
     logger.debug("load_symbols: %r", filepath_or_data)
-    if (
-        isinstance(filepath_or_data, str)
-        and "\n" not in filepath_or_data
-        and Path(filepath_or_data).is_file()
-    ):
+    if isinstance(filepath_or_data, str) and "\n" in filepath_or_data:
+        return _parse_symbols(filepath_or_data)
+
+    if isinstance(filepath_or_data, bytes):
+        return _parse_symbols(filepath_or_data.decode("utf-8"))
+
+    # Treat as filepath
+    try:
         with open(filepath_or_data, "r", encoding="utf-8") as f:
-            filepath_or_data = f.read()
-    elif isinstance(filepath_or_data, bytes):
-        filepath_or_data = filepath_or_data.decode("utf-8")
-    return _parse_symbols(filepath_or_data)
+            return _parse_symbols(f.read())
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        # Fall back: try treating the string itself as raw symbol data
+        if "\n" in filepath_or_data:
+            return _parse_symbols(filepath_or_data)
+        raise FileNotFoundError(f"Symbol file not found: {filepath_or_data}") from e
 
 
 def read_rom(filepath_or_data: str | bytes) -> bytes:
     """Read a ROM file into memory."""
     if isinstance(filepath_or_data, str):
-        with open(filepath_or_data, "rb") as f:
-            return f.read()
+        try:
+            with open(filepath_or_data, "rb") as f:
+                return f.read()
+        except (FileNotFoundError, PermissionError, OSError) as e:
+            raise FileNotFoundError(
+                f"ROM file not found or unreadable: {filepath_or_data}"
+            ) from e
     return filepath_or_data

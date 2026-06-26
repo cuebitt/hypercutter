@@ -2,20 +2,12 @@
 
 
 class HypercutterError(Exception):
+    """Base exception for all hypercutter errors."""
+
     pass
 
 
 class DecompressionError(HypercutterError):
-    pass
+    """Raised when LZ77 decompression fails."""
 
-
-class RomError(HypercutterError):
-    pass
-
-
-class SymbolError(HypercutterError):
-    pass
-
-
-class ExtractionError(HypercutterError):
     pass

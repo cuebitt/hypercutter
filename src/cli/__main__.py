@@ -14,7 +14,7 @@ from PIL import Image
 try:
     import orjson
 
-    def _dumps(obj: object) -> bytes:
+    def _dumps(obj: object) -> bytes:  # noqa: A002  # json.dumps / orjson.dumps accept Any
         return bytes(orjson.dumps(obj))
 
 except ImportError:
@@ -342,6 +342,7 @@ def run(
     clear_output: bool = False,
     primary_tile_count: int = PRIMARY_TILESET_TILE_COUNT,
     exclude_tilesets: list[str] | None = None,
+    dump_tilesets: bool = False,
     dump_sprites: bool = False,
     as_spritesheet: bool = False,
     spritesheet_columns: int = 8,
@@ -357,6 +358,7 @@ def run(
         clear_output: Whether to clear output directories before writing.
         primary_tile_count: Number of tiles in primary tileset.
         exclude_tilesets: List of tileset names to exclude from PNG export.
+        dump_tilesets: If True, render and export tileset PNGs.
         dump_sprites: If True, extract Pokemon battle sprites.
         as_spritesheet: If True, output sprites as spritesheets.
         spritesheet_columns: Number of columns in spritesheet.
@@ -373,7 +375,7 @@ def run(
     save_output(metatiles, Path(output_path))
     logging.info("Metadata written to: %s", output_path)
 
-    if export_dir:
+    if dump_tilesets and export_dir:
         export_images(
             metatiles,
             Path(export_dir),
@@ -471,9 +473,16 @@ def main() -> None:
         help="Automatically clear output directory without prompting",
     )
     parser.add_argument(
-        "--dump-sprites",
+        "--sprites",
         action="store_true",
+        default=False,
         help="Dump Pokemon battle sprites (front/back)",
+    )
+    parser.add_argument(
+        "--tilesets",
+        action="store_true",
+        default=False,
+        help="Render and export tileset PNGs",
     )
     parser.add_argument(
         "--spritesheet",
@@ -491,11 +500,20 @@ def main() -> None:
     setup_logging(args.verbose)
 
     # Read ROM data for game/sym detection
-    with open(args.rom, "rb") as f:
-        rom_data = f.read()
+    try:
+        with open(args.rom, "rb") as f:
+            rom_data = f.read()
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        logging.error("Failed to read ROM file '%s': %s", args.rom, e)
+        return
 
     # Identify ROM by hash
     identified = identify_rom(rom_data)
+
+    # Determine what to dump: if neither flag specified, dump both (default)
+    dump_sprites = args.sprites or not args.tilesets
+    dump_tilesets = args.tilesets or not args.sprites
+    keep_sprite_symbols = dump_sprites
 
     # Download sym file if not provided
     sym_path = args.sym
@@ -541,7 +559,7 @@ def main() -> None:
         elif cached_sym_path.exists():
             with open(cached_sym_path, "r", encoding="utf-8") as f:
                 sym_data = f.read()
-            stripped = strip_symbols(sym_data, keep_sprites=args.dump_sprites)
+            stripped = strip_symbols(sym_data, keep_sprites=keep_sprite_symbols)
             with open(stripped_sym_path, "w", encoding="utf-8") as f:
                 f.write(stripped)
             logging.info("Stripped and cached symbols to %s", stripped_sym_path)
@@ -550,7 +568,7 @@ def main() -> None:
             urllib.request.urlretrieve(sym_url, cached_sym_path)
             with open(cached_sym_path, "r", encoding="utf-8") as f:
                 sym_data = f.read()
-            stripped = strip_symbols(sym_data, keep_sprites=args.dump_sprites)
+            stripped = strip_symbols(sym_data, keep_sprites=keep_sprite_symbols)
             with open(stripped_sym_path, "w", encoding="utf-8") as f:
                 f.write(stripped)
             logging.info("Downloaded and stripped symbols to %s", stripped_sym_path)
@@ -558,6 +576,7 @@ def main() -> None:
 
     # Default paths if not specified
     output_path = args.output if args.output else "out/metatiles.json"
+    export_dir = args.export if args.export else "out/tilesets"
     clear_output = args.yes
 
     # Get primary tileset tile count from identified game
@@ -582,16 +601,16 @@ def main() -> None:
             return
 
     try:
-        should_export = args.export is not None or args.output is None
         run(
             sym_path,
             rom_data,
             output_path,
-            args.export if should_export else None,
+            export_dir,
             clear_output=clear_output,
             primary_tile_count=primary_tile_count,
             exclude_tilesets=exclude_tilesets,
-            dump_sprites=args.dump_sprites,
+            dump_tilesets=dump_tilesets,
+            dump_sprites=dump_sprites,
             as_spritesheet=args.spritesheet,
             spritesheet_columns=args.spritesheet_columns,
         )
