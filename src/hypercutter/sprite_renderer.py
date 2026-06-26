@@ -6,32 +6,23 @@ Pokemon sprites as PIL Images with transparency support.
 """
 
 import logging
-from typing import Any
 
 from PIL import Image
 
 from .constants import MON_PIC_HEIGHT, MON_PIC_WIDTH, TILE_SIZE
-from .utils import decode_bgr555, decode_tile_4bpp
+from .graphics import decode_palettes, render_pixels_to_image
+from .types import SpriteEntry
+from .utils import decode_tile_4bpp
 
-__all__ = ["PokemonSpriteRenderer"]
+__all__ = ["PokemonSpriteRenderer", "get_species_name"]
 
 logger = logging.getLogger(__name__)
 
-# Initialized from ROM data via init_species_names() at startup.
-# Falls back to "unknown_XXX" if not initialized.
-_species_names: list[str] = []
 
-
-def init_species_names(names: list[str]) -> None:
-    """Initialize species names from ROM data (replaces hardcoded fallback)."""
-    global _species_names
-    _species_names = names
-
-
-def get_species_name(species_id: int) -> str:
+def get_species_name(species_id: int, species_names: list[str] | None = None) -> str:
     """Get the lowercase species name for a given ID."""
-    if 0 <= species_id < len(_species_names):
-        return _species_names[species_id]
+    if species_names and 0 <= species_id < len(species_names):
+        return species_names[species_id]
     return f"unknown_{species_id:03d}"
 
 
@@ -60,17 +51,8 @@ class PokemonSpriteRenderer:
         Returns:
             List of (r, g, b) tuples, one per color.
         """
-        palette = []
-        for i in range(16):
-            offset = i * 2
-            if offset + 2 <= len(self.palette_data):
-                color_val = int.from_bytes(
-                    self.palette_data[offset : offset + 2], "little"
-                )
-                palette.append(decode_bgr555(color_val))
-            else:
-                palette.append((0, 0, 0))
-        return palette
+        palettes = decode_palettes(self.palette_data, num_palettes=1)
+        return palettes[0] if palettes else [(0, 0, 0)] * 16
 
     def decode_tiles(self) -> list[list[int]]:
         """
@@ -97,6 +79,13 @@ class PokemonSpriteRenderer:
                 tile_offset = tile_idx * tile_size
 
                 if tile_offset + tile_size > len(self.tile_data):
+                    logger.debug(
+                        "Tile %d out of bounds: offset=%d size=%d data_len=%d",
+                        tile_idx,
+                        tile_offset,
+                        tile_size,
+                        len(self.tile_data),
+                    )
                     continue
 
                 tile_data = self.tile_data[tile_offset : tile_offset + tile_size]
@@ -126,29 +115,9 @@ class PokemonSpriteRenderer:
         palette = self.decode_palette()
         pixel_indices = self.decode_tiles()
 
-        frame_width = MON_PIC_WIDTH
-        frame_height = MON_PIC_HEIGHT
-
-        pixels = bytearray(frame_width * frame_height * 4)
-
-        for y_idx in range(frame_height):
-            for x_idx in range(frame_width):
-                idx = pixel_indices[y_idx][x_idx]
-                offset = (y_idx * frame_width + x_idx) * 4
-
-                if is_transparent and idx == 0:
-                    pixels[offset] = 0
-                    pixels[offset + 1] = 0
-                    pixels[offset + 2] = 0
-                    pixels[offset + 3] = 0
-                else:
-                    r, g, b = palette[idx]
-                    pixels[offset] = r
-                    pixels[offset + 1] = g
-                    pixels[offset + 2] = b
-                    pixels[offset + 3] = 255
-
-        return Image.frombytes("RGBA", (frame_width, frame_height), bytes(pixels))
+        return render_pixels_to_image(
+            pixel_indices, palette, MON_PIC_WIDTH, MON_PIC_HEIGHT, is_transparent
+        )
 
     @staticmethod
     def render_spritesheet(
@@ -196,7 +165,8 @@ class PokemonSpriteRenderer:
     @classmethod
     def from_sprite_data(
         cls,
-        sprite_data: dict[str, Any],
+        sprite_data: SpriteEntry,
+        is_front: bool = True,
         is_shiny: bool = False,
     ) -> "PokemonSpriteRenderer":
         """
@@ -204,43 +174,25 @@ class PokemonSpriteRenderer:
 
         Args:
             sprite_data: Dictionary from extract_all_pokemon_sprites.
+            is_front: If True, use front tile data; otherwise back.
             is_shiny: If True, use shiny palette.
 
         Returns:
             PokemonSpriteRenderer instance.
         """
-        if is_shiny:
-            palette_data = sprite_data["shiny_palette_data"]
-        else:
-            palette_data = sprite_data["palette_data"]
+        tile_key = "front_tile_data" if is_front else "back_tile_data"
+        pal_key = "shiny_palette_data" if is_shiny else "palette_data"
 
         return cls(
-            tile_data=sprite_data["front_tile_data"],
-            palette_data=palette_data,
+            tile_data=sprite_data[tile_key],
+            palette_data=sprite_data[pal_key],
         )
 
     @classmethod
     def from_back_sprite_data(
         cls,
-        sprite_data: dict[str, Any],
+        sprite_data: SpriteEntry,
         is_shiny: bool = False,
     ) -> "PokemonSpriteRenderer":
-        """
-        Create a renderer from extracted back sprite data.
-
-        Args:
-            sprite_data: Dictionary from extract_all_pokemon_sprites.
-            is_shiny: If True, use shiny palette.
-
-        Returns:
-            PokemonSpriteRenderer instance.
-        """
-        if is_shiny:
-            palette_data = sprite_data["shiny_palette_data"]
-        else:
-            palette_data = sprite_data["palette_data"]
-
-        return cls(
-            tile_data=sprite_data["back_tile_data"],
-            palette_data=palette_data,
-        )
+        """Create a renderer from extracted back sprite data."""
+        return cls.from_sprite_data(sprite_data, is_front=False, is_shiny=is_shiny)

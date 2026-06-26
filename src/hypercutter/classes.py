@@ -146,34 +146,16 @@ def detect_game(rom_data: bytes) -> GameProfile | None:
     return SUPPORTED_GAMES.get(game_code)
 
 
-def detect_sym_filename(rom_data: bytes) -> str | None:
-    """
-    Detect the correct symbol filename based on ROM SHA256 hash.
-
-    For games with multiple revisions (FireRed, LeafGreen), this function
-    checks the ROM's SHA256 hash against known revisions to return the
-    appropriate symbol filename.
-
-    Args:
-        rom_data: Raw ROM bytes.
-
-    Returns:
-        Symbol filename if found, None if ROM is unknown or has no revisions.
-    """
-    if len(rom_data) < GAME_CODE_OFFSET + 4:
-        return None
-    game_code = rom_data[GAME_CODE_OFFSET : GAME_CODE_OFFSET + 4]
-    if game_code not in ROM_REVISIONS:
-        return None
-    rom_hash = compute_rom_sha256(rom_data)
-    return ROM_REVISIONS[game_code].get(rom_hash)
-
-
 def get_game_by_name(name: str) -> GameProfile | None:
     """Get game profile by name or short_name (case-insensitive)."""
     name_lower = name.lower()
+    # Fast path: check short_name first (used by --game flag)
     for game in SUPPORTED_GAMES.values():
-        if game.name.lower() == name_lower or game.short_name.lower() == name_lower:
+        if game.short_name == name_lower:
+            return game
+    # Slower path: check full name
+    for game in SUPPORTED_GAMES.values():
+        if game.name.lower() == name_lower:
             return game
     return None
 
