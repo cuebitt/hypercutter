@@ -56,6 +56,8 @@ from .constants import (
     MAX_DECOMPRESS_READ_SIZE,
     MON_COORDS_ENTRY_SIZE,
     PALETTE_SIZE,
+    POKEMON_FORM_SIZE,
+    POKEMON_PALETTE_SIZE,
     SPRITE_PALETTE_ENTRY_SIZE,
     SPRITE_SHEET_ENTRY_SIZE,
     TILESET_FORMAT,
@@ -825,7 +827,7 @@ def extract_palette_data(
     return extract_raw_data(
         rom,
         palette.data_ptr,
-        32,
+        POKEMON_PALETTE_SIZE,
         start_sym_offset,
         is_compressed,
     )
@@ -941,96 +943,57 @@ def extract_all_pokemon_sprites(
     return results
 
 
-def _parse_form_symbol_name(name: str) -> tuple[str, str] | None:
+def _species_from_suffix(suffix: str, species_names: list[str]) -> tuple[str, str] | None:
     """
-    Parse a form sprite symbol name into (species, form).
+    Derive (species, form_id) from a symbol suffix.
 
-    Examples:
-        "gMonFrontPic_UnownB" -> ("Unown", "B")
-        "gMonFrontPic_Castform" -> ("Castform", "Normal")
-        "gMonBackPic_UnownExclamationMark" -> ("Unown", "!")
+    e.g. "UnownB" with species "Unown" → ("unown", "B")
+    Falls back to numeric IDs when the form name can't be cleanly extracted.
     """
-    # Strip prefix
-    for prefix in ("gMonFrontPic_", "gMonBackPic_"):
-        if name.startswith(prefix):
-            species_form = name[len(prefix):]
-            break
-    else:
-        return None
+    suffix_lower = suffix.lower()
+    norm_suffix = "".join(c for c in suffix_lower if c.isalnum())
 
-    # Known form suffixes for multi-form species
-    form_map = {
-        "Unown": {
-            "A": "A", "B": "B", "C": "C", "D": "D", "E": "E",
-            "F": "F", "G": "G", "H": "H", "I": "I", "J": "J",
-            "K": "K", "L": "L", "M": "M", "N": "N", "O": "O",
-            "P": "P", "Q": "Q", "R": "R", "S": "S", "T": "T",
-            "U": "U", "V": "V", "W": "W", "X": "X", "Y": "Y",
-            "Z": "Z",
-            "ExclamationMark": "!",
-            "QuestionMark": "?",
-        },
-        "Castform": {
-            "Castform": "Normal",
-            "CastformRain": "Rain",
-            "CastformSunny": "Sunny",
-            "CastformSnow": "Snow",
-        },
-        "Deoxys": {
-            "Deoxys": "Normal",
-            "DeoxysAttack": "Attack",
-            "DeoxysDefense": "Defense",
-            "DeoxysSpeed": "Speed",
-        },
-        "Burmy": {
-            "Burmy": "Plant",
-            "BurmySandy": "Sandy",
-            "BurmyTrash": "Trash",
-        },
-        "Wormadam": {
-            "Wormadam": "Plant",
-            "WormadamSandy": "Sandy",
-            "WormadamTrash": "Trash",
-        },
-        "Shellos": {
-            "Shellos": "West",
-            "ShellosEast": "East",
-        },
-        "Gastrodon": {
-            "Gastrodon": "West",
-            "GastrodonEast": "East",
-        },
-        "Rotom": {
-            "Rotom": "Normal",
-            "RotomHeat": "Heat",
-            "RotomWash": "Wash",
-            "RotomFrost": "Frost",
-            "RotomFan": "Fan",
-            "RotomMow": "Mow",
-        },
-        "Giratina": {
-            "Giratina": "Altered",
-            "GiratinaOrigin": "Origin",
-        },
-        "Shaymin": {
-            "Shaymin": "Land",
-            "ShayminSky": "Sky",
-        },
-    }
+    # Build normalized species name index
+    norm_map: dict[str, str] = {}
+    for name in sorted(species_names, key=len, reverse=True):
+        if not name:
+            continue
+        norm_name = "".join(c for c in name if c.isalnum())
+        # Store the first (longest) match
+        if norm_name not in norm_map:
+            norm_map[norm_name] = name
 
-    # Try to match known species + form
-    for species, forms in form_map.items():
-        if species_form == species:
-            # This is the base species, not a form - skip it
+    # Check exact normalized match first
+    if norm_suffix in norm_map:
+        species = norm_map[norm_suffix]
+        if suffix_lower == species:
+            return None  # exact match → base species
+        # Normalized exact match → base species (handles HoOh → ho-oh)
+        norm_species = "".join(c for c in species if c.isalnum())
+        if norm_suffix == norm_species:
             return None
-        # Check if species_form ends with a known form suffix
-        for form_suffix, form_name in forms.items():
-            if species_form.endswith(form_suffix) and species_form != form_suffix:
-                return (species, form_name)
-            if species_form == form_suffix:
-                return (species, form_name)
+        # Suffix starts with species name and has more after it → form
+        if suffix_lower.startswith(species) and len(suffix_lower) > len(species):
+            return (species, suffix[len(species):])  # preserve original case
+        # Normalized prefix match for form detection
+        if norm_suffix.startswith(norm_species) and len(norm_suffix) > len(norm_species):
+            si = 0
+            for idx, c in enumerate(suffix_lower):
+                if c.isalnum():
+                    si += 1
+                    if si > len(norm_species):
+                        return (species, suffix[idx:])
 
-    # Not a recognized form - skip it
+    # Check prefix matches
+    for norm_name, species in sorted(norm_map.items(), key=lambda x: -len(x[0])):
+        if norm_suffix.startswith(norm_name) and len(norm_suffix) > len(norm_name):
+            si = 0
+            for idx, c in enumerate(suffix_lower):
+                if c.isalnum():
+                    si += 1
+                    if si > len(norm_name):
+                        return (species, suffix[idx:])  # preserve original case
+
     return None
 
 
@@ -1040,149 +1003,139 @@ def extract_pokemon_form_sprites(
     symbols: list[Offset],
 ) -> dict[str, dict[str, Any]]:
     """
-    Extract alternate form sprites from individual ROM symbols.
-
-    Handles both individual form symbols (Unown) and packed form data
-    (Castform, Deoxys where all forms are concatenated in one symbol).
+    Extract alternate form sprites from individual ROM symbols and
+    packed data (all derived from ROM, no hardcoded form lists).
 
     Returns:
-        Dictionary mapping "Species_Form" to sprite data.
+        Dictionary mapping "Species_FormId" to sprite data.
     """
-    from .classes import GAME_CODE_OFFSET, SUPPORTED_GAMES
-
     results: dict[str, dict[str, Any]] = {}
     name_index = build_field_index(symbols, "name")
-    FORM_SIZE = 2048  # 64x64 at 4bpp = 2048 bytes per form
 
-    # Detect game from ROM header for game-specific form naming
-    deoxys_alt = "Alternate"
-    if len(rom) >= GAME_CODE_OFFSET + 4:
-        game_code = rom[GAME_CODE_OFFSET : GAME_CODE_OFFSET + 4]
-        game_profile = SUPPORTED_GAMES.get(game_code)
-        if game_profile:
-            alt_forms: dict[str, str] = {
-                "emerald": "Speed",
-                "firered": "Attack",
-                "leafgreen": "Defense",
-            }
-            deoxys_alt = alt_forms.get(game_profile.short_name, "Alternate")
-            if game_profile.short_name in ("ruby", "sapphire"):
-                # Ruby/Sapphire: only one form, no packed alternate
-                deoxys_alt = ""
+    # Load species names from ROM for form derivation
+    species_names = load_species_names(rom, symbols)
 
-    # Species with packed form data (all forms concatenated in one symbol)
-    packed_form_species = {
-        "Castform": ["Normal", "Rain", "Sunny", "Snow"],
-        "Deoxys": ["Normal"] + ([deoxys_alt] if deoxys_alt else []),
-    }
+    # Build set of data pointers from the main sprite tables (valid species only).
+    front_table_sym = name_index.get("gMonFrontPicTable")
+    back_table_sym = name_index.get("gMonBackPicTable")
+    table_ptrs: set[int] = set()
+    num_species = len(species_names)
+    if front_table_sym:
+        to = front_table_sym.address - start_sym_offset
+        for i in range(num_species):
+            table_ptrs.add(struct.unpack_from("<I", rom, to + i * 8)[0])
+    if back_table_sym:
+        to = back_table_sym.address - start_sym_offset
+        for i in range(num_species):
+            table_ptrs.add(struct.unpack_from("<I", rom, to + i * 8)[0])
 
-    # Extract individual form symbols (e.g., Unown letters)
+    # --- Pass 1: individual form symbols (NOT in the main table) ---
     for sym in symbols:
         if not (sym.name.startswith("gMonFrontPic_") or sym.name.startswith("gMonBackPic_")):
             continue
 
-        parsed = _parse_form_symbol_name(sym.name)
-        if parsed is None:
+        # Skip base-species symbols (already handled by the main table extraction)
+        if sym.address in table_ptrs:
             continue
 
-        species, form = parsed
-        key = f"{species}_{form}" if form else species
+        # Derive species + form from symbol name
+        suffix = sym.name.split("_", 1)[1] if "_" in sym.name else ""
+        parsed = _species_from_suffix(suffix, species_names)
+        if parsed is None:
+            continue
+        species, form_id = parsed
+        key = f"{species}_{form_id}"
 
         if key not in results:
             results[key] = {
                 "species": species,
-                "form": form,
+                "form": form_id,
                 "front_tile_data": b"",
                 "back_tile_data": b"",
                 "palette_data": b"",
                 "shiny_palette_data": b"",
             }
 
-        # Extract the sprite data
         data_offset = sym.address - start_sym_offset
-        compressed = rom[data_offset : data_offset + min(sym.length, 0x10000)]
+        compressed = rom[data_offset : data_offset + min(sym.length, MAX_DECOMPRESS_READ_SIZE)]
         try:
             decompressed = bytes(decompress_bytes(compressed))
         except Exception:
             continue
 
+        if len(decompressed) > POKEMON_FORM_SIZE:
+            decompressed = decompressed[:POKEMON_FORM_SIZE]
+
         if sym.name.startswith("gMonFrontPic_"):
-            # Truncate to expected size (LZ77 may decompress extra garbage)
-            if len(decompressed) > FORM_SIZE:
-                decompressed = decompressed[:FORM_SIZE]
             results[key]["front_tile_data"] = decompressed
         elif sym.name.startswith("gMonBackPic_"):
-            if len(decompressed) > FORM_SIZE:
-                decompressed = decompressed[:FORM_SIZE]
             results[key]["back_tile_data"] = decompressed
 
-    # Extract packed form data for species like Castform and Deoxys
-
-    for species, form_names in packed_form_species.items():
-        front_sym_name = f"gMonFrontPic_{species}"
-        back_sym_name = f"gMonBackPic_{species}"
-
-        front_sym = name_index.get(front_sym_name)
-        back_sym = name_index.get(back_sym_name)
-
-        if front_sym is None:
+    # --- Pass 2: packed form data ---
+    # Detect packed species: both front and back pic must decompress to >= 2 * POKEMON_FORM_SIZE.
+    # Regular species may have a front pic that decompresses larger due to LZ77 garbage,
+    # but their back pic will only decompress to 1 * POKEMON_FORM_SIZE.
+    packed_species: dict[str, list[str]] = {}
+    for sym in symbols:
+        if not sym.name.startswith("gMonFrontPic_"):
+            continue
+        suffix = sym.name[len("gMonFrontPic_"):]
+        species_lower = suffix.lower()
+        if species_lower not in species_names:
             continue
 
-        # Decompress front sprite data
-        front_offset = front_sym.address - start_sym_offset
-        front_compressed = rom[front_offset : front_offset + min(front_sym.length, 0x10000)]
+        # Get back pic for this species
+        back_sym = name_index.get(f"gMonBackPic_{suffix}")
+        if back_sym is None:
+            continue
+
+        front_offset = sym.address - start_sym_offset
+        back_offset = back_sym.address - start_sym_offset
+
         try:
-            front_decompressed = bytes(decompress_bytes(front_compressed))
+            front_data = bytes(decompress_bytes(
+                rom[front_offset : front_offset + min(sym.length, MAX_DECOMPRESS_READ_SIZE)]
+            ))
+            back_data = bytes(decompress_bytes(
+                rom[back_offset : back_offset + min(back_sym.length, MAX_DECOMPRESS_READ_SIZE)]
+            ))
         except Exception:
             continue
 
-        # Decompress back sprite data if available
-        back_decompressed = b""
-        if back_sym is not None:
-            back_offset = back_sym.address - start_sym_offset
-            back_compressed = rom[back_offset : back_offset + min(back_sym.length, 0x10000)]
-            try:
-                back_decompressed = bytes(decompress_bytes(back_compressed))
-            except Exception:
-                pass
+        front_forms = len(front_data) // POKEMON_FORM_SIZE
+        back_forms = len(back_data) // POKEMON_FORM_SIZE
+        if front_forms < 2 or back_forms < 2:
+            continue
 
-        # Split packed data into individual forms
-        num_forms = len(front_decompressed) // FORM_SIZE
-        for i, form_name in enumerate(form_names[:num_forms]):
-            key = f"{species}_{form_name}"
-            start = i * FORM_SIZE
-            end = start + FORM_SIZE
+        # Both front and back have packed data — use the front form count
+        packed_species[species_lower] = [str(i) for i in range(front_forms)]
 
+        for i in range(front_forms):
+            key = f"{species_lower}_{i}"
             if key not in results:
                 results[key] = {
-                    "species": species,
-                    "form": form_name,
+                    "species": species_lower,
+                    "form": str(i),
                     "front_tile_data": b"",
                     "back_tile_data": b"",
                     "palette_data": b"",
                     "shiny_palette_data": b"",
                 }
+            results[key]["front_tile_data"] = front_data[i * POKEMON_FORM_SIZE : (i + 1) * POKEMON_FORM_SIZE]
+            if i * POKEMON_FORM_SIZE + POKEMON_FORM_SIZE <= len(back_data):
+                results[key]["back_tile_data"] = back_data[i * POKEMON_FORM_SIZE : (i + 1) * POKEMON_FORM_SIZE]
 
-            results[key]["front_tile_data"] = front_decompressed[start:end]
-            if back_decompressed:
-                back_start = i * FORM_SIZE
-                back_end = back_start + FORM_SIZE
-                if back_end <= len(back_decompressed):
-                    results[key]["back_tile_data"] = back_decompressed[back_start:back_end]
-
-    # Extract palettes for form species
-    PALETTE_FORM_SIZE = 32  # 16 colors * 2 bytes each
+    # --- Pass 3: palettes ---
 
     palette_species = set()
     for key in results:
-        species = key.split("_")[0]
-        palette_species.add(species)
+        palette_species.add(results[key]["species"])
 
     for sym in symbols:
         if not sym.name.startswith("gMonPalette_"):
             continue
 
-        species = sym.name[len("gMonPalette_"):]
+        species = sym.name[len("gMonPalette_"):].lower()
         if species not in palette_species:
             continue
 
@@ -1193,38 +1146,33 @@ def extract_pokemon_form_sprites(
         except Exception:
             continue
 
-        # For packed species, split palette per-form.
-        # For non-packed species (e.g. Unown), all forms share the same palette.
-        is_packed = species in packed_form_species
-        num_palettes = len(pal_data) // PALETTE_FORM_SIZE
+        is_packed = species in packed_species
+        num_palettes = len(pal_data) // POKEMON_PALETTE_SIZE
 
         for key in results:
-            if not (key.startswith(species + "_") or key == species):
+            if results[key]["species"] != species:
                 continue
 
             if is_packed and num_palettes > 1:
-                # Determine which form index this key corresponds to
-                form = results[key].get("form", "")
-                form_names = packed_form_species[species]
                 try:
-                    form_idx = form_names.index(form)
-                except ValueError:
+                    form_idx = int(results[key]["form"])
+                except (ValueError, KeyError):
                     form_idx = 0
-                start = form_idx * PALETTE_FORM_SIZE
-                end = start + PALETTE_FORM_SIZE
-                if end <= len(pal_data):
-                    results[key]["palette_data"] = pal_data[start:end]
+                start_p = form_idx * POKEMON_PALETTE_SIZE
+                end_p = start_p + POKEMON_PALETTE_SIZE
+                if end_p <= len(pal_data):
+                    results[key]["palette_data"] = pal_data[start_p:end_p]
                 else:
-                    results[key]["palette_data"] = pal_data[:PALETTE_FORM_SIZE]
+                    results[key]["palette_data"] = pal_data[:POKEMON_PALETTE_SIZE]
             else:
                 results[key]["palette_data"] = pal_data
 
-    # Extract shiny palettes
+    # --- Pass 4: shiny palettes ---
     for sym in symbols:
         if not sym.name.startswith("gMonShinyPalette_"):
             continue
 
-        species = sym.name[len("gMonShinyPalette_"):]
+        species = sym.name[len("gMonShinyPalette_"):].lower()
         if species not in palette_species:
             continue
 
@@ -1236,8 +1184,74 @@ def extract_pokemon_form_sprites(
             continue
 
         for key in results:
-            if key.startswith(species + "_") or key == species:
+            if results[key]["species"] == species:
                 results[key]["shiny_palette_data"] = pal_data
 
     logger.info("Extracted %d alternate form sprites", len(results))
     return results
+
+
+# Pokemon text character encoding map (GBA games use custom encoding)
+_POKEMON_CHAR_MAP: dict[int, str] = {
+    0x00: "", 0xFF: "",
+    0xBB: "A", 0xBC: "B", 0xBD: "C", 0xBE: "D", 0xBF: "E",
+    0xC0: "F", 0xC1: "G", 0xC2: "H", 0xC3: "I", 0xC4: "J",
+    0xC5: "K", 0xC6: "L", 0xC7: "M", 0xC8: "N", 0xC9: "O",
+    0xCA: "P", 0xCB: "Q", 0xCC: "R", 0xCD: "S", 0xCE: "T",
+    0xCF: "U", 0xD0: "V", 0xD1: "W", 0xD2: "X", 0xD3: "Y",
+    0xD4: "Z",
+    0xA1: "0", 0xA2: "1", 0xA3: "2", 0xA4: "3", 0xA5: "4",
+    0xA6: "5", 0xA7: "6", 0xA8: "7", 0xA9: "8", 0xAA: "9",
+    0xAB: "!", 0xAC: "?",
+    0xAD: " ",  # MR_MIME separator
+    0xAE: "-",  # HO_OH dash
+    0xB5: "M",  # male symbol → "m"
+    0xB6: "F",  # female symbol → "f"
+    0xE0: "'",  # apostrophe (FARFETCH'D)
+    0xE1: "D",
+}
+
+_POKEMON_NAME_LENGTH = 11
+
+
+def load_species_names(
+    rom: bytes,
+    symbols: list[Offset],
+) -> list[str]:
+    """
+    Load Pokemon species names from the ROM.
+
+    Reads the gSpeciesNames table (fixed-length strings using the
+    game's custom character encoding) and returns a list of lowercase names.
+
+    Args:
+        rom: Raw ROM bytes.
+        symbols: List of symbol offsets.
+
+    Returns:
+        List of lowercase species names indexed by species ID.
+    """
+    name_index = build_field_index(symbols, "name")
+    sym = name_index.get("gSpeciesNames")
+    if sym is None:
+        raise ValueError("Symbol 'gSpeciesNames' not found in symbols file")
+
+    start_sym = name_index.get("Start")
+    if start_sym is None:
+        raise ValueError("Symbol 'Start' not found in symbols file")
+
+    table_offset = sym.address - start_sym.address
+    species_count = sym.length // _POKEMON_NAME_LENGTH
+    names = []
+
+    for i in range(species_count):
+        offset = table_offset + i * _POKEMON_NAME_LENGTH
+        raw = rom[offset : offset + _POKEMON_NAME_LENGTH]
+        name = ""
+        for b in raw:
+            ch = _POKEMON_CHAR_MAP.get(b, "")
+            if ch:
+                name += ch
+        names.append(name.lower())
+
+    return names

@@ -19,6 +19,8 @@ SPRITE_PALETTE_ENTRY_SIZE = 8  # CompressedSpritePalette struct
 MON_COORDS_ENTRY_SIZE = 4  # MonCoords struct (padded to 4 bytes in ROM)
 MON_PIC_WIDTH = 64  # All Pokemon pics are stored in 64x64 frames
 MON_PIC_HEIGHT = 64
+POKEMON_FORM_SIZE = MON_PIC_WIDTH * MON_PIC_HEIGHT // 2  # 2048 bytes at 4bpp
+POKEMON_PALETTE_SIZE = 32  # 16 colors * 2 bytes per color
 
 # Symbol names used to locate sprite data tables in the ROM
 SPRITE_SYMBOL_NAMES = [

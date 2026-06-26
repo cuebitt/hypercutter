@@ -10,113 +10,28 @@ from typing import Any
 
 from PIL import Image
 
+from .constants import MON_PIC_HEIGHT, MON_PIC_WIDTH, TILE_SIZE
 from .utils import decode_bgr555, decode_tile_4bpp
 
 __all__ = ["PokemonSpriteRenderer"]
 
 logger = logging.getLogger(__name__)
 
-# Pokemon species names for file output (internal ROM species IDs, NOT National Dex)
-# ID 0: missing sprite, 1-151: Kanto, 152-251: Johto,
-# 252-276: Old Unown placeholders, 277-411: Hoenn, 412: Egg
-POKEMON_NAMES: list[str] = [
-    "missing",
-    # Kanto (1-151)
-    "bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon",
-    "charizard", "squirtle", "wartortle", "blastoise", "caterpie",
-    "metapod", "butterfree", "weedle", "kakuna", "beedrill",
-    "pidgey", "pidgeotto", "pidgeot", "rattata", "raticate",
-    "spearow", "fearow", "ekans", "arbok", "pikachu",
-    "raichu", "sandshrew", "sandslash", "nidoran_f", "nidorina",
-    "nidoqueen", "nidoran_m", "nidorino", "nidoking", "clefairy",
-    "clefable", "vulpix", "ninetales", "jigglypuff", "wigglytuff",
-    "zubat", "golbat", "oddish", "gloom", "vileplume",
-    "paras", "parasect", "venonat", "venomoth", "diglett",
-    "dugtrio", "meowth", "persian", "psyduck", "golduck",
-    "mankey", "primeape", "growlithe", "arcanine", "poliwag",
-    "poliwhirl", "poliwrath", "abra", "kadabra", "alakazam",
-    "machop", "machoke", "machamp", "bellsprout", "weepinbell",
-    "victreebel", "tentacool", "tentacruel", "geodude", "graveler",
-    "golem", "ponyta", "rapidash", "slowpoke", "slowbro",
-    "magnemite", "magneton", "farfetchd", "doduo", "dodrio",
-    "seel", "dewgong", "grimer", "muk", "shellder",
-    "cloyster", "gastly", "haunter", "gengar", "onix",
-    "drowzee", "hypno", "krabby", "kingler", "voltorb",
-    "electrode", "exeggcute", "exeggutor", "cubone", "marowak",
-    "hitmonlee", "hitmonchan", "lickitung", "koffing", "weezing",
-    "rhyhorn", "rhydon", "chansey", "tangela", "kangaskhan",
-    "horsea", "seadra", "goldeen", "seaking", "staryu",
-    "starmie", "mr_mime", "scyther", "jynx", "electabuzz",
-    "magmar", "pinsir", "tauros", "magikarp", "gyarados",
-    "lapras", "ditto", "eevee", "vaporeon", "jolteon",
-    "flareon", "porygon", "omanyte", "omastar", "kabuto",
-    "kabutops", "aerodactyl", "snorlax", "articuno", "zapdos",
-    "moltres", "dratini", "dragonair", "dragonite", "mewtwo",
-    "mew",
-    # Johto (152-251)
-    "chikorita", "bayleef", "meganium", "cyndaquil", "quilava",
-    "typhlosion", "totodile", "croconaw", "feraligatr", "sentret",
-    "furret", "hoothoot", "noctowl", "ledyba", "ledian",
-    "spinarak", "ariados", "crobat", "chinchou", "lanturn",
-    "pichu", "cleffa", "igglybuff", "togepi", "togetic",
-    "natu", "xatu", "mareep", "flaaffy", "ampharos",
-    "bellossom", "marill", "azumarill", "sudowoodo", "politoed",
-    "hoppip", "skiploom", "jumpluff", "aipom", "sunkern",
-    "sunflora", "yanma", "wooper", "quagsire", "espeon",
-    "umbreon", "murkrow", "slowking", "misdreavus", "unown",
-    "wobbuffet", "girafarig", "pineco", "forretress", "dunsparce",
-    "gligar", "steelix", "snubbull", "granbull", "qwilfish",
-    "scizor", "shuckle", "heracross", "sneasel", "teddiursa",
-    "ursaring", "slugma", "magcargo", "swinub", "piloswine",
-    "corsola", "remoraid", "octillery", "delibird", "mantine",
-    "skarmory", "houndour", "houndoom", "kingdra", "phanpy",
-    "donphan", "porygon2", "stantler", "smeargle", "tyrogue",
-    "hitmontop", "smoochum", "elekid", "magby", "miltank",
-    "blissey", "raikou", "entei", "suicune", "larvitar",
-    "pupitar", "tyranitar", "lugia", "ho_oh", "celebi",
-    # Old Unown placeholders (252-276)
-    "old_unown_b", "old_unown_c", "old_unown_d", "old_unown_e", "old_unown_f",
-    "old_unown_g", "old_unown_h", "old_unown_i", "old_unown_j", "old_unown_k",
-    "old_unown_l", "old_unown_m", "old_unown_n", "old_unown_o", "old_unown_p",
-    "old_unown_q", "old_unown_r", "old_unown_s", "old_unown_t", "old_unown_u",
-    "old_unown_v", "old_unown_w", "old_unown_x", "old_unown_y", "old_unown_z",
-    # Hoenn (277-411) - from pokeemerald internal species.h ordering
-    "treecko", "grovyle", "sceptile", "torchic", "combusken",
-    "blaziken", "mudkip", "marshtomp", "swampert", "poochyena",
-    "mightyena", "zigzagoon", "linoone", "wurmple", "silcoon",
-    "beautifly", "cascoon", "dustox", "lotad", "lombre",
-    "ludicolo", "seedot", "nuzleaf", "shiftry", "nincada",
-    "ninjask", "shedinja", "tallow", "swellow", "shroomish",
-    "breloom", "spinda", "wingull", "pelipper", "surskit",
-    "masquerain", "wailmer", "wailord", "skitty", "delcatty",
-    "kecleon", "baltoy", "claydol", "nosepass", "torkoal",
-    "sableye", "barboach", "whiscash", "luvdisc", "corphish",
-    "crawdaunt", "feebas", "milotic", "carvanha", "sharpedo",
-    "trapinch", "vibrava", "flygon", "makuhita", "hariyama",
-    "electrike", "manectric", "numel", "camerupt", "spheal",
-    "sealeo", "walrein", "cacnea", "cacturne", "snorunt",
-    "glalie", "lunatone", "solrock", "azurill", "spoink",
-    "grumpig", "plusle", "minun", "mawile", "meditite",
-    "medicham", "swablu", "altaria", "wynaut", "duskull",
-    "dusclops", "roselia", "slakoth", "vigoroth", "slaking",
-    "gulpin", "swalot", "tropius", "whismur", "loudred",
-    "exploud", "clamperl", "huntail", "gorebyss", "absol",
-    "shuppet", "banette", "seviper", "zangoose", "relicanth",
-    "aron", "lairon", "aggron", "castform", "volbeat",
-    "illumise", "lileep", "cradily", "anorith", "armaldo",
-    "ralts", "kirlia", "gardevoir", "bagon", "shelgon",
-    "salamence", "beldum", "metang", "metagross", "regirock",
-    "regice", "registeel", "latias", "latios", "kyogre",
-    "groudon", "rayquaza", "jirachi", "deoxys", "chimecho",
-    # Egg (412)
-    "egg",
-]
+# Initialized from ROM data via init_species_names() at startup.
+# Falls back to "unknown_XXX" if not initialized.
+_species_names: list[str] = []
+
+
+def init_species_names(names: list[str]) -> None:
+    """Initialize species names from ROM data (replaces hardcoded fallback)."""
+    global _species_names
+    _species_names = names
 
 
 def get_species_name(species_id: int) -> str:
     """Get the lowercase species name for a given ID."""
-    if 0 <= species_id < len(POKEMON_NAMES):
-        return POKEMON_NAMES[species_id]
+    if 0 <= species_id < len(_species_names):
+        return _species_names[species_id]
     return f"unknown_{species_id:03d}"
 
 
@@ -167,14 +82,14 @@ class PokemonSpriteRenderer:
         Returns:
             2D list of pixel indices [y][x] for the full 64x64 frame.
         """
-        frame_width = 64
-        frame_height = 64
-        tiles_x = 8
-        tiles_y = 8
+        frame_width = MON_PIC_WIDTH
+        frame_height = MON_PIC_HEIGHT
+        tiles_x = MON_PIC_WIDTH // 8
+        tiles_y = MON_PIC_HEIGHT // 8
 
         pixels: list[list[int]] = [[0] * frame_width for _ in range(frame_height)]
 
-        tile_size = 32
+        tile_size = TILE_SIZE
 
         for tile_y in range(tiles_y):
             for tile_x in range(tiles_x):
@@ -211,8 +126,8 @@ class PokemonSpriteRenderer:
         palette = self.decode_palette()
         pixel_indices = self.decode_tiles()
 
-        frame_width = 64
-        frame_height = 64
+        frame_width = MON_PIC_WIDTH
+        frame_height = MON_PIC_HEIGHT
 
         pixels = bytearray(frame_width * frame_height * 4)
 

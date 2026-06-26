@@ -38,13 +38,14 @@ from .extractors import (
     extract_sprite_table,
     extract_tileset,
     extract_tileset_info,
+    load_species_names,
     load_symbols,
     read_rom,
     validate_rom,
 )
 from .utils import find_by_field, find_primary_from_secondary
 
-from .sprite_renderer import PokemonSpriteRenderer
+from .sprite_renderer import PokemonSpriteRenderer, init_species_names
 
 __all__ = [
     "OffsetType",
@@ -88,5 +89,7 @@ __all__ = [
     "extract_palette_data",
     "extract_all_pokemon_sprites",
     "extract_pokemon_form_sprites",
+    "load_species_names",
     "PokemonSpriteRenderer",
+    "init_species_names",
 ]
