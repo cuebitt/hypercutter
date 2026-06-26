@@ -12,3 +12,20 @@ METATILE_SIZE = 16  # 8 tiles * 2 bytes per metatile entry
 METATILE_TILE_COUNT = 8
 
 MAX_DECOMPRESS_READ_SIZE = 0x10000  # Maximum bytes to read for decompression
+
+# Pokemon sprite table sizes
+SPRITE_SHEET_ENTRY_SIZE = 8  # CompressedSpriteSheet struct
+SPRITE_PALETTE_ENTRY_SIZE = 8  # CompressedSpritePalette struct
+MON_COORDS_ENTRY_SIZE = 4  # MonCoords struct (padded to 4 bytes in ROM)
+MON_PIC_WIDTH = 64  # All Pokemon pics are stored in 64x64 frames
+MON_PIC_HEIGHT = 64
+
+# Symbol names used to locate sprite data tables in the ROM
+SPRITE_SYMBOL_NAMES = [
+    "gMonFrontPicTable",
+    "gMonBackPicTable",
+    "gMonPaletteTable",
+    "gMonShinyPaletteTable",
+    "gMonFrontPicCoords",
+    "gMonBackPicCoords",
+]

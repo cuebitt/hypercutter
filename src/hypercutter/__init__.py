@@ -4,8 +4,11 @@ from .classes import (
     GameProfile,
     IdentifiedRom,
     MapLayout,
+    MonCoords,
     Offset,
     OffsetType,
+    SpritePalette,
+    SpriteSheet,
     SUPPORTED_GAMES,
     Tileset,
     compute_rom_sha256,
@@ -22,9 +25,16 @@ from .constants import (
 from .extractors import (
     build_tileset_name_pairs,
     extract,
+    extract_all_pokemon_sprites,
     extract_map_layout,
     extract_map_table,
     extract_metatiles,
+    extract_mon_coords,
+    extract_palette_data,
+    extract_sprite_data,
+    extract_sprite_palette,
+    extract_sprite_sheet,
+    extract_sprite_table,
     extract_tileset,
     extract_tileset_info,
     load_symbols,
@@ -32,6 +42,8 @@ from .extractors import (
     validate_rom,
 )
 from .utils import find_by_field, find_primary_from_secondary
+
+from .sprite_renderer import PokemonSpriteRenderer
 
 __all__ = [
     "OffsetType",
@@ -63,4 +75,16 @@ __all__ = [
     "build_tileset_name_pairs",
     "extract_metatiles",
     "extract",
+    # Sprite extraction
+    "MonCoords",
+    "SpriteSheet",
+    "SpritePalette",
+    "extract_sprite_sheet",
+    "extract_sprite_palette",
+    "extract_mon_coords",
+    "extract_sprite_table",
+    "extract_sprite_data",
+    "extract_palette_data",
+    "extract_all_pokemon_sprites",
+    "PokemonSpriteRenderer",
 ]

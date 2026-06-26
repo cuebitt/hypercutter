@@ -24,7 +24,7 @@ except ImportError:
 
 from tqdm import tqdm
 
-from hypercutter import extract, load_symbols
+from hypercutter import extract, load_symbols, extract_all_pokemon_sprites
 from hypercutter.classes import (
     GAME_CODE_OFFSET,
     SUPPORTED_GAMES,
@@ -32,6 +32,7 @@ from hypercutter.classes import (
     identify_rom,
 )
 from hypercutter.renderer import TilesetRenderer
+from hypercutter.sprite_renderer import PokemonSpriteRenderer, get_species_name
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -40,10 +41,30 @@ def setup_logging(verbose: bool = False) -> None:
     logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
 
-def strip_symbols(sym_data: str) -> str:
-    """Strip unused symbols, keeping only those needed for extraction."""
+def strip_symbols(sym_data: str, keep_sprites: bool = False) -> str:
+    """
+    Strip unused symbols, keeping only those needed for extraction.
+
+    Args:
+        sym_data: Raw symbol file contents.
+        keep_sprites: If True, also keep Pokemon sprite-related symbols.
+    """
     needed_exact = {"Start", "gMapLayouts"}
     needed_prefixes = ("gTileset_", "gMetatiles_")
+
+    if keep_sprites:
+        # Add sprite-related symbols
+        sprite_exact = {
+            "gMonFrontPicTable",
+            "gMonBackPicTable",
+            "gMonPaletteTable",
+            "gMonShinyPaletteTable",
+            "gMonFrontPicCoords",
+            "gMonBackPicCoords",
+        }
+        sprite_prefixes = ("gMonFrontPic_", "gMonBackPic_")
+        needed_exact = needed_exact | sprite_exact
+        needed_prefixes = needed_prefixes + sprite_prefixes
 
     symbols = load_symbols(sym_data)
     filtered = [
@@ -143,6 +164,122 @@ def export_images(
             logging.error("Failed to render %s: %s", name, e)
 
 
+def export_pokemon_sprites(
+    sprites: dict[int, dict[str, Any]],
+    output_dir: Path,
+    as_spritesheet: bool = False,
+    columns: int = 8,
+) -> None:
+    """
+    Export Pokemon sprites to PNG files.
+
+    Args:
+        sprites: Dictionary from extract_all_pokemon_sprites.
+        output_dir: Directory to export sprites.
+        as_spritesheet: If True, combine all sprites into a spritesheet.
+        columns: Number of columns in spritesheet.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if as_spritesheet:
+        # Collect all sprites for spritesheet
+        front_sprites = []
+        back_sprites = []
+        species_order = []
+
+        for species_id in tqdm(
+            sorted(sprites.keys()), desc="Rendering sprites", unit="pokemon"
+        ):
+            sprite_data = sprites[species_id]
+            species_name = get_species_name(species_id)
+
+            try:
+                # Front sprite
+                front_renderer = PokemonSpriteRenderer.from_sprite_data(sprite_data)
+                if front_renderer.tile_data:
+                    front_img = front_renderer.render()
+                    front_sprites.append(front_img)
+                    species_order.append((species_id, species_name))
+
+                # Back sprite
+                back_renderer = PokemonSpriteRenderer.from_back_sprite_data(sprite_data)
+                if back_renderer.tile_data:
+                    back_img = back_renderer.render()
+                    back_sprites.append(back_img)
+            except Exception as e:
+                logging.error("Failed to render species %d: %s", species_id, e)
+
+        # Save spritesheets
+        if front_sprites:
+            front_sheet = PokemonSpriteRenderer.render_spritesheet(
+                front_sprites, columns
+            )
+            front_path = output_dir / "front_spritesheet.png"
+            front_sheet.save(front_path)
+            logging.info("Saved front spritesheet: %s", front_path)
+
+        if back_sprites:
+            back_sheet = PokemonSpriteRenderer.render_spritesheet(
+                back_sprites, columns
+            )
+            back_path = output_dir / "back_spritesheet.png"
+            back_sheet.save(back_path)
+            logging.info("Saved back spritesheet: %s", back_path)
+
+        # Save species list for reference
+        species_list_path = output_dir / "species_list.txt"
+        with open(species_list_path, "w") as f:
+            for idx, (sid, name) in enumerate(species_order):
+                f.write(f"{idx + 1}: {sid} - {name}\n")
+        logging.info("Saved species list: %s", species_list_path)
+    else:
+        # Export individual sprites
+        for species_id in tqdm(
+            sorted(sprites.keys()), desc="Rendering sprites", unit="pokemon"
+        ):
+            sprite_data = sprites[species_id]
+            species_name = get_species_name(species_id)
+            species_dir = output_dir / f"{species_id:03d}_{species_name}"
+            species_dir.mkdir(parents=True, exist_ok=True)
+
+            try:
+                # Front sprite (normal)
+                front_renderer = PokemonSpriteRenderer.from_sprite_data(sprite_data)
+                if front_renderer.tile_data:
+                    front_img = front_renderer.render()
+                    front_path = species_dir / "front.png"
+                    front_img.save(front_path)
+
+                # Front sprite (shiny)
+                front_shiny_renderer = PokemonSpriteRenderer.from_sprite_data(
+                    sprite_data, is_shiny=True
+                )
+                if front_shiny_renderer.tile_data:
+                    front_shiny_img = front_shiny_renderer.render()
+                    front_shiny_path = species_dir / "front_shiny.png"
+                    front_shiny_img.save(front_shiny_path)
+
+                # Back sprite (normal)
+                back_renderer = PokemonSpriteRenderer.from_back_sprite_data(sprite_data)
+                if back_renderer.tile_data:
+                    back_img = back_renderer.render()
+                    back_path = species_dir / "back.png"
+                    back_img.save(back_path)
+
+                # Back sprite (shiny)
+                back_shiny_renderer = PokemonSpriteRenderer.from_back_sprite_data(
+                    sprite_data, is_shiny=True
+                )
+                if back_shiny_renderer.tile_data:
+                    back_shiny_img = back_shiny_renderer.render()
+                    back_shiny_path = species_dir / "back_shiny.png"
+                    back_shiny_img.save(back_shiny_path)
+
+                logging.debug("Exported sprites for %s", species_name)
+            except Exception as e:
+                logging.error("Failed to export sprites for %s: %s", species_name, e)
+
+
 def run(
     sym_path: str,
     rom_path: str,
@@ -151,9 +288,12 @@ def run(
     clear_output: bool = False,
     primary_tile_count: int = 0x200,
     exclude_tilesets: list[str] | None = None,
+    dump_sprites: bool = False,
+    as_spritesheet: bool = False,
+    spritesheet_columns: int = 8,
 ) -> dict[str, dict[str, Any]]:
     """
-    Extract metatiles from a GBA Pokemon ROM.
+    Extract metatiles and optionally sprites from a GBA Pokemon ROM.
 
     Args:
         sym_path: Path to the .sym file.
@@ -163,6 +303,9 @@ def run(
         clear_output: Whether to clear output directories before writing.
         primary_tile_count: Number of tiles in primary tileset.
         exclude_tilesets: List of tileset names to exclude from PNG export.
+        dump_sprites: If True, extract Pokemon battle sprites.
+        as_spritesheet: If True, output sprites as spritesheets.
+        spritesheet_columns: Number of columns in spritesheet.
 
     Returns:
         The extracted metatiles dictionary.
@@ -189,6 +332,24 @@ def run(
             exclude_tilesets,
         )
         logging.info("Images exported to: %s", export_dir)
+
+    # Dump Pokemon sprites if requested
+    if dump_sprites:
+        sprites_dir = Path(export_dir).parent / "pokemon" / "sprites" if export_dir else Path("out/pokemon/sprites")
+        try:
+            symbols = load_symbols(sym_path)
+            sprites = extract_all_pokemon_sprites(
+                rom_data, rom_base_address, symbols
+            )
+            export_pokemon_sprites(
+                sprites,
+                sprites_dir,
+                as_spritesheet=as_spritesheet,
+                columns=spritesheet_columns,
+            )
+            logging.info("Pokemon sprites exported to: %s", sprites_dir)
+        except Exception as e:
+            logging.error("Failed to dump sprites: %s", e)
 
     return metatiles
 
@@ -237,6 +398,22 @@ def main() -> None:
         "--yes",
         action="store_true",
         help="Automatically clear output directory without prompting",
+    )
+    parser.add_argument(
+        "--dump-sprites",
+        action="store_true",
+        help="Dump Pokemon battle sprites (front/back)",
+    )
+    parser.add_argument(
+        "--spritesheet",
+        action="store_true",
+        help="Output sprites as spritesheets instead of individual PNGs",
+    )
+    parser.add_argument(
+        "--spritesheet-columns",
+        type=int,
+        default=8,
+        help="Columns in spritesheet (default: 8)",
     )
 
     args = parser.parse_args()
@@ -292,7 +469,7 @@ def main() -> None:
         elif cached_sym_path.exists():
             with open(cached_sym_path, "r", encoding="utf-8") as f:
                 sym_data = f.read()
-            stripped = strip_symbols(sym_data)
+            stripped = strip_symbols(sym_data, keep_sprites=args.dump_sprites)
             with open(stripped_sym_path, "w", encoding="utf-8") as f:
                 f.write(stripped)
             logging.info("Stripped and cached symbols to %s", stripped_sym_path)
@@ -301,7 +478,7 @@ def main() -> None:
             urllib.request.urlretrieve(sym_url, cached_sym_path)
             with open(cached_sym_path, "r", encoding="utf-8") as f:
                 sym_data = f.read()
-            stripped = strip_symbols(sym_data)
+            stripped = strip_symbols(sym_data, keep_sprites=args.dump_sprites)
             with open(stripped_sym_path, "w", encoding="utf-8") as f:
                 f.write(stripped)
             logging.info("Downloaded and stripped symbols to %s", stripped_sym_path)
@@ -345,6 +522,9 @@ def main() -> None:
             clear_output=clear_output,
             primary_tile_count=primary_tile_count,
             exclude_tilesets=exclude_tilesets,
+            dump_sprites=args.dump_sprites,
+            as_spritesheet=args.spritesheet,
+            spritesheet_columns=args.spritesheet_columns,
         )
     except KeyboardInterrupt:
         pass

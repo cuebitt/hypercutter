@@ -42,8 +42,11 @@ from .classes import (
     GAME_CODE_OFFSET,
     GAME_CODE_LENGTH,
     MapLayout,
+    MonCoords,
     Offset,
     OffsetType,
+    SpritePalette,
+    SpriteSheet,
     SUPPORTED_GAMES,
     Tileset,
 )
@@ -51,7 +54,10 @@ from .constants import (
     MAP_LAYOUT_FORMAT,
     MAP_LAYOUT_SIZE,
     MAX_DECOMPRESS_READ_SIZE,
+    MON_COORDS_ENTRY_SIZE,
     PALETTE_SIZE,
+    SPRITE_PALETTE_ENTRY_SIZE,
+    SPRITE_SHEET_ENTRY_SIZE,
     TILESET_FORMAT,
     TILESET_SIZE,
 )
@@ -75,6 +81,14 @@ __all__ = [
     "extract_all_tilesets",
     "extract_metatiles",
     "extract",
+    # Sprite extraction functions
+    "extract_sprite_sheet",
+    "extract_sprite_palette",
+    "extract_mon_coords",
+    "extract_sprite_table",
+    "extract_sprite_data",
+    "extract_palette_data",
+    "extract_all_pokemon_sprites",
 ]
 
 
@@ -169,7 +183,7 @@ def _parse_symbols(data: str) -> list[Offset]:
 def load_symbols(filepath_or_data: str | bytes) -> list[Offset]:
     """Load symbols from a .sym file or raw data."""
     logger.debug("load_symbols: %r", filepath_or_data)
-    if isinstance(filepath_or_data, str) and not "\n" in filepath_or_data and Path(filepath_or_data).is_file():
+    if isinstance(filepath_or_data, str) and "\n" not in filepath_or_data and Path(filepath_or_data).is_file():
         with open(filepath_or_data, "r", encoding="utf-8") as f:
             filepath_or_data = f.read()
     elif isinstance(filepath_or_data, bytes):
@@ -628,3 +642,298 @@ def extract(
 
     logger.info("Extraction complete: %d metatiles", len(metatiles))
     return metatiles, start_sym_offset
+
+
+def extract_sprite_sheet(
+    rom: bytes,
+    offset: int,
+    start_sym_offset: int,
+) -> SpriteSheet:
+    """
+    Extract a CompressedSpriteSheet from ROM.
+
+    CompressedSpriteSheet struct (8 bytes):
+    - data_ptr (4 bytes): ROM address of compressed tile data
+    - size (2 bytes): Uncompressed size in bytes
+    - tag (2 bytes): Species index
+
+    Args:
+        rom: Raw ROM bytes.
+        offset: File offset where the struct begins.
+        start_sym_offset: Base address for ROM pointers.
+
+    Returns:
+        A SpriteSheet object.
+    """
+    if offset < 0 or offset + SPRITE_SHEET_ENTRY_SIZE > len(rom):
+        raise ValueError(
+            f"Offset 0x{offset:X} is out of range "
+            f"(ROM size: 0x{len(rom):X}, struct size: 0x{SPRITE_SHEET_ENTRY_SIZE:X})"
+        )
+
+    fields = struct.unpack_from("<IHH", rom, offset)
+    return SpriteSheet(
+        data_ptr=fields[0],
+        size=fields[1],
+        tag=fields[2],
+    )
+
+
+def extract_sprite_palette(
+    rom: bytes,
+    offset: int,
+    start_sym_offset: int,
+) -> SpritePalette:
+    """
+    Extract a CompressedSpritePalette from ROM.
+
+    CompressedSpritePalette struct (8 bytes):
+    - data_ptr (4 bytes): ROM address of compressed palette data
+    - tag (2 bytes): Species index
+    - padding (2 bytes): Unused
+
+    Args:
+        rom: Raw ROM bytes.
+        offset: File offset where the struct begins.
+        start_sym_offset: Base address for ROM pointers.
+
+    Returns:
+        A SpritePalette object.
+    """
+    if offset < 0 or offset + SPRITE_PALETTE_ENTRY_SIZE > len(rom):
+        raise ValueError(
+            f"Offset 0x{offset:X} is out of range "
+            f"(ROM size: 0x{len(rom):X}, struct size: 0x{SPRITE_PALETTE_ENTRY_SIZE:X})"
+        )
+
+    fields = struct.unpack_from("<IHH", rom, offset)
+    return SpritePalette(
+        data_ptr=fields[0],
+        tag=fields[1],
+    )
+
+
+def extract_mon_coords(
+    rom: bytes,
+    offset: int,
+) -> MonCoords:
+    """
+    Extract MonCoords from ROM.
+
+    MonCoords struct (4 bytes in ROM, padded):
+    - size (1 byte): Packed width (high nibble) and height (low nibble) in tiles
+    - y_offset (1 byte): Pixels from bottom of sprite to bottom of 64x64 frame
+    - padding (2 bytes): Unused alignment padding
+
+    Args:
+        rom: Raw ROM bytes.
+        offset: File offset where the struct begins.
+
+    Returns:
+        A MonCoords object.
+    """
+    if offset < 0 or offset + MON_COORDS_ENTRY_SIZE > len(rom):
+        raise ValueError(
+            f"Offset 0x{offset:X} is out of range "
+            f"(ROM size: 0x{len(rom):X}, struct size: 0x{MON_COORDS_ENTRY_SIZE:X})"
+        )
+
+    # Only read the first 2 bytes (size and y_offset), skip 2 padding bytes
+    fields = struct.unpack_from("<BB", rom, offset)
+    return MonCoords(
+        size=fields[0],
+        y_offset=fields[1],
+    )
+
+
+def extract_sprite_table(
+    rom: bytes,
+    table_offset: int,
+    count: int,
+    start_sym_offset: int,
+) -> list[SpriteSheet]:
+    """
+    Extract all entries from a sprite table.
+
+    Args:
+        rom: Raw ROM bytes.
+        table_offset: File offset where the table begins.
+        count: Number of entries to extract.
+        start_sym_offset: Base address for ROM pointers.
+
+    Returns:
+        List of SpriteSheet objects.
+    """
+    sprites = []
+    for i in range(count):
+        offset = table_offset + (i * SPRITE_SHEET_ENTRY_SIZE)
+        sprites.append(extract_sprite_sheet(rom, offset, start_sym_offset))
+    return sprites
+
+
+def extract_sprite_data(
+    rom: bytes,
+    sprite: SpriteSheet,
+    start_sym_offset: int,
+    is_compressed: bool = True,
+) -> bytes:
+    """
+    Extract and decompress sprite tile data.
+
+    Args:
+        rom: Raw ROM bytes.
+        sprite: SpriteSheet containing the pointer to tile data.
+        start_sym_offset: Base address for ROM pointers.
+        is_compressed: Whether the data is LZ77 compressed.
+
+    Returns:
+        Decompressed tile data bytes, truncated to expected size.
+    """
+    data = extract_raw_data(
+        rom,
+        sprite.data_ptr,
+        sprite.size,
+        start_sym_offset,
+        is_compressed,
+    )
+    # Truncate to expected size: LZ77 may decompress extra garbage
+    if is_compressed and len(data) > sprite.size:
+        data = data[:sprite.size]
+    return data
+
+
+def extract_palette_data(
+    rom: bytes,
+    palette: SpritePalette,
+    start_sym_offset: int,
+    is_compressed: bool = True,
+) -> bytes:
+    """
+    Extract and decompress palette data.
+
+    Args:
+        rom: Raw ROM bytes.
+        palette: SpritePalette containing the pointer to palette data.
+        start_sym_offset: Base address for ROM pointers.
+        is_compressed: Whether the data is LZ77 compressed.
+
+    Returns:
+        Decompressed palette data bytes (typically 32 bytes for 16 colors).
+    """
+    # Palette size is typically 32 bytes (16 colors * 2 bytes each)
+    # We use a max read size since compressed data may be smaller
+    return extract_raw_data(
+        rom,
+        palette.data_ptr,
+        32,
+        start_sym_offset,
+        is_compressed,
+    )
+
+
+def extract_all_pokemon_sprites(
+    rom: bytes,
+    start_sym_offset: int,
+    symbols: list[Offset],
+) -> dict[int, dict[str, Any]]:
+    """
+    Extract all Pokemon sprites organized by species ID.
+
+    Looks up sprite table addresses from the symbols file and derives
+    the pokemon count from the table sizes.
+
+    Args:
+        rom: Raw ROM bytes.
+        start_sym_offset: Base address for ROM pointers.
+        symbols: List of symbol offsets from the .sym file.
+
+    Returns:
+        Dictionary mapping species ID to sprite data.
+    """
+    from .constants import (
+        MON_COORDS_ENTRY_SIZE,
+        SPRITE_PALETTE_ENTRY_SIZE,
+        SPRITE_SHEET_ENTRY_SIZE,
+        SPRITE_SYMBOL_NAMES,
+    )
+
+    # Look up sprite table addresses from symbols
+    name_index = build_field_index(symbols, "name")
+    tables: dict[str, int] = {}
+    for sym_name in SPRITE_SYMBOL_NAMES:
+        sym = name_index.get(sym_name)
+        if sym is None:
+            raise ValueError(f"Symbol '{sym_name}' not found in symbols file")
+        tables[sym_name] = sym.address
+
+    # Derive pokemon count from the front pic table size
+    front_table_sym = name_index["gMonFrontPicTable"]
+    pokemon_count = front_table_sym.length // SPRITE_SHEET_ENTRY_SIZE
+
+    front_table_offset = tables["gMonFrontPicTable"] - start_sym_offset
+    back_table_offset = tables["gMonBackPicTable"] - start_sym_offset
+    palette_table_offset = tables["gMonPaletteTable"] - start_sym_offset
+    shiny_palette_table_offset = tables["gMonShinyPaletteTable"] - start_sym_offset
+    front_coords_offset = tables["gMonFrontPicCoords"] - start_sym_offset
+    back_coords_offset = tables["gMonBackPicCoords"] - start_sym_offset
+
+    logger.info("Extracting %d Pokemon sprites", pokemon_count)
+
+    results: dict[int, dict[str, Any]] = {}
+    seen_data_ptrs: set[int] = set()
+
+    for species_id in range(0, pokemon_count):
+        idx = species_id  # Tables are 1-indexed (index 0 is SPECIES_NONE)
+
+        # Extract table entries
+        front_offset = front_table_offset + (idx * SPRITE_SHEET_ENTRY_SIZE)
+        back_offset = back_table_offset + (idx * SPRITE_SHEET_ENTRY_SIZE)
+        palette_offset = palette_table_offset + (idx * SPRITE_PALETTE_ENTRY_SIZE)
+        shiny_palette_offset = shiny_palette_table_offset + (
+            idx * SPRITE_PALETTE_ENTRY_SIZE
+        )
+        front_coords_idx = front_coords_offset + (idx * MON_COORDS_ENTRY_SIZE)
+        back_coords_idx = back_coords_offset + (idx * MON_COORDS_ENTRY_SIZE)
+
+        try:
+            front = extract_sprite_sheet(rom, front_offset, start_sym_offset)
+            back = extract_sprite_sheet(rom, back_offset, start_sym_offset)
+
+            # Skip duplicate entries (e.g. Old Unown placeholders all share one sprite)
+            if front.data_ptr in seen_data_ptrs:
+                continue
+            seen_data_ptrs.add(front.data_ptr)
+
+            palette = extract_sprite_palette(rom, palette_offset, start_sym_offset)
+            shiny_palette = extract_sprite_palette(
+                rom, shiny_palette_offset, start_sym_offset
+            )
+            front_coords = extract_mon_coords(rom, front_coords_idx)
+            back_coords = extract_mon_coords(rom, back_coords_idx)
+
+            # Extract raw data
+            front_tile_data = extract_sprite_data(rom, front, start_sym_offset)
+            back_tile_data = extract_sprite_data(rom, back, start_sym_offset)
+            palette_data = extract_palette_data(rom, palette, start_sym_offset)
+            shiny_palette_data = extract_palette_data(
+                rom, shiny_palette, start_sym_offset
+            )
+
+            results[species_id] = {
+                "front": front,
+                "back": back,
+                "palette": palette,
+                "shiny_palette": shiny_palette,
+                "front_coords": front_coords,
+                "back_coords": back_coords,
+                "front_tile_data": front_tile_data,
+                "back_tile_data": back_tile_data,
+                "palette_data": palette_data,
+                "shiny_palette_data": shiny_palette_data,
+            }
+        except ValueError as e:
+            logger.warning("Failed to extract sprite for species %d: %s", species_id, e)
+            continue
+
+    logger.info("Extracted %d Pokemon sprites", len(results))
+    return results
