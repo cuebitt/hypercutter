@@ -10,6 +10,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from PIL import Image
+
 try:
     import orjson
 
@@ -24,7 +26,7 @@ except ImportError:
 
 from tqdm import tqdm
 
-from hypercutter import extract, load_symbols, extract_all_pokemon_sprites
+from hypercutter import extract, load_symbols, extract_all_pokemon_sprites, extract_pokemon_form_sprites
 from hypercutter.classes import (
     GAME_CODE_OFFSET,
     SUPPORTED_GAMES,
@@ -62,7 +64,7 @@ def strip_symbols(sym_data: str, keep_sprites: bool = False) -> str:
             "gMonFrontPicCoords",
             "gMonBackPicCoords",
         }
-        sprite_prefixes = ("gMonFrontPic_", "gMonBackPic_")
+        sprite_prefixes = ("gMonFrontPic_", "gMonBackPic_", "gMonPalette_", "gMonShinyPalette_")
         needed_exact = needed_exact | sprite_exact
         needed_prefixes = needed_prefixes + sprite_prefixes
 
@@ -164,8 +166,43 @@ def export_images(
             logging.error("Failed to render %s: %s", name, e)
 
 
+def _render_form_sprite(
+    sprite_data: dict[str, Any],
+    is_front: bool,
+    is_shiny: bool = False,
+) -> Image.Image | None:
+    """Render a form sprite from tile/palette data."""
+    tile_key = "front_tile_data" if is_front else "back_tile_data"
+    tile_data = sprite_data.get(tile_key, b"")
+    if not tile_data:
+        return None
+
+    pal_key = "shiny_palette_data" if is_shiny else "palette_data"
+    palette_data = sprite_data.get(pal_key, b"")
+
+    renderer = PokemonSpriteRenderer(tile_data=tile_data, palette_data=palette_data)
+    if renderer.tile_data:
+        return renderer.render()
+    return None
+
+
+def _render_base_sprite(
+    sprite_data: dict[str, Any],
+    is_front: bool,
+    is_shiny: bool = False,
+) -> Image.Image | None:
+    """Render a base species sprite."""
+    if is_front:
+        renderer = PokemonSpriteRenderer.from_sprite_data(sprite_data, is_shiny=is_shiny)
+    else:
+        renderer = PokemonSpriteRenderer.from_back_sprite_data(sprite_data, is_shiny=is_shiny)
+    if renderer.tile_data:
+        return renderer.render()
+    return None
+
+
 def export_pokemon_sprites(
-    sprites: dict[int, dict[str, Any]],
+    sprites: dict[int | str, dict[str, Any]],
     output_dir: Path,
     as_spritesheet: bool = False,
     columns: int = 8,
@@ -173,111 +210,107 @@ def export_pokemon_sprites(
     """
     Export Pokemon sprites to PNG files.
 
-    Args:
-        sprites: Dictionary from extract_all_pokemon_sprites.
-        output_dir: Directory to export sprites.
-        as_spritesheet: If True, combine all sprites into a spritesheet.
-        columns: Number of columns in spritesheet.
+    Base species go in folders like `001_bulbasaur/`.
+    Alternate forms go in subdirectories like `201_unown/form_B/`.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Separate base species from form sprites
+    base_sprites = {k: v for k, v in sprites.items() if isinstance(k, int)}
+    form_sprites = {k: v for k, v in sprites.items() if isinstance(k, str)}
+
     if as_spritesheet:
-        # Collect all sprites for spritesheet
         front_sprites = []
         back_sprites = []
         species_order = []
 
-        for species_id in tqdm(
-            sorted(sprites.keys()), desc="Rendering sprites", unit="pokemon"
+        for key in tqdm(
+            sorted(sprites.keys(), key=lambda x: (str(x), x)),
+            desc="Rendering sprites",
+            unit="pokemon",
         ):
-            sprite_data = sprites[species_id]
-            species_name = get_species_name(species_id)
+            sprite_data = sprites[key]
+            species_name = get_species_name(key) if isinstance(key, int) else key
 
             try:
-                # Front sprite
-                front_renderer = PokemonSpriteRenderer.from_sprite_data(sprite_data)
-                if front_renderer.tile_data:
-                    front_img = front_renderer.render()
-                    front_sprites.append(front_img)
-                    species_order.append((species_id, species_name))
+                if isinstance(key, int):
+                    front_img = _render_base_sprite(sprite_data, is_front=True)
+                    back_img = _render_base_sprite(sprite_data, is_front=False)
+                else:
+                    front_img = _render_form_sprite(sprite_data, is_front=True)
+                    back_img = _render_form_sprite(sprite_data, is_front=False)
 
-                # Back sprite
-                back_renderer = PokemonSpriteRenderer.from_back_sprite_data(sprite_data)
-                if back_renderer.tile_data:
-                    back_img = back_renderer.render()
+                if front_img:
+                    front_sprites.append(front_img)
+                    species_order.append((key, species_name))
+                if back_img:
                     back_sprites.append(back_img)
             except Exception as e:
-                logging.error("Failed to render species %d: %s", species_id, e)
+                logging.error("Failed to render %s: %s", key, e)
 
-        # Save spritesheets
         if front_sprites:
-            front_sheet = PokemonSpriteRenderer.render_spritesheet(
-                front_sprites, columns
-            )
-            front_path = output_dir / "front_spritesheet.png"
-            front_sheet.save(front_path)
-            logging.info("Saved front spritesheet: %s", front_path)
-
+            front_sheet = PokemonSpriteRenderer.render_spritesheet(front_sprites, columns)
+            front_sheet.save(output_dir / "front_spritesheet.png")
         if back_sprites:
-            back_sheet = PokemonSpriteRenderer.render_spritesheet(
-                back_sprites, columns
-            )
-            back_path = output_dir / "back_spritesheet.png"
-            back_sheet.save(back_path)
-            logging.info("Saved back spritesheet: %s", back_path)
+            back_sheet = PokemonSpriteRenderer.render_spritesheet(back_sprites, columns)
+            back_sheet.save(output_dir / "back_spritesheet.png")
 
-        # Save species list for reference
-        species_list_path = output_dir / "species_list.txt"
-        with open(species_list_path, "w") as f:
+        with open(output_dir / "species_list.txt", "w") as f:
             for idx, (sid, name) in enumerate(species_order):
                 f.write(f"{idx + 1}: {sid} - {name}\n")
-        logging.info("Saved species list: %s", species_list_path)
     else:
-        # Export individual sprites
-        for species_id in tqdm(
-            sorted(sprites.keys()), desc="Rendering sprites", unit="pokemon"
+        # Export base species
+        for key in tqdm(
+            sorted(base_sprites.keys()), desc="Rendering base sprites", unit="pokemon"
         ):
-            sprite_data = sprites[species_id]
-            species_name = get_species_name(species_id)
-            species_dir = output_dir / f"{species_id:03d}_{species_name}"
+            species_name = get_species_name(key)
+            # Skip entries outside the known species range (padding in the sprite table)
+            if species_name.startswith("unknown_"):
+                continue
+            sprite_data = base_sprites[key]
+            species_dir = output_dir / f"{key:03d}_{species_name}"
             species_dir.mkdir(parents=True, exist_ok=True)
 
             try:
-                # Front sprite (normal)
-                front_renderer = PokemonSpriteRenderer.from_sprite_data(sprite_data)
-                if front_renderer.tile_data:
-                    front_img = front_renderer.render()
-                    front_path = species_dir / "front.png"
-                    front_img.save(front_path)
-
-                # Front sprite (shiny)
-                front_shiny_renderer = PokemonSpriteRenderer.from_sprite_data(
-                    sprite_data, is_shiny=True
-                )
-                if front_shiny_renderer.tile_data:
-                    front_shiny_img = front_shiny_renderer.render()
-                    front_shiny_path = species_dir / "front_shiny.png"
-                    front_shiny_img.save(front_shiny_path)
-
-                # Back sprite (normal)
-                back_renderer = PokemonSpriteRenderer.from_back_sprite_data(sprite_data)
-                if back_renderer.tile_data:
-                    back_img = back_renderer.render()
-                    back_path = species_dir / "back.png"
-                    back_img.save(back_path)
-
-                # Back sprite (shiny)
-                back_shiny_renderer = PokemonSpriteRenderer.from_back_sprite_data(
-                    sprite_data, is_shiny=True
-                )
-                if back_shiny_renderer.tile_data:
-                    back_shiny_img = back_shiny_renderer.render()
-                    back_shiny_path = species_dir / "back_shiny.png"
-                    back_shiny_img.save(back_shiny_path)
-
-                logging.debug("Exported sprites for %s", species_name)
+                for is_front, label in [(True, "front"), (False, "back")]:
+                    for is_shiny, suffix in [(False, ""), (True, "_shiny")]:
+                        img = _render_base_sprite(sprite_data, is_front, is_shiny)
+                        if img:
+                            img.save(species_dir / f"{label}{suffix}.png")
             except Exception as e:
-                logging.error("Failed to export sprites for %s: %s", species_name, e)
+                logging.error("Failed to export %s: %s", species_name, e)
+
+        # Export form sprites under base species folders
+        for form_key in tqdm(
+            sorted(form_sprites.keys()), desc="Rendering form sprites", unit="form"
+        ):
+            sprite_data = form_sprites[form_key]
+            species = sprite_data.get("species", "")
+            form = sprite_data.get("form", "")
+
+            # Find the base species ID
+            base_id = None
+            for sid in base_sprites:
+                if get_species_name(sid) == species.lower():
+                    base_id = sid
+                    break
+
+            if base_id is not None:
+                base_name = get_species_name(base_id)
+                form_dir = output_dir / f"{base_id:03d}_{base_name}" / f"form_{form}"
+            else:
+                form_dir = output_dir / form_key
+
+            form_dir.mkdir(parents=True, exist_ok=True)
+
+            try:
+                for is_front, label in [(True, "front"), (False, "back")]:
+                    for is_shiny, suffix in [(False, ""), (True, "_shiny")]:
+                        img = _render_form_sprite(sprite_data, is_front, is_shiny)
+                        if img:
+                            img.save(form_dir / f"{label}{suffix}.png")
+            except Exception as e:
+                logging.error("Failed to export form %s: %s", form_key, e)
 
 
 def run(
@@ -338,9 +371,19 @@ def run(
         sprites_dir = Path(export_dir).parent / "pokemon" / "sprites" if export_dir else Path("out/pokemon/sprites")
         try:
             symbols = load_symbols(sym_path)
-            sprites = extract_all_pokemon_sprites(
+            base_sprites = extract_all_pokemon_sprites(
                 rom_data, rom_base_address, symbols
             )
+            # Extract alternate form sprites
+            form_sprites = extract_pokemon_form_sprites(
+                rom_data, rom_base_address, symbols
+            )
+            # Merge into a single dictionary
+            sprites: dict[int | str, dict[str, Any]] = {}
+            for k, v in base_sprites.items():
+                sprites[k] = v
+            for k, v in form_sprites.items():
+                sprites[k] = v
             export_pokemon_sprites(
                 sprites,
                 sprites_dir,

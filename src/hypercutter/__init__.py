@@ -31,6 +31,7 @@ from .extractors import (
     extract_metatiles,
     extract_mon_coords,
     extract_palette_data,
+    extract_pokemon_form_sprites,
     extract_sprite_data,
     extract_sprite_palette,
     extract_sprite_sheet,
@@ -86,5 +87,6 @@ __all__ = [
     "extract_sprite_data",
     "extract_palette_data",
     "extract_all_pokemon_sprites",
+    "extract_pokemon_form_sprites",
     "PokemonSpriteRenderer",
 ]
