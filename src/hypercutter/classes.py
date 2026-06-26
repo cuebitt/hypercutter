@@ -137,14 +137,6 @@ def identify_rom(rom_data: bytes) -> IdentifiedRom | None:
     return IdentifiedRom(game=game, sym_filename=sym_filename)
 
 
-def detect_game(rom_data: bytes) -> GameProfile | None:
-    """Detect the game from ROM header game code."""
-    if len(rom_data) < GAME_CODE_OFFSET + 4:
-        return None
-    game_code = rom_data[GAME_CODE_OFFSET : GAME_CODE_OFFSET + 4]
-    return SUPPORTED_GAMES.get(game_code)
-
-
 def get_game_by_name(name: str) -> GameProfile | None:
     """Get game profile by name or short_name (case-insensitive)."""
     name_lower = name.lower()

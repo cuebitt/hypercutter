@@ -37,7 +37,6 @@ __all__ = [
 def extract_sprite_sheet(
     rom: bytes,
     offset: int,
-    start_sym_offset: int,
 ) -> SpriteSheet:
     """
     Extract a CompressedSpriteSheet from ROM.
@@ -50,7 +49,6 @@ def extract_sprite_sheet(
     Args:
         rom: Raw ROM bytes.
         offset: File offset where the struct begins.
-        start_sym_offset: Base address for ROM pointers.
 
     Returns:
         A SpriteSheet object.
@@ -72,7 +70,6 @@ def extract_sprite_sheet(
 def extract_sprite_palette(
     rom: bytes,
     offset: int,
-    start_sym_offset: int,
 ) -> SpritePalette:
     """
     Extract a CompressedSpritePalette from ROM.
@@ -85,7 +82,6 @@ def extract_sprite_palette(
     Args:
         rom: Raw ROM bytes.
         offset: File offset where the struct begins.
-        start_sym_offset: Base address for ROM pointers.
 
     Returns:
         A SpritePalette object.
@@ -157,7 +153,7 @@ def extract_sprite_table(
     sprites = []
     for i in range(count):
         offset = table_offset + (i * SPRITE_SHEET_ENTRY_SIZE)
-        sprites.append(extract_sprite_sheet(rom, offset, start_sym_offset))
+        sprites.append(extract_sprite_sheet(rom, offset))
     return sprites
 
 
@@ -280,8 +276,8 @@ def extract_all_pokemon_sprites(
         back_coords_idx = back_coords_offset + (idx * MON_COORDS_ENTRY_SIZE)
 
         try:
-            front = extract_sprite_sheet(rom, front_offset, start_sym_offset)
-            back = extract_sprite_sheet(rom, back_offset, start_sym_offset)
+            front = extract_sprite_sheet(rom, front_offset)
+            back = extract_sprite_sheet(rom, back_offset)
 
             # Skip entries with no sprite data
             if front.data_ptr == 0 and back.data_ptr == 0:
@@ -292,10 +288,8 @@ def extract_all_pokemon_sprites(
                 if species_names[species_id].startswith("old_unown"):
                     continue
 
-            palette = extract_sprite_palette(rom, palette_offset, start_sym_offset)
-            shiny_palette = extract_sprite_palette(
-                rom, shiny_palette_offset, start_sym_offset
-            )
+            palette = extract_sprite_palette(rom, palette_offset)
+            shiny_palette = extract_sprite_palette(rom, shiny_palette_offset)
             front_coords = extract_mon_coords(rom, front_coords_idx)
             back_coords = extract_mon_coords(rom, back_coords_idx)
 

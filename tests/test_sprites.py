@@ -16,7 +16,7 @@ from hypercutter.sprite_renderer import PokemonSpriteRenderer, get_species_name
 class TestSpriteSheet:
     def test_extracts_correct_values(self):
         data = struct.pack("<IHH", 0x08100000, 0x1000, 0x0001)
-        result = extract_sprite_sheet(data, 0, 0x08000000)
+        result = extract_sprite_sheet(data, 0)
         assert isinstance(result, SpriteSheet)
         assert result.data_ptr == 0x08100000
         assert result.size == 0x1000
@@ -25,13 +25,13 @@ class TestSpriteSheet:
     def test_raises_on_invalid_offset(self):
         data = bytes(0x10)
         with pytest.raises(ValueError, match="out of range"):
-            extract_sprite_sheet(data, 0x100, 0x08000000)
+            extract_sprite_sheet(data, 0x100)
 
 
 class TestSpritePalette:
     def test_extracts_correct_values(self):
         data = struct.pack("<IHH", 0x08200000, 0x0001, 0x0000)
-        result = extract_sprite_palette(data, 0, 0x08000000)
+        result = extract_sprite_palette(data, 0)
         assert isinstance(result, SpritePalette)
         assert result.data_ptr == 0x08200000
         assert result.tag == 0x0001
@@ -39,7 +39,7 @@ class TestSpritePalette:
     def test_raises_on_invalid_offset(self):
         data = bytes(0x10)
         with pytest.raises(ValueError, match="out of range"):
-            extract_sprite_palette(data, 0x100, 0x08000000)
+            extract_sprite_palette(data, 0x100)
 
 
 class TestMonCoords:
