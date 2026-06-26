@@ -17,6 +17,7 @@ class GameProfile:
     sym_repo: str
     default_sym_filename: str
     primary_tileset_tile_count: int = 0x200  # Default 512 tiles
+    exclude_tilesets: list[str] | None = None
 
     @property
     def sym_url(self) -> str:
@@ -39,6 +40,7 @@ SUPPORTED_GAMES: dict[bytes, GameProfile] = {
         sym_repo="pokefirered",
         default_sym_filename="pokefirered.sym",
         primary_tileset_tile_count=0x280,
+        exclude_tilesets=["HoennBuilding"],
     ),
     b"BPGE": GameProfile(
         game_code=b"BPGE",
@@ -47,6 +49,7 @@ SUPPORTED_GAMES: dict[bytes, GameProfile] = {
         sym_repo="pokefirered",
         default_sym_filename="pokefirered.sym",
         primary_tileset_tile_count=0x280,
+        exclude_tilesets=["HoennBuilding"],
     ),
     b"AXVE": GameProfile(
         game_code=b"AXVE",

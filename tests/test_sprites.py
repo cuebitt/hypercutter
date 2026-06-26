@@ -8,7 +8,7 @@ from hypercutter.extractors import (
     extract_sprite_palette,
     extract_sprite_sheet,
 )
-from hypercutter.sprite_renderer import PokemonSpriteRenderer, get_species_name
+from hypercutter.sprite_renderer import PokemonSpriteRenderer, get_species_name, init_species_names
 
 
 class TestSpriteSheet:
@@ -97,10 +97,84 @@ class TestSpriteRenderer:
 
 class TestGetSpeciesName:
     def test_known_species(self):
+        init_species_names(["missing", "bulbasaur", "ivysaur", "venusaur", "charmander",
+                           "charmeleon", "charizard", "squirtle", "wartortle", "blastoise",
+                           "caterpie", "metapod", "butterfree", "weedle", "kakuna", "beedrill",
+                           "pidgey", "pidgeotto", "pidgeot", "rattata", "raticate", "spearow",
+                           "fearow", "ekans", "arbok", "pikachu", "raichu", "sandshrew",
+                           "sandslash", "nidoran_f", "nidorina", "nidoqueen", "nidoran_m",
+                           "nidorino", "nidoking", "clefairy", "clefable", "vulpix", "ninetales",
+                           "jigglypuff", "wigglytuff", "zubat", "golbat", "oddish", "gloom",
+                           "vileplume", "paras", "parasect", "venonat", "venomoth", "diglett",
+                           "dugtrio", "meowth", "persian", "psyduck", "golduck", "mankey",
+                           "primeape", "growlithe", "arcanine", "poliwag", "poliwhirl",
+                           "poliwrath", "abra", "kadabra", "alakazam", "machop", "machoke",
+                           "machamp", "bellsprout", "weepinbell", "victreebel", "tentacool",
+                           "tentacruel", "geodude", "graveler", "golem", "ponyta", "rapidash",
+                           "slowpoke", "slowbro", "magnemite", "magneton", "farfetchd", "doduo",
+                           "dodrio", "seel", "dewgong", "grimer", "muk", "shellder", "cloyster",
+                           "gastly", "haunter", "gengar", "onix", "drowzee", "hypno", "krabby",
+                           "kingler", "voltorb", "electrode", "exeggcute", "exeggutor", "cubone",
+                           "marowak", "hitmonlee", "hitmonchan", "lickitung", "koffing", "weezing",
+                           "rhyhorn", "rhydon", "chansey", "tangela", "kangaskhan", "horsea",
+                           "seadra", "goldeen", "seaking", "staryu", "starmie", "mr_mime",
+                           "scyther", "jynx", "electabuzz", "magmar", "pinsir", "tauros",
+                           "magikarp", "gyarados", "lapras", "ditto", "eevee", "vaporeon",
+                           "jolteon", "flareon", "porygon", "omanyte", "omastar", "kabuto",
+                           "kabutops", "aerodactyl", "snorlax", "articuno", "zapdos", "moltres",
+                           "dratini", "dragonair", "dragonite", "mewtwo", "mew", "chikorita",
+                           "bayleef", "meganium", "cyndaquil", "quilava", "typhlosion", "totodile",
+                           "croconaw", "feraligatr", "sentret", "furret", "hoothoot", "noctowl",
+                           "ledyba", "ledian", "spinarak", "ariados", "crobat", "chinchou",
+                           "lanturn", "pichu", "cleffa", "igglybuff", "togepi", "togetic", "natu",
+                           "xatu", "mareep", "flaaffy", "ampharos", "bellossom", "marill",
+                           "azumarill", "sudowoodo", "politoed", "hoppip", "skiploom", "jumpluff",
+                           "aipom", "sunkern", "sunflora", "yanma", "wooper", "quagsire", "espeon",
+                           "umbreon", "murkrow", "slowking", "misdreavus", "unown", "wobbuffet",
+                           "girafarig", "pineco", "forretress", "dunsparce", "gligar", "steelix",
+                           "snubbull", "granbull", "qwilfish", "scizor", "shuckle", "heracross",
+                           "sneasel", "teddiursa", "ursaring", "slugma", "magcargo", "swinub",
+                           "piloswine", "corsola", "remoraid", "octillery", "delibird", "mantine",
+                           "skarmory", "houndour", "houndoom", "kingdra", "phanpy", "donphan",
+                           "porygon2", "stantler", "smeargle", "tyrogue", "hitmontop", "smoochum",
+                           "elekid", "magby", "miltank", "blissey", "raikou", "entei", "suicune",
+                           "larvitar", "pupitar", "tyranitar", "lugia", "ho_oh", "celebi",
+                           "old_unown_b", "old_unown_c", "old_unown_d", "old_unown_e",
+                           "old_unown_f", "old_unown_g", "old_unown_h", "old_unown_i",
+                           "old_unown_j", "old_unown_k", "old_unown_l", "old_unown_m",
+                           "old_unown_n", "old_unown_o", "old_unown_p", "old_unown_q",
+                           "old_unown_r", "old_unown_s", "old_unown_t", "old_unown_u",
+                           "old_unown_v", "old_unown_w", "old_unown_x", "old_unown_y",
+                           "old_unown_z", "treecko", "grovyle", "sceptile", "torchic",
+                           "combusken", "blaziken", "mudkip", "marshtomp", "swampert",
+                           "poochyena", "mightyena", "zigzagoon", "linoone", "wurmple",
+                           "silcoon", "beautifly", "cascoon", "dustox", "lotad", "lombre",
+                           "ludicolo", "seedot", "nuzleaf", "shiftry", "nincada", "ninjask",
+                           "shedinja", "tallow", "swellow", "shroomish", "breloom", "spinda",
+                           "wingull", "pelipper", "surskit", "masquerain", "wailmer", "wailord",
+                           "skitty", "delcatty", "kecleon", "baltoy", "claydol", "nosepass",
+                           "torkoal", "sableye", "barboach", "whiscash", "luvdisc", "corphish",
+                           "crawdaunt", "feebas", "milotic", "carvanha", "sharpedo", "trapinch",
+                           "vibrava", "flygon", "makuhita", "hariyama", "electrike", "manectric",
+                           "numel", "camerupt", "spheal", "sealeo", "walrein", "cacnea",
+                           "cacturne", "snorunt", "glalie", "lunatone", "solrock", "azurill",
+                           "spoink", "grumpig", "plusle", "minun", "mawile", "meditite",
+                           "medicham", "swablu", "altaria", "wynaut", "duskull", "dusclops",
+                           "roselia", "slakoth", "vigoroth", "slaking", "gulpin", "swalot",
+                           "tropius", "whismur", "loudred", "exploud", "clamperl", "huntail",
+                           "gorebyss", "absol", "shuppet", "banette", "seviper", "zangoose",
+                           "relicanth", "aron", "lairon", "aggron", "castform", "volbeat",
+                           "illumise", "lileep", "cradily", "anorith", "armaldo", "ralts",
+                           "kirlia", "gardevoir", "bagon", "shelgon", "salamence", "beldum",
+                           "metang", "metagross", "regirock", "regice", "registeel", "latias",
+                           "latios", "kyogre", "groudon", "rayquaza", "jirachi", "deoxys",
+                           "chimecho", "egg"])
         assert get_species_name(0) == "missing"
         assert get_species_name(1) == "bulbasaur"
         assert get_species_name(25) == "pikachu"
         assert get_species_name(410) == "deoxys"
 
     def test_unknown_species(self):
+        init_species_names([])
+        assert get_species_name(0) == "unknown_000"
         assert get_species_name(999) == "unknown_999"

@@ -26,13 +26,14 @@ except ImportError:
 
 from tqdm import tqdm
 
-from hypercutter import extract, load_symbols, extract_all_pokemon_sprites, extract_pokemon_form_sprites
+from hypercutter import extract, load_symbols, extract_all_pokemon_sprites, extract_pokemon_form_sprites, load_species_names, init_species_names
 from hypercutter.classes import (
     GAME_CODE_OFFSET,
     SUPPORTED_GAMES,
     get_game_by_name,
     identify_rom,
 )
+from hypercutter.constants import DEFAULT_ROM_BASE_ADDRESS, PRIMARY_TILESET_TILE_COUNT
 from hypercutter.renderer import TilesetRenderer
 from hypercutter.sprite_renderer import PokemonSpriteRenderer, get_species_name
 
@@ -63,6 +64,7 @@ def strip_symbols(sym_data: str, keep_sprites: bool = False) -> str:
             "gMonShinyPaletteTable",
             "gMonFrontPicCoords",
             "gMonBackPicCoords",
+            "gSpeciesNames",
         }
         sprite_prefixes = ("gMonFrontPic_", "gMonBackPic_", "gMonPalette_", "gMonShinyPalette_")
         needed_exact = needed_exact | sprite_exact
@@ -142,8 +144,8 @@ def export_images(
     metatiles: dict[str, dict[str, Any]],
     output_dir: Path,
     rom_data: bytes | None = None,
-    rom_base_address: int = 0x8000000,
-    primary_tile_count: int = 0x200,
+    rom_base_address: int = DEFAULT_ROM_BASE_ADDRESS,
+    primary_tile_count: int = PRIMARY_TILESET_TILE_COUNT,
     exclude_tilesets: list[str] | None = None,
 ) -> None:
     """Render and save metatiles as PNG images."""
@@ -268,6 +270,9 @@ def export_pokemon_sprites(
             if species_name.startswith("unknown_"):
                 continue
             sprite_data = base_sprites[key]
+            # Egg (species 412) gets a special human-readable name
+            if key == 412 and not species_name.isalpha():
+                species_name = "egg"
             species_dir = output_dir / f"{key:03d}_{species_name}"
             species_dir.mkdir(parents=True, exist_ok=True)
 
@@ -319,7 +324,7 @@ def run(
     output_path: str,
     export_dir: str | None = None,
     clear_output: bool = False,
-    primary_tile_count: int = 0x200,
+    primary_tile_count: int = PRIMARY_TILESET_TILE_COUNT,
     exclude_tilesets: list[str] | None = None,
     dump_sprites: bool = False,
     as_spritesheet: bool = False,
@@ -371,6 +376,9 @@ def run(
         sprites_dir = Path(export_dir).parent / "pokemon" / "sprites" if export_dir else Path("out/pokemon/sprites")
         try:
             symbols = load_symbols(sym_path)
+            # Initialize species names from ROM data
+            species_names = load_species_names(rom_data, symbols)
+            init_species_names(species_names)
             base_sprites = extract_all_pokemon_sprites(
                 rom_data, rom_base_address, symbols
             )
@@ -533,19 +541,16 @@ def main() -> None:
     clear_output = args.yes
 
     # Get primary tileset tile count from identified game
-    primary_tile_count = 0x200  # Default
+    primary_tile_count = PRIMARY_TILESET_TILE_COUNT  # Default
     exclude_tilesets = []
     if identified:
         primary_tile_count = identified.game.primary_tileset_tile_count
-        # FR/LG have a HoennBuilding tileset that should be excluded
-        if identified.game.game_code in (b"BPRE", b"BPGE"):
-            exclude_tilesets = ["HoennBuilding"]
+        exclude_tilesets = identified.game.exclude_tilesets or []
     elif args.game:
         game = get_game_by_name(args.game)
         if game:
             primary_tile_count = game.primary_tileset_tile_count
-            if game.game_code in (b"BPRE", b"BPGE"):
-                exclude_tilesets = ["HoennBuilding"]
+            exclude_tilesets = game.exclude_tilesets or []
 
     # Prompt for clearing if output directory exists and not auto-confirmed
     if not clear_output and not args.clear:
