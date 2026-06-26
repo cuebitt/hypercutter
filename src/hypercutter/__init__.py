@@ -45,7 +45,15 @@ from .extractors import (
 )
 from .utils import find_by_field, find_primary_from_secondary
 
-from .sprite_renderer import PokemonSpriteRenderer, init_species_names
+from .types import (
+    ExtractResult,
+    FormSpriteEntry,
+    MetatileEntry,
+    SpriteEntry,
+    TilesetData,
+)
+
+from .sprite_renderer import PokemonSpriteRenderer, get_species_name
 
 __all__ = [
     "OffsetType",
@@ -91,5 +99,11 @@ __all__ = [
     "extract_pokemon_form_sprites",
     "load_species_names",
     "PokemonSpriteRenderer",
-    "init_species_names",
+    "get_species_name",
+    # TypedDict types
+    "TilesetData",
+    "MetatileEntry",
+    "SpriteEntry",
+    "FormSpriteEntry",
+    "ExtractResult",
 ]

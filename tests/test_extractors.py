@@ -169,28 +169,28 @@ class TestBuildTilesetNamePairs:
         assert set(result["Overworld"]) == {"Grass", "Water"}
 
 
-class TestRomRevisionDetection:
-    def test_detect_sym_filename_firered_v1(self):
-        from hypercutter.classes import detect_sym_filename
+class TestRomIdentification:
+    def test_identify_rom_unknown_sha256(self):
+        from hypercutter.classes import identify_rom
 
         mock_rom = bytearray(256)
         mock_rom[0xAC:0xB0] = b"BPRE"
         mock_rom[0xB0:0xB4] = b"1.0"
-        result = detect_sym_filename(bytes(mock_rom))
+        result = identify_rom(bytes(mock_rom))
         assert result is None
 
-    def test_detect_sym_filename_unknown_game(self):
-        from hypercutter.classes import detect_sym_filename
+    def test_identify_rom_unknown_game_code(self):
+        from hypercutter.classes import identify_rom
 
         mock_rom = bytearray(256)
-        mock_rom[0xAC:0xB0] = b"BPEE"
-        result = detect_sym_filename(bytes(mock_rom))
+        mock_rom[0xAC:0xB0] = b"XXXX"
+        result = identify_rom(bytes(mock_rom))
         assert result is None
 
-    def test_detect_sym_filename_too_small(self):
-        from hypercutter.classes import detect_sym_filename
+    def test_identify_rom_too_small(self):
+        from hypercutter.classes import identify_rom
 
-        result = detect_sym_filename(b"too small")
+        result = identify_rom(b"too small")
         assert result is None
 
     def test_compute_rom_sha256(self):

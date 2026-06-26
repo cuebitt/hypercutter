@@ -8,7 +8,7 @@ from hypercutter.extractors import (
     extract_sprite_palette,
     extract_sprite_sheet,
 )
-from hypercutter.sprite_renderer import PokemonSpriteRenderer, get_species_name, init_species_names
+from hypercutter.sprite_renderer import PokemonSpriteRenderer, get_species_name
 
 
 class TestSpriteSheet:
@@ -97,7 +97,7 @@ class TestSpriteRenderer:
 
 class TestGetSpeciesName:
     def test_known_species(self):
-        init_species_names(["missing", "bulbasaur", "ivysaur", "venusaur", "charmander",
+        species_names = ["missing", "bulbasaur", "ivysaur", "venusaur", "charmander",
                            "charmeleon", "charizard", "squirtle", "wartortle", "blastoise",
                            "caterpie", "metapod", "butterfree", "weedle", "kakuna", "beedrill",
                            "pidgey", "pidgeotto", "pidgeot", "rattata", "raticate", "spearow",
@@ -168,13 +168,12 @@ class TestGetSpeciesName:
                            "kirlia", "gardevoir", "bagon", "shelgon", "salamence", "beldum",
                            "metang", "metagross", "regirock", "regice", "registeel", "latias",
                            "latios", "kyogre", "groudon", "rayquaza", "jirachi", "deoxys",
-                           "chimecho", "egg"])
-        assert get_species_name(0) == "missing"
-        assert get_species_name(1) == "bulbasaur"
-        assert get_species_name(25) == "pikachu"
-        assert get_species_name(410) == "deoxys"
+                            "chimecho", "egg"]
+        assert get_species_name(0, species_names) == "missing"
+        assert get_species_name(1, species_names) == "bulbasaur"
+        assert get_species_name(25, species_names) == "pikachu"
+        assert get_species_name(410, species_names) == "deoxys"
 
     def test_unknown_species(self):
-        init_species_names([])
         assert get_species_name(0) == "unknown_000"
         assert get_species_name(999) == "unknown_999"

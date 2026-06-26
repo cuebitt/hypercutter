@@ -8,34 +8,44 @@ import sys
 import tempfile
 import urllib.request
 from pathlib import Path
-from typing import Any
 
 from PIL import Image
 
 try:
     import orjson
 
-    def _dumps(obj: Any) -> bytes:
+    def _dumps(obj: object) -> bytes:
         return bytes(orjson.dumps(obj))
 
 except ImportError:
 
-    def _dumps(obj: Any) -> bytes:
+    def _dumps(obj: object) -> bytes:
         return json.dumps(obj).encode("utf-8")
 
 
 from tqdm import tqdm
 
-from hypercutter import extract, load_symbols, extract_all_pokemon_sprites, extract_pokemon_form_sprites, load_species_names, init_species_names
+from hypercutter import (
+    extract,
+    load_symbols,
+    extract_all_pokemon_sprites,
+    extract_pokemon_form_sprites,
+    load_species_names,
+)
 from hypercutter.classes import (
     GAME_CODE_OFFSET,
     SUPPORTED_GAMES,
     get_game_by_name,
     identify_rom,
 )
-from hypercutter.constants import DEFAULT_ROM_BASE_ADDRESS, PRIMARY_TILESET_TILE_COUNT
+from hypercutter.constants import (
+    DEFAULT_ROM_BASE_ADDRESS,
+    PRIMARY_TILESET_TILE_COUNT,
+    SPRITE_SYMBOL_NAMES,
+)
 from hypercutter.renderer import TilesetRenderer
 from hypercutter.sprite_renderer import PokemonSpriteRenderer, get_species_name
+from hypercutter.types import MetatileEntry, SpriteEntry, FormSpriteEntry
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -56,17 +66,14 @@ def strip_symbols(sym_data: str, keep_sprites: bool = False) -> str:
     needed_prefixes = ("gTileset_", "gMetatiles_")
 
     if keep_sprites:
-        # Add sprite-related symbols
-        sprite_exact = {
-            "gMonFrontPicTable",
-            "gMonBackPicTable",
-            "gMonPaletteTable",
-            "gMonShinyPaletteTable",
-            "gMonFrontPicCoords",
-            "gMonBackPicCoords",
-            "gSpeciesNames",
-        }
-        sprite_prefixes = ("gMonFrontPic_", "gMonBackPic_", "gMonPalette_", "gMonShinyPalette_")
+        # Add sprite-related symbols from the canonical list
+        sprite_exact = set(SPRITE_SYMBOL_NAMES) | {"gSpeciesNames"}
+        sprite_prefixes = (
+            "gMonFrontPic_",
+            "gMonBackPic_",
+            "gMonPalette_",
+            "gMonShinyPalette_",
+        )
         needed_exact = needed_exact | sprite_exact
         needed_prefixes = needed_prefixes + sprite_prefixes
 
@@ -141,7 +148,7 @@ def save_output(data: dict, output_path: Path) -> None:
 
 
 def export_images(
-    metatiles: dict[str, dict[str, Any]],
+    metatiles: dict[str, MetatileEntry],
     output_dir: Path,
     rom_data: bytes | None = None,
     rom_base_address: int = DEFAULT_ROM_BASE_ADDRESS,
@@ -169,7 +176,7 @@ def export_images(
 
 
 def _render_form_sprite(
-    sprite_data: dict[str, Any],
+    sprite_data: FormSpriteEntry,
     is_front: bool,
     is_shiny: bool = False,
 ) -> Image.Image | None:
@@ -189,23 +196,28 @@ def _render_form_sprite(
 
 
 def _render_base_sprite(
-    sprite_data: dict[str, Any],
+    sprite_data: SpriteEntry,
     is_front: bool,
     is_shiny: bool = False,
 ) -> Image.Image | None:
     """Render a base species sprite."""
     if is_front:
-        renderer = PokemonSpriteRenderer.from_sprite_data(sprite_data, is_shiny=is_shiny)
+        renderer = PokemonSpriteRenderer.from_sprite_data(
+            sprite_data, is_shiny=is_shiny
+        )
     else:
-        renderer = PokemonSpriteRenderer.from_back_sprite_data(sprite_data, is_shiny=is_shiny)
+        renderer = PokemonSpriteRenderer.from_back_sprite_data(
+            sprite_data, is_shiny=is_shiny
+        )
     if renderer.tile_data:
         return renderer.render()
     return None
 
 
 def export_pokemon_sprites(
-    sprites: dict[int | str, dict[str, Any]],
+    sprites: dict[int | str, SpriteEntry | FormSpriteEntry],
     output_dir: Path,
+    species_names: list[str],
     as_spritesheet: bool = False,
     columns: int = 8,
 ) -> None:
@@ -232,7 +244,9 @@ def export_pokemon_sprites(
             unit="pokemon",
         ):
             sprite_data = sprites[key]
-            species_name = get_species_name(key) if isinstance(key, int) else key
+            species_name = (
+                get_species_name(key, species_names) if isinstance(key, int) else key
+            )
 
             try:
                 if isinstance(key, int):
@@ -251,7 +265,9 @@ def export_pokemon_sprites(
                 logging.error("Failed to render %s: %s", key, e)
 
         if front_sprites:
-            front_sheet = PokemonSpriteRenderer.render_spritesheet(front_sprites, columns)
+            front_sheet = PokemonSpriteRenderer.render_spritesheet(
+                front_sprites, columns
+            )
             front_sheet.save(output_dir / "front_spritesheet.png")
         if back_sprites:
             back_sheet = PokemonSpriteRenderer.render_spritesheet(back_sprites, columns)
@@ -265,13 +281,13 @@ def export_pokemon_sprites(
         for key in tqdm(
             sorted(base_sprites.keys()), desc="Rendering base sprites", unit="pokemon"
         ):
-            species_name = get_species_name(key)
+            species_name = get_species_name(key, species_names)
             # Skip entries outside the known species range (padding in the sprite table)
             if species_name.startswith("unknown_"):
                 continue
             sprite_data = base_sprites[key]
-            # Egg (species 412) gets a special human-readable name
-            if key == 412 and not species_name.isalpha():
+            # Egg gets a special human-readable name if the ROM lacks it
+            if species_name in ("", "?"):
                 species_name = "egg"
             species_dir = output_dir / f"{key:03d}_{species_name}"
             species_dir.mkdir(parents=True, exist_ok=True)
@@ -296,12 +312,12 @@ def export_pokemon_sprites(
             # Find the base species ID
             base_id = None
             for sid in base_sprites:
-                if get_species_name(sid) == species.lower():
+                if get_species_name(sid, species_names) == species.lower():
                     base_id = sid
                     break
 
             if base_id is not None:
-                base_name = get_species_name(base_id)
+                base_name = get_species_name(base_id, species_names)
                 form_dir = output_dir / f"{base_id:03d}_{base_name}" / f"form_{form}"
             else:
                 form_dir = output_dir / form_key
@@ -320,7 +336,7 @@ def export_pokemon_sprites(
 
 def run(
     sym_path: str,
-    rom_path: str,
+    rom_data: bytes,
     output_path: str,
     export_dir: str | None = None,
     clear_output: bool = False,
@@ -329,13 +345,13 @@ def run(
     dump_sprites: bool = False,
     as_spritesheet: bool = False,
     spritesheet_columns: int = 8,
-) -> dict[str, dict[str, Any]]:
+) -> dict[str, MetatileEntry]:
     """
     Extract metatiles and optionally sprites from a GBA Pokemon ROM.
 
     Args:
         sym_path: Path to the .sym file.
-        rom_path: Path to the .gba ROM file.
+        rom_data: Raw ROM bytes (already read from file).
         output_path: Path for the output JSON file.
         export_dir: Directory to export rendered PNGs.
         clear_output: Whether to clear output directories before writing.
@@ -348,9 +364,6 @@ def run(
     Returns:
         The extracted metatiles dictionary.
     """
-    with open(rom_path, "rb") as f:
-        rom_data = f.read()
-
     if clear_output:
         clear_directory(Path(output_path).parent)
         if export_dir:
@@ -373,21 +386,27 @@ def run(
 
     # Dump Pokemon sprites if requested
     if dump_sprites:
-        sprites_dir = Path(export_dir).parent / "pokemon" / "sprites" if export_dir else Path("out/pokemon/sprites")
+        sprites_dir = (
+            Path(export_dir).parent / "pokemon" / "sprites"
+            if export_dir
+            else Path("out/pokemon/sprites")
+        )
         try:
             symbols = load_symbols(sym_path)
-            # Initialize species names from ROM data
+            # Load species names from ROM data
             species_names = load_species_names(rom_data, symbols)
-            init_species_names(species_names)
             base_sprites = extract_all_pokemon_sprites(
-                rom_data, rom_base_address, symbols
+                rom_data,
+                rom_base_address,
+                symbols,
+                species_names=species_names,
             )
             # Extract alternate form sprites
             form_sprites = extract_pokemon_form_sprites(
                 rom_data, rom_base_address, symbols
             )
             # Merge into a single dictionary
-            sprites: dict[int | str, dict[str, Any]] = {}
+            sprites: dict[int | str, SpriteEntry | FormSpriteEntry] = {}
             for k, v in base_sprites.items():
                 sprites[k] = v
             for k, v in form_sprites.items():
@@ -395,6 +414,7 @@ def run(
             export_pokemon_sprites(
                 sprites,
                 sprites_dir,
+                species_names,
                 as_spritesheet=as_spritesheet,
                 columns=spritesheet_columns,
             )
@@ -512,8 +532,9 @@ def main() -> None:
         logging.info("Downloading symbol file from %s", sym_url)
         cache_dir = Path(tempfile.gettempdir()) / "hypercutter"
         cache_dir.mkdir(exist_ok=True)
-        cached_sym_path = cache_dir / sym_path
-        stripped_sym_path = cache_dir / f"{sym_path}.stripped"
+        sym_filename = Path(sym_path).name
+        cached_sym_path = cache_dir / sym_filename
+        stripped_sym_path = cache_dir / f"{sym_filename}.stripped"
         if stripped_sym_path.exists():
             logging.info("Using cached symbol file: %s", stripped_sym_path)
             sym_path = str(stripped_sym_path)
@@ -537,7 +558,6 @@ def main() -> None:
 
     # Default paths if not specified
     output_path = args.output if args.output else "out/metatiles.json"
-    export_dir = args.export if args.export else "out/tilesets"
     clear_output = args.yes
 
     # Get primary tileset tile count from identified game
@@ -562,11 +582,12 @@ def main() -> None:
             return
 
     try:
+        should_export = args.export is not None or args.output is None
         run(
             sym_path,
-            args.rom,
+            rom_data,
             output_path,
-            export_dir if args.export is not None or args.output is None else None,
+            args.export if should_export else None,
             clear_output=clear_output,
             primary_tile_count=primary_tile_count,
             exclude_tilesets=exclude_tilesets,

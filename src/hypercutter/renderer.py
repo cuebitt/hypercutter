@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 
 from PIL import Image
 
@@ -11,8 +10,10 @@ from .constants import (
     METATILE_SIZE,
     METATILE_TILE_COUNT,
 )
+from .types import MetatileEntry, TilesetData
+from .graphics import render_tile_to_image
 from .lzss3 import decompress_bytes
-from .utils import decode_bgr555, decode_tile_4bpp, parse_metatile_entry
+from .utils import parse_metatile_entry
 
 __all__ = ["TilesetRenderer"]
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 class TilesetRenderer:
     def __init__(
         self,
-        tileset_data: dict[str, Any],
+        tileset_data: MetatileEntry,
         rom_data: bytes | None = None,
         rom_base_address: int = DEFAULT_ROM_BASE_ADDRESS,
         primary_tile_count: int = PRIMARY_TILESET_TILE_COUNT,
@@ -43,7 +44,7 @@ class TilesetRenderer:
         self.primary_tile_count = primary_tile_count
         self._ensure_raw_data()
 
-    def _extract_raw_from_rom(self, tileset: dict[str, Any]) -> None:
+    def _extract_raw_from_rom(self, tileset: TilesetData) -> None:
         """
         Extract raw data from ROM using pointers if not already present.
 
@@ -78,7 +79,7 @@ class TilesetRenderer:
 
     def _extract_field_from_rom(
         self,
-        tileset: dict[str, Any],
+        tileset: TilesetData,
         ptr_key: str,
         raw_key: str,
         length: int,
@@ -106,7 +107,7 @@ class TilesetRenderer:
         offset = ptr - self.rom_base_address
 
         # Validate offset is within ROM bounds
-        if offset <= 0 or offset + length > len(self.rom):
+        if offset < 0 or offset + length > len(self.rom):
             logger.warning(
                 "Invalid %s offset: 0x%x (ROM size: 0x%x)",
                 raw_key,
@@ -117,7 +118,7 @@ class TilesetRenderer:
 
         tileset[raw_key] = bytes(self.rom[offset : offset + length])
 
-    def _extract_tiles_from_rom(self, tileset: dict[str, Any]) -> None:
+    def _extract_tiles_from_rom(self, tileset: TilesetData) -> None:
         """
         Extract tile graphics from ROM, handling LZ77 compression.
 
@@ -135,7 +136,7 @@ class TilesetRenderer:
             return
 
         offset = ptr - self.rom_base_address
-        if offset <= 0 or offset + length > len(self.rom):
+        if offset < 0 or offset + length > len(self.rom):
             logger.warning(
                 "Invalid tiles offset: 0x%x (ROM size: 0x%x)",
                 offset,
@@ -160,28 +161,15 @@ class TilesetRenderer:
         for tileset in (self.primary, self.secondary):
             if tileset:
                 for field in ("palettes_raw", "tiles_raw", "metatiles_raw"):
-                    if not tileset.get(field):
+                    if tileset.get(field) is None:
                         self._extract_raw_from_rom(tileset)
 
-    def _get_palettes(
-        self, tileset: dict[str, Any]
-    ) -> list[list[tuple[int, int, int]]]:
+    def _get_palettes(self, tileset: TilesetData) -> list[list[tuple[int, int, int]]]:
         """Decode all 16 palettes for a tileset."""
+        from .graphics import decode_palettes
+
         raw_palettes = tileset.get("palettes_raw", b"")
-        palettes = []
-        for i in range(16):
-            palette = []
-            for j in range(16):
-                offset = (i * 16 + j) * 2
-                if offset + 2 <= len(raw_palettes):
-                    color_val = int.from_bytes(
-                        raw_palettes[offset : offset + 2], "little"
-                    )
-                    palette.append(decode_bgr555(color_val))
-                else:
-                    palette.append((0, 0, 0))
-            palettes.append(palette)
-        return palettes
+        return decode_palettes(raw_palettes)
 
     def _render_tile(
         self,
@@ -192,31 +180,7 @@ class TilesetRenderer:
         is_transparent: bool = False,
     ) -> Image.Image:
         """Render a single 8x8 tile."""
-        indices = decode_tile_4bpp(tile_data)
-        pixels = bytearray(64 * 4)  # 8x8 RGBA
-
-        for i, idx in enumerate(indices):
-            offset = i * 4
-            if is_transparent and idx == 0:
-                pixels[offset] = 0
-                pixels[offset + 1] = 0
-                pixels[offset + 2] = 0
-                pixels[offset + 3] = 0
-            else:
-                r, g, b = palette[idx]
-                pixels[offset] = r
-                pixels[offset + 1] = g
-                pixels[offset + 2] = b
-                pixels[offset + 3] = 255
-
-        img = Image.frombytes("RGBA", (8, 8), bytes(pixels))
-
-        if h_flip:
-            img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-        if v_flip:
-            img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-
-        return img
+        return render_tile_to_image(tile_data, palette, h_flip, v_flip, is_transparent)
 
     def render(self) -> Image.Image:
         """
@@ -298,9 +262,15 @@ class TilesetRenderer:
                         tile_bytes_offset : tile_bytes_offset + TILE_SIZE
                     ]
 
+                if not combined_palettes:
+                    # No palette data available, render as opaque black
+                    palette = [(0, 0, 0)]
+                else:
+                    palette = combined_palettes[pal_idx % len(combined_palettes)]
+
                 tile_img = self._render_tile(
                     tile_bytes,
-                    combined_palettes[pal_idx % len(combined_palettes)],
+                    palette,
                     h_flip,
                     v_flip,
                     is_transparent=True,
