@@ -1,6 +1,6 @@
 # Web extraction logic for hypercutter.
 
-import json
+import orjson as json
 import zipfile
 
 from hypercutter import extract

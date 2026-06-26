@@ -1,7 +1,6 @@
 """Command-line interface for extracting metatiles from GBA Pokemon ROMs."""
 
 import argparse
-import json
 import logging
 import shutil
 import sys
@@ -9,6 +8,7 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
+import orjson as json
 from PIL import Image
 
 try:
