@@ -12,7 +12,7 @@ from typing import Any
 
 from tqdm import tqdm
 
-from hypercutter import extract
+from hypercutter import extract, load_symbols
 from hypercutter.classes import (
     GAME_CODE_OFFSET,
     SUPPORTED_GAMES,
@@ -20,12 +20,34 @@ from hypercutter.classes import (
     identify_rom,
 )
 from hypercutter.renderer import TilesetRenderer
+from hypercutter.extractors import Offset
 
 
 def setup_logging(verbose: bool = False) -> None:
     """Configure logging based on verbosity level."""
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
+
+
+def strip_symbols(sym_data: str) -> str:
+    """Strip unused symbols, keeping only those needed for extraction."""
+    needed_exact = {"Start", "gMapLayouts"}
+    needed_prefixes = ("gTileset_", "gMetatiles_")
+
+    symbols = load_symbols(sym_data)
+    filtered = [
+        s for s in symbols
+        if s.name in needed_exact or s.name.startswith(needed_prefixes)
+    ]
+    filtered.sort(key=lambda s: s.address)
+
+    lines = []
+    for s in filtered:
+        addr = f"{s.address:08x}"
+        length = f"{s.length:08x}"
+        lines.append(f"{addr} {s.type.value} {length} {s.name}")
+
+    return "\n".join(lines)
 
 
 def prompt_clear_directory(path: Path) -> bool:
@@ -253,13 +275,27 @@ def main() -> None:
         cache_dir = Path(tempfile.gettempdir()) / "hypercutter"
         cache_dir.mkdir(exist_ok=True)
         cached_sym_path = cache_dir / sym_path
-        if cached_sym_path.exists():
-            logging.info("Using cached symbol file: %s", cached_sym_path)
-            sym_path = str(cached_sym_path)
+        stripped_sym_path = cache_dir / f"{sym_path}.stripped"
+        if stripped_sym_path.exists():
+            logging.info("Using cached symbol file: %s", stripped_sym_path)
+            sym_path = str(stripped_sym_path)
+        elif cached_sym_path.exists():
+            with open(cached_sym_path, "r", encoding="utf-8") as f:
+                sym_data = f.read()
+            stripped = strip_symbols(sym_data)
+            with open(stripped_sym_path, "w", encoding="utf-8") as f:
+                f.write(stripped)
+            logging.info("Stripped and cached symbols to %s", stripped_sym_path)
+            sym_path = str(stripped_sym_path)
         else:
             urllib.request.urlretrieve(sym_url, cached_sym_path)
-            logging.info("Downloaded to %s", cached_sym_path)
-            sym_path = str(cached_sym_path)
+            with open(cached_sym_path, "r", encoding="utf-8") as f:
+                sym_data = f.read()
+            stripped = strip_symbols(sym_data)
+            with open(stripped_sym_path, "w", encoding="utf-8") as f:
+                f.write(stripped)
+            logging.info("Downloaded and stripped symbols to %s", stripped_sym_path)
+            sym_path = str(stripped_sym_path)
 
     # Default paths if not specified
     output_path = args.output if args.output else "out/metatiles.json"
