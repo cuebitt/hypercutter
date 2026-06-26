@@ -5,6 +5,47 @@ import { getSymFromDB, saveSymToDB } from "./database";
 import { downloadFile, sha256 } from "./utils";
 import extractorCode from "./assets/extractor.py?raw";
 
+interface ParsedSymbol {
+  address: number;
+  type: string;
+  length: number;
+  name: string;
+}
+
+function stripSymbols(symData: string): string {
+  const lines = symData.split("\n").filter((line) => line.trim());
+  const neededSymbols = new Set([
+    "Start",
+    "gMapLayouts",
+  ]);
+  const neededPrefixes = ["gTileset_", "gMetatiles_"];
+  const parsed: ParsedSymbol[] = [];
+
+  for (const line of lines) {
+    const parts = line.trim().split(" ");
+    if (parts.length < 4 || !parts[0] || !parts[3]) continue;
+
+    const name = parts[3];
+    if (neededSymbols.has(name) || neededPrefixes.some((p) => name.startsWith(p))) {
+      parsed.push({
+        address: parseInt(parts[0], 16),
+        type: parts[1],
+        length: parseInt(parts[2], 16),
+        name,
+      });
+    }
+  }
+
+  parsed.sort((a, b) => a.address - b.address);
+
+  const result = parsed.map((s) => {
+    const length = s.length === 0 ? 0 : s.length;
+    return `${s.address.toString(16).padStart(8, "0")} ${s.type} ${length.toString(16).padStart(8, "0")} ${s.name}`;
+  });
+
+  return result.join("\n");
+}
+
 const isDev = import.meta.env.DEV;
 
 let pyodide: PyodideInterface | null = null;
@@ -36,8 +77,9 @@ async function loadSymFile(romBuffer: ArrayBuffer): Promise<SymResult> {
   const response = await fetch(url);
   if (!response.ok) throw new Error("Failed to download");
   const text = await response.text();
-  await saveSymToDB(cacheKey, text);
-  if (pyodide) pyodide.FS.writeFile(filename, text);
+  const stripped = stripSymbols(text);
+  await saveSymToDB(cacheKey, stripped);
+  if (pyodide) pyodide.FS.writeFile(filename, stripped);
   return { filename, symFilename: romInfo.sym, gameName: romInfo.game };
 }
 
