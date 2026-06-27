@@ -13,15 +13,15 @@
 
 ### Roadmap
 
-- [ ] Support GBA ROMs
+- [x] Support GBA ROMs
   - [x] Fire Red/Leaf Green
-  - [ ] Ruby/Sapphire
+  - [x] Ruby/Sapphire
   - [x] Emerald
-- [ ] Dump sprites
+- [x] Dump sprites
   - [ ] Characters
-  - [ ] Pokemon
+  - [x] Pokemon
   - [ ] Other (fonts, etc)
-- [ ] Dump music (maybe)
+- [x] Dump Tilesets
 
 ## Requirements
 
