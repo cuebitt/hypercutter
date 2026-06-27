@@ -1,2 +1,0 @@
-# Local testing only - Pyodide loads from CDN
-# pyodide

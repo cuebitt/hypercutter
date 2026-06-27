@@ -25,11 +25,22 @@ THE SOFTWARE.
 # removed decompress_file
 # removed decompress_overlay
 # removed main
+# use shared DecompressionError from exceptions module
+# catch StopIteration for truncated input
+# restore size-mismatch check in LZSS10 path
+# remove dead _overlay parameter
 
 import logging
+from collections.abc import Callable, Iterator
 from struct import unpack
+from typing import Final
+
+from .exceptions import DecompressionError
 
 logger = logging.getLogger(__name__)
+
+LZSS10_HEADER: Final[int] = 0x10
+LZSS11_HEADER: Final[int] = 0x11
 
 __all__ = (
     "decompress_bytes",
@@ -37,11 +48,7 @@ __all__ = (
 )
 
 
-class DecompressionError(ValueError):
-    pass
-
-
-def bits(byte):
+def bits(byte: int) -> tuple[int, int, int, int, int, int, int, int]:
     return (
         (byte >> 7) & 1,
         (byte >> 6) & 1,
@@ -54,31 +61,44 @@ def bits(byte):
     )
 
 
-def decompress_raw_lzss10(indata, decompressed_size, _overlay=False):
-    """Decompress LZSS-compressed bytes. Returns a bytearray."""
-    data = bytearray()
+def _make_decompress_helpers(
+    data: bytearray, it: Iterator[int]
+) -> tuple[
+    Callable[[int], None], Callable[[], int], Callable[[], int], Callable[[], None]
+]:
+    """Create read/write helpers backed by a shared iterator and bytearray."""
 
-    it = iter(indata)
-
-    if _overlay:
-        disp_extra = 3
-    else:
-        disp_extra = 1
-
-    def writebyte(b):
+    def writebyte(b: int) -> None:
         data.append(b)
 
-    def readbyte():
-        return next(it)
+    def readbyte() -> int:
+        try:
+            return next(it)
+        except StopIteration:
+            raise DecompressionError("truncated LZSS data: expected more bytes")
 
-    def readshort():
-        # big-endian
-        a = next(it)
-        b = next(it)
+    def readshort() -> int:
+        try:
+            a = next(it)
+            b = next(it)
+        except StopIteration:
+            raise DecompressionError("truncated LZSS data: expected more bytes")
         return (a << 8) | b
 
-    def copybyte():
-        data.append(next(it))
+    def copybyte() -> None:
+        try:
+            data.append(next(it))
+        except StopIteration:
+            raise DecompressionError("truncated LZSS data: expected more bytes")
+
+    return writebyte, readbyte, readshort, copybyte
+
+
+def decompress_raw_lzss10(indata: bytes, decompressed_size: int) -> bytearray:
+    """Decompress LZSS-compressed bytes. Returns a bytearray."""
+    data = bytearray()
+    it: Iterator[int] = iter(indata)
+    writebyte, readbyte, readshort, copybyte = _make_decompress_helpers(data, it)
 
     while len(data) < decompressed_size:
         b = readbyte()
@@ -89,41 +109,27 @@ def decompress_raw_lzss10(indata, decompressed_size, _overlay=False):
             elif flag == 1:
                 sh = readshort()
                 count = (sh >> 0xC) + 3
-                disp = (sh & 0xFFF) + disp_extra
+                disp = (sh & 0xFFF) + 1
 
                 for _ in range(count):
                     writebyte(data[-disp])
             else:
-                raise ValueError(flag)
+                raise DecompressionError(f"invalid LZSS flag: {flag}")
 
             if decompressed_size <= len(data):
                 break
 
     if len(data) != decompressed_size:
-        logger.warning(
-            "Decompressed size mismatch: expected %d, got %d",
-            decompressed_size,
-            len(data),
-        )
         raise DecompressionError("decompressed size does not match the expected size")
 
     return data
 
 
-def decompress_raw_lzss11(indata, decompressed_size):
+def decompress_raw_lzss11(indata: bytes, decompressed_size: int) -> bytearray:
     """Decompress LZSS-compressed bytes. Returns a bytearray."""
     data = bytearray()
-
-    it = iter(indata)
-
-    def writebyte(b):
-        data.append(b)
-
-    def readbyte():
-        return next(it)
-
-    def copybyte():
-        data.append(next(it))
+    it: Iterator[int] = iter(indata)
+    writebyte, readbyte, readshort, copybyte = _make_decompress_helpers(data, it)
 
     while len(data) < decompressed_size:
         b = readbyte()
@@ -160,9 +166,12 @@ def decompress_raw_lzss11(indata, decompressed_size):
                     for _ in range(count):
                         writebyte(data[-disp])
                 except IndexError:
-                    raise Exception(count, disp, len(data), sum(1 for x in it))
+                    raise DecompressionError(
+                        f"invalid LZSS11 backreference: count={count} disp={disp} "
+                        f"len_data={len(data)}"
+                    )
             else:
-                raise ValueError(flag)
+                raise DecompressionError(f"invalid LZSS flag: {flag}")
 
             if decompressed_size <= len(data):
                 break
@@ -173,12 +182,12 @@ def decompress_raw_lzss11(indata, decompressed_size):
     return data
 
 
-def decompress_bytes(data):
+def decompress_bytes(data: bytes) -> bytearray:
     """Decompress LZSS-compressed bytes. Returns a bytearray."""
     header = data[:4]
-    if header[0] == 0x10:
-        decompress_raw = decompress_raw_lzss10
-    elif header[0] == 0x11:
+    if header[0] == LZSS10_HEADER:
+        decompress_raw: Callable[[bytes, int], bytearray] = decompress_raw_lzss10
+    elif header[0] == LZSS11_HEADER:
         decompress_raw = decompress_raw_lzss11
     else:
         logger.warning("Invalid LZSS compression header: %02x", header[0])
@@ -186,5 +195,5 @@ def decompress_bytes(data):
 
     (decompressed_size,) = unpack("<L", header[1:] + b"\x00")
 
-    data = data[4:]
-    return decompress_raw(data, decompressed_size)
+    compressed_data = data[4:]
+    return decompress_raw(compressed_data, decompressed_size)

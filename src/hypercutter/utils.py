@@ -2,6 +2,15 @@ from typing import Any, TypeVar
 
 T = TypeVar("T")
 
+__all__ = [
+    "find_by_field",
+    "build_field_index",
+    "find_primary_from_secondary",
+    "decode_bgr555",
+    "decode_tile_4bpp",
+    "parse_metatile_entry",
+]
+
 
 def find_by_field(items: list[T], field: str, value: Any) -> T | None:
     """
@@ -18,6 +27,20 @@ def find_by_field(items: list[T], field: str, value: Any) -> T | None:
     return next((item for item in items if getattr(item, field) == value), None)
 
 
+def build_field_index(items: list[T], field: str) -> dict[Any, T]:
+    """
+    Build a dict mapping attribute values to their items for O(1) lookups.
+
+    Args:
+        items: List of objects to index.
+        field: Name of the attribute to use as key.
+
+    Returns:
+        Dictionary mapping attribute values to items.
+    """
+    return {getattr(item, field): item for item in items}
+
+
 def find_primary_from_secondary(
     pairs: dict[str, list[str]], secondary: str
 ) -> str | None:
@@ -25,7 +48,7 @@ def find_primary_from_secondary(
     Find the primary tileset name for a given secondary tileset.
 
     Args:
-        pairs: Dictionary mapping primary tileset names to lists of secondary tileset names.
+        pairs: Mapping of primary tileset names to lists of secondary tileset names.
         secondary: The secondary tileset name to look up.
 
     Returns:

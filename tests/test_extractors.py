@@ -1,4 +1,8 @@
 import struct
+import tempfile
+
+import pytest
+
 from hypercutter.classes import MapLayout, Offset, OffsetType, Tileset
 from hypercutter.extractors import (
     build_tileset_name_pairs,
@@ -13,8 +17,8 @@ from hypercutter.utils import find_by_field, find_primary_from_secondary
 class TestFindByField:
     def test_finds_matching_item(self):
         items = [
-            Offset(address=0x1000, type=OffsetType.GLOBAL, length=0x10, name="Start"),
-            Offset(address=0x2000, type=OffsetType.LOCAL, length=0x20, name="Test"),
+            Offset(address=0x1000, scope=OffsetType.GLOBAL, length=0x10, name="Start"),
+            Offset(address=0x2000, scope=OffsetType.LOCAL, length=0x20, name="Test"),
         ]
         result = find_by_field(items, "name", "Start")
         assert result is not None
@@ -22,7 +26,7 @@ class TestFindByField:
 
     def test_returns_none_when_not_found(self):
         items = [
-            Offset(address=0x1000, type=OffsetType.GLOBAL, length=0x10, name="Start")
+            Offset(address=0x1000, scope=OffsetType.GLOBAL, length=0x10, name="Start")
         ]
         result = find_by_field(items, "name", "Missing")
         assert result is None
@@ -56,11 +60,8 @@ class TestExtractMapLayout:
 
     def test_raises_on_invalid_offset(self):
         data = bytes(0x10)
-        try:
+        with pytest.raises(ValueError, match="out of range"):
             extract_map_layout(data, 0x100)
-            assert False, "Should have raised ValueError"
-        except ValueError as e:
-            assert "out of range" in str(e)
 
 
 class TestExtractTileset:
@@ -74,11 +75,8 @@ class TestExtractTileset:
 
     def test_raises_on_invalid_offset(self):
         data = bytes(0x10)
-        try:
+        with pytest.raises(ValueError, match="out of range"):
             extract_tileset(data, 0x100)
-            assert False, "Should have raised ValueError"
-        except ValueError as e:
-            assert "out of range" in str(e)
 
 
 class TestExtractMapTable:
@@ -94,13 +92,13 @@ class TestExtractTilesetInfo:
         symbols = [
             Offset(
                 address=0,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0x100,
                 name="gTilesetTiles_InsideBuilding",
             ),
             Offset(
                 address=0,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0x200,
                 name="gTilesetPalettes_InsideBuilding",
             ),
@@ -113,13 +111,13 @@ class TestExtractTilesetInfo:
         symbols = [
             Offset(
                 address=0,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0x300,
                 name="gTilesetTiles_Building",
             ),
             Offset(
                 address=0,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0x400,
                 name="gTilesetPalettes_Building",
             ),
@@ -158,16 +156,128 @@ class TestBuildTilesetNamePairs:
         symbols = [
             Offset(
                 address=0x1000,
-                type=OffsetType.GLOBAL,
+                scope=OffsetType.GLOBAL,
                 length=0,
                 name="gTileset_Overworld",
             ),
             Offset(
-                address=0x2000, type=OffsetType.GLOBAL, length=0, name="gTileset_Grass"
+                address=0x2000, scope=OffsetType.GLOBAL, length=0, name="gTileset_Grass"
             ),
             Offset(
-                address=0x3000, type=OffsetType.GLOBAL, length=0, name="gTileset_Water"
+                address=0x3000, scope=OffsetType.GLOBAL, length=0, name="gTileset_Water"
             ),
         ]
         result = build_tileset_name_pairs(layouts, symbols)
         assert set(result["Overworld"]) == {"Grass", "Water"}
+
+
+class TestRomIdentification:
+    def test_identify_rom_unknown_sha256(self):
+        from hypercutter.classes import identify_rom
+
+        mock_rom = bytearray(256)
+        mock_rom[0xAC:0xB0] = b"BPRE"
+        mock_rom[0xB0:0xB4] = b"1.0"
+        result = identify_rom(bytes(mock_rom))
+        assert result is None
+
+    def test_identify_rom_unknown_game_code(self):
+        from hypercutter.classes import identify_rom
+
+        mock_rom = bytearray(256)
+        mock_rom[0xAC:0xB0] = b"XXXX"
+        result = identify_rom(bytes(mock_rom))
+        assert result is None
+
+    def test_identify_rom_too_small(self):
+        from hypercutter.classes import identify_rom
+
+        result = identify_rom(b"too small")
+        assert result is None
+
+    def test_compute_rom_sha256(self):
+        from hypercutter.classes import compute_rom_sha256
+
+        data = b"test data"
+        sha = compute_rom_sha256(data)
+        assert sha == "916f0027a575074ce72a331777c3478d6513f786a591bd892da1a577bf2335f9"
+
+
+class TestParseSymbols:
+    def test_parses_symbols_correctly(self):
+        from hypercutter.extractors import load_symbols
+
+        data = "08000000 g 00000010 TestSym1\n08000020 g 00000020 TestSym2"
+        result = load_symbols(data.encode())
+        assert len(result) == 2
+        assert result[0].name == "TestSym1"
+        assert result[0].address == 0x08000000
+        assert result[0].length == 0x10
+
+    def test_calculates_length_from_next_symbol(self):
+        from hypercutter.extractors import load_symbols
+
+        data = "08000000 g 00000000 TestSym1\n08000020 g 00000010 TestSym2"
+        result = load_symbols(data.encode())
+        assert result[0].length == 0x20
+
+    def test_calculates_length_from_palette_symbol(self):
+        from hypercutter.extractors import load_symbols
+
+        data = (
+            "08000000 g 00000000 gTilesetTiles_Test\n"
+            "08001000 g 00000000 gTilesetPalettes_Test\n"
+            "08002000 g 00000010 TestSym2"
+        )
+        result = load_symbols(data.encode())
+        assert result[0].length == 0x1000
+
+
+class TestExtractRawData:
+    def test_extracts_uncompressed_data(self):
+        from hypercutter.extractors import extract_raw_data
+
+        data = b"test data here"
+        result = extract_raw_data(data, 0x8000000, 4, 0x8000000, False)
+        assert result == b"test"
+
+    def test_extracts_with_zero_length(self):
+        from hypercutter.extractors import extract_raw_data
+
+        data = b"test data"
+        result = extract_raw_data(data, 0x8000000, 0, 0x8000000, False)
+        assert result == b""
+
+    def test_extracts_with_offset_out_of_range(self):
+        from hypercutter.extractors import extract_raw_data
+
+        data = b"test"
+        result = extract_raw_data(data, 0x9000000, 4, 0x8000000, False)
+        assert result == b""
+
+
+@pytest.mark.integration
+class TestExtractIntegration:
+    """Integration tests requiring real ROM files."""
+
+    def test_extract_emerald(self):
+        from pathlib import Path
+
+        from hypercutter.extractors import extract
+
+        rom_path = Path(__file__).resolve().parent.parent / "data" / "pokeemerald.gba"
+        if not rom_path.exists():
+            pytest.skip("pokeemerald.gba not found in data/")
+
+        sym_path = Path(tempfile.gettempdir()) / "hypercutter" / "pokeemerald.sym"
+        if not sym_path.exists():
+            pytest.skip("pokeemerald.sym not cached")
+
+        metatiles, start_offset = extract(str(sym_path), str(rom_path))
+        assert isinstance(metatiles, dict)
+        assert len(metatiles) > 0
+        assert start_offset > 0
+
+        for name, data in metatiles.items():
+            assert "primary" in data
+            assert isinstance(data["primary"], dict)

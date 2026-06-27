@@ -1,11 +1,35 @@
 # Web extraction logic for hypercutter.
 
+import orjson as json
 import zipfile
 
 from hypercutter import extract
+from hypercutter.classes import GAME_CODE_OFFSET, SUPPORTED_GAMES
 from hypercutter.renderer import TilesetRenderer
 from js import updateProgressBar  # type: ignore
 import os
+
+
+def get_primary_tile_count(rom_path: str) -> int:
+    """Get the primary tileset tile count based on game code."""
+    with open(rom_path, "rb") as f:
+        rom_data = f.read()
+    game_code = rom_data[GAME_CODE_OFFSET : GAME_CODE_OFFSET + 4]
+    game = SUPPORTED_GAMES.get(game_code)
+    if game:
+        return game.primary_tileset_tile_count
+    return 0x200  # Default
+
+
+def get_exclude_tilesets(rom_path: str) -> list[str]:
+    """Get tilesets to exclude based on game code."""
+    with open(rom_path, "rb") as f:
+        rom_data = f.read()
+    game_code = rom_data[GAME_CODE_OFFSET : GAME_CODE_OFFSET + 4]
+    # FR/LG have a HoennBuilding tileset that should be excluded
+    if game_code in (b"BPRE", b"BPGE"):
+        return ["HoennBuilding"]
+    return []
 
 
 def extract_metatiles(sym_path: str, rom_path: str) -> dict:
@@ -25,8 +49,13 @@ def extract_metatiles(sym_path: str, rom_path: str) -> dict:
             return [strip_raw(i) for i in obj]
         return obj
 
+    stripped = strip_raw(metatiles)
+
+    with open("/tmp/output/metatiles.json", "w") as f:
+        json.dump(stripped, f)
+
     updateProgressBar(40)
-    return strip_raw(metatiles)
+    return stripped
 
 
 def render_images(metatiles: dict, rom_path: str) -> None:
@@ -38,10 +67,17 @@ def render_images(metatiles: dict, rom_path: str) -> None:
     with open(rom_path, "rb") as f:
         rom_data = f.read()
 
+    primary_tile_count = get_primary_tile_count(rom_path)
+    exclude_tilesets = get_exclude_tilesets(rom_path)
+
     total = len(metatiles)
     for i, (name, data) in enumerate(metatiles.items()):
+        if name in exclude_tilesets:
+            continue
         try:
-            renderer = TilesetRenderer(data, rom_data)
+            renderer = TilesetRenderer(
+                data, rom_data, primary_tile_count=primary_tile_count
+            )
             img = renderer.render()
             img.save(f"/tmp/output/{name}.png")
         except Exception:
@@ -54,7 +90,6 @@ def render_images(metatiles: dict, rom_path: str) -> None:
 
     with zipfile.ZipFile("/tmp/tilesets.zip", "w") as zf:
         for name in __import__("os").listdir("/tmp/output"):
-            if name.endswith(".png"):
-                zf.write(f"/tmp/output/{name}", name)
+            zf.write(f"/tmp/output/{name}", name)
 
     updateProgressBar(100)

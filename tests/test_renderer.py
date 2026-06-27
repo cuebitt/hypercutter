@@ -6,20 +6,20 @@ from hypercutter.renderer import TilesetRenderer
 class TestTilesetRenderer:
     def test_requires_primary_tileset(self):
         with pytest.raises(ValueError, match="Primary tileset data is required"):
-            TilesetRenderer({}).render()
+            TilesetRenderer({}).render()  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type, missing-typed-dict-key]
 
     def test_stores_rom_base_address(self):
         data = {
             "primary": {"tiles_raw": b"", "palettes_raw": b"", "metatiles_raw": b""}
         }
-        renderer = TilesetRenderer(data, rom_base_address=0x9000000)
+        renderer = TilesetRenderer(data, rom_base_address=0x9000000)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert renderer.rom_base_address == 0x9000000
 
     def test_uses_default_rom_base_address(self):
         data = {
             "primary": {"tiles_raw": b"", "palettes_raw": b"", "metatiles_raw": b""}
         }
-        renderer = TilesetRenderer(data)
+        renderer = TilesetRenderer(data)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         assert renderer.rom_base_address == 0x8000000
 
     def test_extracts_from_rom_when_missing(self):
@@ -42,7 +42,8 @@ class TestTilesetRenderer:
             }
         }
 
-        renderer = TilesetRenderer(tileset_data, bytes(rom), rom_base_address=0x8000000)
+        renderer = TilesetRenderer(tileset_data, bytes(rom), rom_base_address=0x8000000)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+        assert renderer.primary is not None
         assert renderer.primary["palettes_raw"] is not None
         assert renderer.primary["tiles_raw"] is not None
 
@@ -50,7 +51,7 @@ class TestTilesetRenderer:
 class TestRenderTile:
     def test_renders_8x8_image(self):
         data = {"primary": {"tiles_raw": b"\x00" * 32, "palettes_raw": b"\x00" * 512}}
-        renderer = TilesetRenderer(data)
+        renderer = TilesetRenderer(data)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
         # Create a simple 4bpp tile (all index 1)
         tile_data = bytes([0x11] * 32)
@@ -62,18 +63,20 @@ class TestRenderTile:
 
     def test_respects_transparency(self):
         data = {"primary": {"tiles_raw": b"", "palettes_raw": b""}}
-        renderer = TilesetRenderer(data)
+        renderer = TilesetRenderer(data)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
         tile_data = bytes([0x00] * 32)  # All index 0
         palette = [(255, 0, 0), (0, 255, 0)]  # Index 0 = red
 
         img = renderer._render_tile(tile_data, palette, is_transparent=True)
         # First pixel should be transparent
-        assert img.getpixel((0, 0))[3] == 0
+        pixel = img.getpixel((0, 0))
+        assert isinstance(pixel, tuple)
+        assert pixel[3] == 0
 
     def test_applies_horizontal_flip(self):
         data = {"primary": {"tiles_raw": b"", "palettes_raw": b""}}
-        renderer = TilesetRenderer(data)
+        renderer = TilesetRenderer(data)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
         # Create a tile with left half different from right half
         tile_data = bytes([0x10] * 16 + [0x01] * 16)
@@ -83,12 +86,13 @@ class TestRenderTile:
         img_flipped = renderer._render_tile(tile_data, palette, h_flip=True)
 
         # First column of normal should match last column of flipped
-        assert img_normal.getpixel((0, 0)) == img_flipped.getpixel((7, 0))
+        assert img_normal.getpixel((0, 0)) == img_flipped.getpixel((7, 0))  # type: ignore[union-attr]
 
     def test_applies_vertical_flip(self):
         data = {"primary": {"tiles_raw": b"", "palettes_raw": b""}}
-        renderer = TilesetRenderer(data)
+        renderer = TilesetRenderer(data)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
+        # Create a tile with left half different from right half
         tile_data = bytes([0x10] * 16 + [0x01] * 16)
         palette = [(0, 0, 0), (255, 255, 255)]
 
@@ -96,4 +100,4 @@ class TestRenderTile:
         img_flipped = renderer._render_tile(tile_data, palette, v_flip=True)
 
         # First row of normal should match last row of flipped
-        assert img_normal.getpixel((0, 0)) == img_flipped.getpixel((0, 7))
+        assert img_normal.getpixel((0, 0)) == img_flipped.getpixel((0, 7))  # type: ignore[union-attr]
