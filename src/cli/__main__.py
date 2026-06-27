@@ -510,9 +510,16 @@ def main() -> None:
     # Identify ROM by hash
     identified = identify_rom(rom_data)
 
-    # Determine what to dump: if neither flag specified, dump both (default)
-    dump_sprites = args.sprites or not args.tilesets
-    dump_tilesets = args.tilesets or not args.sprites
+    # Determine what to dump:
+    # If no flags specified, dump everything (sprites + tilesets).
+    # If any flag is specified, only dump what was explicitly requested.
+    any_specified = args.sprites or args.tilesets
+    if any_specified:
+        dump_sprites = args.sprites
+        dump_tilesets = args.tilesets
+    else:
+        dump_sprites = True
+        dump_tilesets = True
     keep_sprite_symbols = dump_sprites
 
     # Download sym file if not provided
@@ -559,7 +566,10 @@ def main() -> None:
         elif cached_sym_path.exists():
             with open(cached_sym_path, "r", encoding="utf-8") as f:
                 sym_data = f.read()
-            stripped = strip_symbols(sym_data, keep_sprites=keep_sprite_symbols)
+            stripped = strip_symbols(
+                sym_data,
+                keep_sprites=keep_sprite_symbols,
+            )
             with open(stripped_sym_path, "w", encoding="utf-8") as f:
                 f.write(stripped)
             logging.info("Stripped and cached symbols to %s", stripped_sym_path)
@@ -568,7 +578,10 @@ def main() -> None:
             urllib.request.urlretrieve(sym_url, cached_sym_path)
             with open(cached_sym_path, "r", encoding="utf-8") as f:
                 sym_data = f.read()
-            stripped = strip_symbols(sym_data, keep_sprites=keep_sprite_symbols)
+            stripped = strip_symbols(
+                sym_data,
+                keep_sprites=keep_sprite_symbols,
+            )
             with open(stripped_sym_path, "w", encoding="utf-8") as f:
                 f.write(stripped)
             logging.info("Downloaded and stripped symbols to %s", stripped_sym_path)
