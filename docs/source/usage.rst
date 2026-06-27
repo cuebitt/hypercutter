@@ -4,9 +4,9 @@ Usage
 CLI
 ---
 
-Extract metatiles from a Pokemon Emerald ROM::
+Extract metatiles from a GBA Pokemon ROM::
 
-    hypercutter data/pokeemerald.sym data/pokeemerald.gba
+    hypercutter -g emerald data/pokeemerald.gba
 
 This outputs:
 
@@ -15,6 +15,7 @@ This outputs:
 
 Options:
 
+- ``-g, --game GAME`` - Game to use (emerald, firered, leafgreen, ruby, sapphire)
 - ``-o, --output PATH`` - Output JSON path (default: ``out/metatiles.json``)
 - ``-e, --export DIR`` - Directory to export PNGs (default: ``out/tilesets``)
 - ``-v, --verbose`` - Enable verbose output
@@ -41,5 +42,9 @@ ROM Requirements
 
 You need:
 
-1. Pokemon Emerald GBA ROM (``pokeemerald.gba``)
-2. Symbol file (``pokeemerald.sym``) from the `pokeemerald repository <https://github.com/pret/pokeemerald>`_
+1. A GBA Pokemon ROM (``pokeemerald.gba``, ``pokefirered.gba``, ``pokeruby.gba``, etc.)
+2. Symbol file from the appropriate repository:
+
+   - `pokeemerald repository <https://github.com/pret/pokeemerald>`_ - for Emerald
+   - `pokefirered repository <https://github.com/pret/pokefirered>`_ - for FireRed/LeafGreen
+   - `pokeruby repository <https://github.com/pret/pokeruby>`_ - for Ruby/Sapphire
