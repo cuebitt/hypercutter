@@ -335,7 +335,9 @@ impl<'rom> Extractor<'rom> {
         let map_table_sym = self
             .symbols
             .get("gMapLayouts")
-            .ok_or(Error::SymbolNotFound { name: "gMapLayouts" })?;
+            .ok_or(Error::SymbolNotFound {
+                name: "gMapLayouts",
+            })?;
         let map_count = (map_table_sym.length as usize) / 4;
 
         let start = start_sym.address;
@@ -403,14 +405,19 @@ impl<'rom> Extractor<'rom> {
 
         let mut addrs = BTreeMap::new();
         for &name in SPRITE_SYMBOL_NAMES {
-            let sym = self.symbols.get(name).ok_or(Error::SymbolNotFound { name })?;
+            let sym = self
+                .symbols
+                .get(name)
+                .ok_or(Error::SymbolNotFound { name })?;
             addrs.insert(name, (sym.address - start) as usize);
         }
 
         let front_len = self
             .symbols
             .get("gMonFrontPicTable")
-            .ok_or(Error::SymbolNotFound { name: "gMonFrontPicTable" })?
+            .ok_or(Error::SymbolNotFound {
+                name: "gMonFrontPicTable",
+            })?
             .length as usize;
         let count = front_len / 8;
         let species_names = self.species_names()?;
@@ -463,7 +470,7 @@ impl<'rom> Extractor<'rom> {
             .cloned()
             .unwrap_or_default();
 
-        // Species 412 is the Egg slot — its name in the ROM is `?` or may
+        // Species 412 is the Egg slot: its name in the ROM is `?` or may
         // be absent from the name table entirely.
         let name = if id.0 == 412 && (name == "?" || name.is_empty()) {
             "egg".to_owned()
@@ -590,7 +597,9 @@ impl<'rom> Extractor<'rom> {
         let sym = self
             .symbols
             .get("gSpeciesNames")
-            .ok_or(Error::SymbolNotFound { name: "gSpeciesNames" })?;
+            .ok_or(Error::SymbolNotFound {
+                name: "gSpeciesNames",
+            })?;
         let offset = (sym.address - start) as usize;
         let name_length: usize = 11;
         let count = (sym.length as usize) / name_length;
@@ -623,10 +632,12 @@ impl<'rom> Extractor<'rom> {
             .get("Start")
             .ok_or(Error::SymbolNotFound { name: "Start" })?;
         let start = start_sym.address;
-        let sym = self
-            .symbols
-            .get("sSpeciesToNationalPokedexNum")
-            .ok_or(Error::SymbolNotFound { name: "sSpeciesToNationalPokedexNum" })?;
+        let sym =
+            self.symbols
+                .get("sSpeciesToNationalPokedexNum")
+                .ok_or(Error::SymbolNotFound {
+                    name: "sSpeciesToNationalPokedexNum",
+                })?;
         let offset = (sym.address - start) as usize;
         let count = (sym.length as usize) / 2;
         let mut map = vec![0u16; count + 1];
@@ -635,10 +646,7 @@ impl<'rom> Extractor<'rom> {
             if pos + 2 > self.rom.bytes().len() {
                 break;
             }
-            map[i + 1] = u16::from_le_bytes([
-                self.rom.bytes()[pos],
-                self.rom.bytes()[pos + 1],
-            ]);
+            map[i + 1] = u16::from_le_bytes([self.rom.bytes()[pos], self.rom.bytes()[pos + 1]]);
         }
         Ok(map)
     }
@@ -821,7 +829,6 @@ impl<'rom> Extractor<'rom> {
 
         Ok(by_key.into_values().collect())
     }
-
 }
 
 #[derive(Default, Debug, Clone, Copy)]

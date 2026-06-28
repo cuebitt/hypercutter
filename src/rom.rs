@@ -42,7 +42,7 @@ impl Rom {
     /// # Panics
     ///
     /// This function calls `.expect()` on an infallible `try_into()` of a
-    /// known-length slice — the panic will never trigger in practice.
+    /// known-length slice: the panic will never trigger in practice.
     ///
     /// # Errors
     ///
