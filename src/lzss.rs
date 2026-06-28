@@ -23,7 +23,14 @@ pub fn decompress(data: &[u8]) -> Result<Vec<u8>> {
     if first != 0x10 && first != 0x11 {
         return Err(Error::InvalidLzssMagic { magic: first });
     }
-    nintendo_lz::decompress_arr(data).map_err(|source| Error::Decompression {
+    // nintendo_lz can panic on malformed data; catch it and return an error.
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        nintendo_lz::decompress_arr(data)
+    }))
+    .map_err(|_| Error::Decompression {
+        message: "nintendo_lz panicked on malformed data".to_owned(),
+    })?
+    .map_err(|source| Error::Decompression {
         message: source.to_string(),
     })
 }

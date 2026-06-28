@@ -133,6 +133,38 @@ impl<'rom> Extractor<'rom> {
         self
     }
 
+    /// Validate that critical symbols point to readable ROM data.
+    ///
+    /// Checks that `gTileset_General` (or the first available tileset)
+    /// contains a parseable `TilesetHeader` with in-range pointers. Returns
+    /// `true` when the symbol table matches the loaded ROM, `false` when
+    /// addresses are garbage (wrong ROM revision).
+    #[must_use]
+    pub fn validate(&self) -> bool {
+        // Check a known tileset symbol to verify the .sym file matches this ROM.
+        if let Some(sym) = self.symbols.get("gTileset_General") {
+            return self.validate_tileset_sym(sym);
+        }
+        // Fallback: try the first gTileset_ symbol in the table.
+        for sym in self.symbols.iter() {
+            if sym.name.starts_with("gTileset_") {
+                return self.validate_tileset_sym(sym);
+            }
+        }
+        false
+    }
+
+    fn validate_tileset_sym(&self, sym: &crate::Symbol) -> bool {
+        let header: crate::tileset::TilesetHeader = match read_struct_at(self.rom, sym.address) {
+            Ok(h) => h,
+            Err(_) => return false,
+        };
+        let tiles_ok = self.rom.offset_of(header.tiles_ptr).is_ok();
+        let pal_ok = self.rom.offset_of(header.palettes_ptr).is_ok();
+        let met_ok = self.rom.offset_of(header.metatiles_ptr).is_ok();
+        tiles_ok && pal_ok && met_ok
+    }
+
     /// Returns the configured primary-tile count.
     #[must_use]
     pub const fn primary_tile_count(&self) -> u16 {
@@ -386,10 +418,9 @@ impl<'rom> Extractor<'rom> {
 
     /// Extract all base-species sprites.
     ///
-    /// Skips placeholder species (index 0 and indices 252–276 whose names
-    /// decode to `?`), unknown entries past the name table, and the
-    /// alternate-form slots (413+) that are handled separately by
-    /// [`Self::forms`].  Species 412 (Egg) is kept.
+    /// Skips placeholder species (index 0), unknown entries past the name
+    /// table, and the alternate-form slots (413+) that are handled
+    /// separately by [`Self::forms`].  Species 412 (Egg) is kept.
     ///
     /// # Errors
     ///
@@ -430,11 +461,7 @@ impl<'rom> Extractor<'rom> {
             if species_id == 0 {
                 continue;
             }
-            // Skip the 25 `?`-named placeholder slots (252–276) that
-            // duplicate the egg sprite.  They are not real Pokemon.
-            if (252..=276).contains(&species_id) {
-                continue;
-            }
+
             // Species 413+ are alternate-form slots handled by forms().
             if species_id >= 413 {
                 continue;
@@ -614,29 +641,40 @@ impl<'rom> Extractor<'rom> {
         Ok(names)
     }
 
-    /// Read the `sSpeciesToNationalPokedexNum` mapping.
+    /// Read the national Pokédex number mapping.
     ///
     /// Returns a `Vec` where index = internal species ID and value = National
     /// Dex number. The table in the ROM is 1-indexed (species 0 has no
     /// entry), so the returned vec has `count + 1` entries with index 0
     /// set to 0.
     ///
+    /// Tries all known symbol names across games and picks the longest
+    /// match to avoid a small lookup table shadowing the real mapping:
+    /// - `sSpeciesToNationalPokedexNum` (FireRed/LeafGreen local)
+    /// - `gSpeciesToNationalPokedexNum` (Ruby/Sapphire global)
+    /// - `SpeciesToNationalPokedexNum` (all games, often a short lookup)
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::SymbolNotFound`] if `sSpeciesToNationalPokedexNum`
-    /// is missing.
+    /// Returns [`Error::SymbolNotFound`] if none of the symbols is present.
     pub fn national_dex_map(&self) -> Result<Vec<u16>> {
         let start_sym = self
             .symbols
             .get("Start")
             .ok_or(Error::SymbolNotFound { name: "Start" })?;
         let start = start_sym.address;
-        let sym =
-            self.symbols
-                .get("sSpeciesToNationalPokedexNum")
-                .ok_or(Error::SymbolNotFound {
-                    name: "sSpeciesToNationalPokedexNum",
-                })?;
+        let candidates = [
+            "sSpeciesToNationalPokedexNum",
+            "gSpeciesToNationalPokedexNum",
+            "SpeciesToNationalPokedexNum",
+        ];
+        let sym = candidates
+            .iter()
+            .filter_map(|name| self.symbols.get(name))
+            .max_by_key(|s| s.length)
+            .ok_or(Error::SymbolNotFound {
+                name: "sSpeciesToNationalPokedexNum",
+            })?;
         let offset = (sym.address - start) as usize;
         let count = (sym.length as usize) / 2;
         let mut map = vec![0u16; count + 1];

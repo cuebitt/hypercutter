@@ -266,6 +266,30 @@ impl Game {
         )
     }
 
+    /// URL to download a revision-specific `.sym` file for this game.
+    #[must_use]
+    pub fn sym_url_for_file(self, file: &str) -> String {
+        format!(
+            "https://cdn.jsdelivr.net/gh/pret/{repo}@symbols/{file}",
+            repo = self.sym_repo(),
+            file = file,
+        )
+    }
+
+    /// Revision `.sym` filenames to try when the default does not match.
+    ///
+    /// Returns an empty slice for games without known revisions.
+    #[must_use]
+    pub fn revision_sym_files(self) -> &'static [&'static str] {
+        match self {
+            Self::Ruby => &["pokeruby_rev1.sym", "pokeruby_rev2.sym"],
+            Self::Sapphire => &["pokesapphire_rev1.sym", "pokesapphire_rev2.sym"],
+            Self::FireRed => &["pokefirered_rev1.sym"],
+            Self::LeafGreen => &["pokeleafgreen_rev1.sym"],
+            Self::Emerald => &[],
+        }
+    }
+
     /// Number of tiles in this game's primary tileset.
     #[must_use]
     pub const fn primary_tile_count(self) -> u16 {
