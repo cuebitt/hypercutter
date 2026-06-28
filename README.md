@@ -128,16 +128,16 @@ Build the WASM package with [`wasm-pack`](https://github.com/rustwasm/wasm-pack)
 
 ```bash
 cargo install wasm-pack
-wasm-pack build --release --target web
+wasm-pack build --release
 ```
 
-This produces a `pkg/` directory with JS glue code, TypeScript types, and a
-`package.json` ready for npm publishing.
+The build target is configured in `wasm-pack.toml`. This produces a `pkg/` directory with
+JS glue code, TypeScript types, and a `package.json` ready for npm publishing.
 
 Once published to npm, install with:
 
 ```bash
-npm install hypercutter
+pnpm install @cuebitt/hypercutter
 ```
 
 ```js
@@ -145,7 +145,7 @@ import init, {
   HypercutterExtractor,
   identifyGame,
   countSym,
-} from "hypercutter";
+} from "@cuebitt/hypercutter";
 
 await init();
 
@@ -211,6 +211,10 @@ cargo test --all
 cargo fmt --all -- --check
 cargo clippy --all-targets --all-features --locked
 
+# Verify crates.io packaging
+cargo package --list
+cargo publish --dry-run
+
 # Build for WebAssembly
 cargo build --release --target wasm32-unknown-unknown
 ```
@@ -248,6 +252,28 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+### Publishing
+
+Releases are published automatically to crates.io and npm when a version tag (`v*`) is pushed.
+The publish workflows are in `.github/workflows/`.
+
+Forks need these repository secrets to publish:
+
+| Secret | Purpose | Where to get it |
+|--------|---------|----------------|
+| `CRATES_IO_TOKEN` | Publish to crates.io | [crates.io/settings/tokens](https://crates.io/settings/tokens) |
+| `NPM_TOKEN` | Publish to npm | [npmjs.com → Access Tokens](https://www.npmjs.com/settings/tokens) |
+
+To release:
+
+```bash
+# 1. Bump version in Cargo.toml
+# 2. Commit and push
+# 3. Tag and push the tag
+git tag v0.4.0
+git push origin v0.4.0
+```
+
 ## License
 
 MIT OR Apache-2.0
@@ -264,7 +290,6 @@ This project builds on the work of many open-source libraries and tools:
 - [png](https://crates.io/crates/png): PNG encoding for rendered images
 - [binrw](https://crates.io/crates/binrw): Binary data parsing of ROM structures
 - [bilge](https://crates.io/crates/bilge): Bitfield struct support
-- [rayon](https://crates.io/crates/rayon): Parallel iteration for performance
 - [wasm-bindgen](https://crates.io/crates/wasm-bindgen) / [js-sys](https://crates.io/crates/js-sys): WebAssembly bindings
 - [serde](https://crates.io/crates/serde): Serialization framework
 - [thiserror](https://crates.io/crates/thiserror) / [anyhow](https://crates.io/crates/anyhow): Error handling

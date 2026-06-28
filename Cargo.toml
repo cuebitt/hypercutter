@@ -5,8 +5,13 @@ edition = "2021"
 rust-version = "1.75"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/cuebitt/hypercutter"
+homepage = "https://github.com/cuebitt/hypercutter"
+documentation = "https://docs.rs/hypercutter"
 readme = "README.md"
 description = "Extract data from GBA Pokemon ROMs."
+keywords = ["pokemon", "gba", "rom", "extraction", "sprites"]
+categories = ["game-development", "parser-implementations"]
+exclude = ["tests/", "examples/", "pkg/", ".github/"]
 
 [lib]
 name = "hypercutter"
@@ -25,7 +30,6 @@ bilge = "0.3"
 nintendo_lz = { package = "nintendo-lz", version = "0.1" }
 sha2 = "0.10"
 serde = { version = "1", features = ["derive"] }
-rayon = "1"
 png = "0.17"
 log = "0.4"
 
@@ -58,9 +62,6 @@ path = "examples/compare.rs"
 name = "compare-all"
 path = "examples/compare_all.rs"
 
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-O", "--enable-bulk-memory"]
-
 [profile.release]
 lto = "thin"
 codegen-units = 1
@@ -69,3 +70,8 @@ strip = "symbols"
 # WASM-specific overrides: smaller binary, opt-level z.
 [profile.release.package."*"]
 opt-level = 3
+
+[lints.clippy]
+pedantic = { level = "allow", priority = -1 }
+module_name_repetitions = "warn"
+must_use_candidate = "warn"
