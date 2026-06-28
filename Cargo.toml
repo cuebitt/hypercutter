@@ -75,3 +75,7 @@ opt-level = 3
 pedantic = { level = "allow", priority = -1 }
 module_name_repetitions = "warn"
 must_use_candidate = "warn"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O", "--enable-gc", "--enable-bulk-memory-opt", "--enable-reference-types"]
+
