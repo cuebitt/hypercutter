@@ -289,6 +289,7 @@ impl<'rom> Extractor<'rom> {
     }
 
     /// Read tileset-related lengths from the symbol table.
+    #[must_use]
     pub fn tileset_lengths(&self, name: &str) -> TilesetInfo {
         let mut info = TilesetInfo::default();
         let variants: &[&str] = if name == "Building" {
@@ -313,6 +314,7 @@ impl<'rom> Extractor<'rom> {
     }
 
     /// Read metatile length from the symbol table.
+    #[must_use]
     pub fn metatile_length(&self, name: &str) -> usize {
         self.symbols
             .get(&format!("gMetatiles_{name}"))
