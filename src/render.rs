@@ -2,7 +2,7 @@
 
 use crate::graphics::{decode_tile_4bpp, Rgba, RgbaImage};
 use crate::sprite::{Sprite, SpriteSheet};
-use crate::tileset::{Palette, PaletteData, TileData, Tileset, TILE_SIZE};
+use crate::tileset::{Palette, PaletteData, Tileset, TILE_SIZE};
 
 /// Width and height of a single metatile in pixels.
 const METATILE_PX: u32 = 16;
@@ -45,20 +45,14 @@ impl<'a> TilesetRenderer<'a> {
     /// Render the tileset to an RGBA image.
     #[must_use]
     pub fn render(&self) -> RgbaImage {
-        let primary_palettes = self.primary.palettes.iter().collect::<Vec<_>>();
-        let secondary_palettes = self
-            .secondary
-            .map(|s| s.palettes.iter().collect::<Vec<_>>())
-            .unwrap_or_default();
-
-        let combined_palettes: Vec<&Palette> = if self.secondary.is_some() {
+        let combined_palettes: Vec<&Palette> = if let Some(secondary) = self.secondary {
             let mut v = Vec::with_capacity(16);
-            v.extend(primary_palettes.iter().take(6).copied());
-            v.extend(secondary_palettes.iter().skip(6).take(7).copied());
-            v.extend(primary_palettes.iter().skip(13).copied());
+            v.extend(self.primary.palettes.iter().take(6));
+            v.extend(secondary.palettes.iter().skip(6).take(7));
+            v.extend(self.primary.palettes.iter().skip(13));
             v
         } else {
-            primary_palettes.clone()
+            self.primary.palettes.iter().collect()
         };
 
         let primary_tiles = self.primary.tiles.as_bytes();
@@ -118,6 +112,7 @@ impl<'a> TilesetRenderer<'a> {
 
 const EMPTY_PALETTE: Palette = Palette([Rgba::TRANSPARENT; 16]);
 
+#[cfg(test)]
 fn decode_layer_entry(raw: u16) -> (u16, bool, bool, u8) {
     let tile_index = raw & 0x3FF;
     let h_flip = (raw >> 10) & 1 != 0;
@@ -125,10 +120,6 @@ fn decode_layer_entry(raw: u16) -> (u16, bool, bool, u8) {
     let palette_index = ((raw >> 12) & 0xF) as u8;
     (tile_index, h_flip, v_flip, palette_index)
 }
-
-// Referenced by public API surface via downstream consumers.
-#[allow(dead_code)]
-const _DECODE_LAYER_ENTRY_USED: fn(u16) -> (u16, bool, bool, u8) = decode_layer_entry;
 
 fn pick_tile<'b>(
     primary: &'b [u8],
@@ -268,17 +259,12 @@ pub fn renderer_for_sprite(sprite: &Sprite, is_front: bool) -> Option<SpriteRend
     Some(SpriteRenderer::new(sheet, palette))
 }
 
-// Suppress unused-import warnings for items that are part of the public
-// surface but only consumed by external code (e.g. `TileData`).
-#[allow(dead_code)]
-fn _pub_surface(_: &TileData) {}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::graphics::Rgba;
     use crate::sprite::MonCoords;
-    use crate::tileset::{Metatile, MetatileData, MetatileLayer};
+    use crate::tileset::{Metatile, MetatileData, MetatileLayer, TileData};
 
     fn make_palette() -> Palette {
         Palette([

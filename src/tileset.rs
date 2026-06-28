@@ -1,7 +1,7 @@
 //! Tileset, metatile, and palette data structures.
 
 use bilge::prelude::*;
-use binrw::{BinRead, BinReaderExt, BinResult, Endian};
+use binrw::{BinRead, BinReaderExt, Endian};
 
 use crate::error::{Error, Result};
 use crate::graphics::{bgr555_to_rgba, Rgba};
@@ -433,10 +433,6 @@ pub fn read_u32_at(rom: &crate::Rom, address: u32) -> Result<u32> {
     let b = &rom.bytes()[offset..offset + 4];
     Ok(u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
 }
-
-// Part of binrw's public surface that downstream code may re-export.
-#[allow(dead_code)]
-type _BinResultAlias = BinResult<()>;
 
 #[cfg(test)]
 mod tests {

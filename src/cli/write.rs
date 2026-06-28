@@ -58,7 +58,7 @@ pub(crate) mod output {
         let primary_tile_count = game.primary_tile_count();
         let exclude = game_exclude(game);
         for (name, entry) in metatiles.iter() {
-            if exclude.iter().any(|e| e == name) {
+            if exclude.contains(&name) {
                 continue;
             }
             let renderer = match entry.secondary.as_ref() {
@@ -93,7 +93,7 @@ pub(crate) mod output {
 
     fn write_spritesheet(
         sprites: &[Sprite],
-        species_names: &[String],
+        _species_names: &[String],
         out_dir: &Path,
         columns: usize,
     ) -> Result<()> {
@@ -129,8 +129,6 @@ pub(crate) mod output {
             .map(|(i, name)| format!("{}: {}", i + 1, name))
             .collect::<Vec<_>>()
             .join("\n");
-        #[allow(unused_variables, reason = "kept for API consistency with write_individual")]
-        let _ = species_names;
         std::fs::write(out_dir.join("species_list.txt"), list)
             .with_context(|| "writing species_list.txt")?;
         Ok(())
@@ -206,9 +204,9 @@ pub(crate) mod output {
         national_map: &[u16],
         sprites_dir: &Path,
     ) -> Result<()> {
-        use crate::{FormSprite, SpriteRenderer, SpriteSheet};
-        use crate::tileset::TileData;
         use crate::sprite::MonCoords;
+        use crate::tileset::TileData;
+        use crate::{FormSprite, SpriteRenderer, SpriteSheet};
         use std::collections::BTreeMap;
 
         // Group forms by base species.
@@ -288,12 +286,10 @@ pub(crate) mod output {
         sheet
     }
 
-    fn game_exclude(game: crate::Game) -> Vec<String> {
+    fn game_exclude(game: crate::Game) -> &'static [&'static str] {
         match game {
-            crate::Game::FireRed | crate::Game::LeafGreen => {
-                vec!["HoennBuilding".to_owned()]
-            }
-            _ => Vec::new(),
+            crate::Game::FireRed | crate::Game::LeafGreen => &["HoennBuilding"],
+            _ => &[],
         }
     }
 }

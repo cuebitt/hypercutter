@@ -9,11 +9,7 @@ use crate::{Game, SymbolTable};
 use super::Cli;
 
 /// Load symbols from a local path, cached download, or fetch from jsDelivr.
-pub(crate) fn load_or_download(
-    cli: &Cli,
-    game: Game,
-    _include_sprites: bool,
-) -> Result<SymbolTable> {
+pub(crate) fn load_or_download(cli: &Cli, game: Game) -> Result<SymbolTable> {
     if let Some(sym) = &cli.sym_file {
         return SymbolTable::from_path(sym).with_context(|| format!("parsing {}", sym.display()));
     }

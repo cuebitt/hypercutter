@@ -84,5 +84,3 @@ fn extracts_pikachu_sprite() {
     let front = pikachu.front.as_ref().unwrap();
     assert_eq!(front.tiles.tile_count(), 64);
 }
-
-

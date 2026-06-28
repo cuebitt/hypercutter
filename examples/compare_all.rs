@@ -91,17 +91,17 @@ fn main() -> Result<ExitCode> {
     let output_dir = args
         .get(2)
         .context("usage: compare-all <reference-dir> <output-dir> [threshold]")?;
-    let threshold: f64 = args
-        .get(3)
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(5.0);
+    let threshold: f64 = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(5.0);
 
     let mut failed: Vec<(PathBuf, f64)> = Vec::new();
     let mut compared = 0u32;
     let mut passed = 0u32;
     let mut missing = 0u32;
 
-    for entry in WalkDir::new(reference_dir).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(reference_dir)
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         if !entry.file_type().is_file() {
             continue;
         }
