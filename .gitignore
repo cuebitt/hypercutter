@@ -101,3 +101,4 @@ skills-lock.json
 
 # Outputs
 pkg/
+out/

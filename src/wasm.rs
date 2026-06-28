@@ -25,7 +25,9 @@ const USED_SYMBOL_NAMES: &[&str] = &[
     "gMonPaletteTable",
     "gMonShinyPaletteTable",
     "gSpeciesNames",
+    "gSpeciesToNationalPokedexNum",
     "sSpeciesToNationalPokedexNum",
+    "SpeciesToNationalPokedexNum",
 ];
 
 /// Symbol name prefixes referenced by the extraction logic.
@@ -83,9 +85,14 @@ impl HypercutterExtractor {
         let Some(entry) = metatiles.get(name) else {
             return Err(JsError::new(&format!("unknown tileset: {name}")));
         };
+        let primary_tile_count = self.rom.game().primary_tile_count();
         let renderer = match entry.secondary.as_ref() {
-            Some(secondary) => TilesetRenderer::new(&entry.primary).with_secondary(secondary),
-            None => TilesetRenderer::new(&entry.primary),
+            Some(secondary) => TilesetRenderer::new(&entry.primary)
+                .with_secondary(secondary)
+                .with_primary_tile_count(primary_tile_count),
+            None => {
+                TilesetRenderer::new(&entry.primary).with_primary_tile_count(primary_tile_count)
+            }
         };
         let mut png_bytes: Vec<u8> = Vec::new();
         let img = renderer.render();
