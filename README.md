@@ -187,6 +187,26 @@ console.log(species); // ["bulbasaur", "ivysaur", ...]
 const spritePng = await ex.renderSprite(1); // Bulbasaur front sprite
 ```
 
+### Vite
+
+Vite does not support the WebAssembly ESM integration proposal used by `wasm-pack`
+output. You need to install two dev dependencies:
+
+```bash
+pnpm add -D vite-plugin-wasm vite-plugin-top-level-await
+```
+
+Then add them to your `vite.config.ts`:
+
+```ts
+import wasm from "vite-plugin-wasm";
+import topLevelAwait from "vite-plugin-top-level-await";
+
+export default defineConfig({
+  plugins: [wasm(), topLevelAwait()],
+});
+```
+
 ### API reference
 
 | JS name                                        | Type                                               | Description                                     |
