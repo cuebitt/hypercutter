@@ -215,8 +215,38 @@ cargo clippy --all-targets --all-features --locked
 cargo build --release --target wasm32-unknown-unknown
 ```
 
-Pre-commit hooks for `cargo fmt` and `cargo clippy` are configured in
-`.pre-commit-config.yaml`.
+### Pre-commit hooks
+
+This repository uses pre-commit hooks for `cargo fmt` and `cargo clippy`, configured in
+`.pre-commit-config.yaml`. [prek](https://github.com/j178/prek) is the preferred tool:
+
+```bash
+# Install prek (preferred, Rust-native)
+cargo install prek --locked
+prek install
+
+# Run hooks manually
+prek run --all-files
+```
+
+If another tool (e.g. bgit) has set `core.hooksPath` globally, `prek install` will refuse
+to run. Use `--git-dir` to bypass the check and install into `.git/hooks/` directly:
+
+```bash
+prek install --git-dir .git
+```
+
+Note: this writes prek's shims to `.git/hooks/` while Git still uses the global
+`core.hooksPath`. To make both work, copy or symlink bgit's hooks (e.g. `pre-push`) into
+`.git/hooks/` as well.
+
+Alternatively, use [pre-commit](https://pre-commit.com/):
+
+```bash
+pip install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
 
 ## License
 
