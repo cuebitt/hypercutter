@@ -38,22 +38,22 @@ Without any flag, both tilesets and sprites are dumped.
 
 Options:
 
-- `-g, --game` — Game to use for symbol file download (`emerald`, `firered`, `leafgreen`, `ruby`, `sapphire`)
-- `--sym-file` — Path to a `.sym` file (auto-downloaded if not provided)
-- `-e, --export` — Directory to export PNGs (default: `out`)
-- `-v, --verbose` — Verbose output
-- `-c, --clear` — Clear export directory before writing
-- `-y, --yes` — Skip confirmation prompts
+- `-g, --game`: Game to use for symbol file download (`emerald`, `firered`, `leafgreen`, `ruby`, `sapphire`)
+- `--sym-file`: Path to a `.sym` file (auto-downloaded if not provided)
+- `-e, --export`: Directory to export PNGs (default: `out`)
+- `-v, --verbose`: Verbose output
+- `-c, --clear`: Clear export directory before writing
+- `-y, --yes`: Skip confirmation prompts
 
 Output selection (mutually inclusive with each other; omitting both dumps everything):
 
-- `--tilesets` — Render and export tileset PNGs
-- `--sprites` — Dump Pokemon battle sprites
+- `--tilesets`: Render and export tileset PNGs
+- `--sprites`: Dump Pokemon battle sprites
 
 Sprite output options (only meaningful with `--sprites`):
 
-- `--spritesheet` — Output sprites as a spritesheet instead of individual PNGs
-- `--spritesheet-columns` — Columns in spritesheet (default: 8)
+- `--spritesheet`: Output sprites as a spritesheet instead of individual PNGs
+- `--spritesheet-columns`: Columns in spritesheet (default: 8)
 
 ### Output directory structure
 
@@ -122,6 +122,85 @@ let national_dex = extractor.national_dex_map()?;
 let forms: Vec<FormSprite> = extractor.forms()?;
 ```
 
+## WebAssembly / JavaScript
+
+Build the WASM package with [`wasm-pack`](https://github.com/rustwasm/wasm-pack):
+
+```bash
+cargo install wasm-pack
+wasm-pack build --release --target web
+```
+
+This produces a `pkg/` directory with JS glue code, TypeScript types, and a
+`package.json` ready for npm publishing.
+
+Once published to npm, install with:
+
+```bash
+npm install hypercutter
+```
+
+```js
+import init, {
+  HypercutterExtractor,
+  identifyGame,
+  countSym,
+} from "hypercutter";
+
+await init();
+
+// Load ROM and sym file
+const romBytes = new Uint8Array(
+  await (await fetch("pokeemerald.gba")).arrayBuffer(),
+);
+const symText = await (await fetch("pokeemerald.sym")).text();
+
+// Identify the game
+console.log(await identifyGame(romBytes)); // "emerald"
+
+// Count symbols in a .sym file
+console.log(await countSym(symText)); // 14026
+
+// Create an extractor
+const ex = new HypercutterExtractor(romBytes, symText);
+console.log(ex.game); // "emerald"
+
+// List metatile groups
+const names = await ex.metatileNames();
+console.log(names); // ["General", "Petalburg", ...]
+
+// Render a tileset to PNG bytes
+const pngBytes = await ex.renderTileset("General");
+const blob = new Blob([pngBytes], { type: "image/png" });
+const url = URL.createObjectURL(blob);
+// <img src={url} /> or save to disk
+
+// List symbol names used by hypercutter (filtered subset of the memory map)
+const symbols = ex.symbolNames();
+console.log(symbols); // ["Start", "gMonFrontPicTable", "gTileset_Overworld", ...]
+
+// List species names
+const species = await ex.speciesNames();
+console.log(species); // ["bulbasaur", "ivysaur", ...]
+
+// Render a Pokémon sprite (by national dex ID) to PNG bytes
+const spritePng = await ex.renderSprite(1); // Bulbasaur front sprite
+```
+
+### API reference
+
+| JS name                                        | Type                                               | Description                                     |
+| ---------------------------------------------- | -------------------------------------------------- | ----------------------------------------------- |
+| `identifyGame(romBytes)`                       | `(Uint8Array) => string`                           | Identify game from raw ROM bytes                |
+| `countSym(symText)`                            | `(string) => number`                               | Count symbols in a `.sym` file                  |
+| `HypercutterExtractor` constructor             | `new (Uint8Array, string) => HypercutterExtractor` | Create an extractor from ROM bytes and sym text |
+| `HypercutterExtractor.game`                    | `getter => string`                                 | Identified game short name                      |
+| `HypercutterExtractor.metatileNames()`         | `() => string[]`                                   | Available metatile group names                  |
+| `HypercutterExtractor.renderTileset(name)`     | `(string) => Uint8Array`                           | Render a tileset as PNG bytes                   |
+| `HypercutterExtractor.speciesNames()`          | `() => string[]`                                   | All species names by dex order                  |
+| `HypercutterExtractor.symbolNames()`           | `() => string[]`                                   | Symbol names used by the extraction logic       |
+| `HypercutterExtractor.renderSprite(speciesId)` | `(number) => Uint8Array`                           | Render a Pokémon front sprite as PNG bytes      |
+
 ## Development
 
 ```bash
@@ -145,6 +224,31 @@ MIT OR Apache-2.0
 
 ## Attribution
 
-- [magical/nlzss](https://github.com/magical/nlzss) (decompression via [nintendo-lz](https://crates.io/crates/nintendo-lz))
+This project builds on the work of many open-source libraries and tools:
+
+### Libraries
+
+- [nintendo-lz](https://crates.io/crates/nintendo-lz): LZSS decompression
+- [clap](https://crates.io/crates/clap): CLI argument parsing
+- [ureq](https://crates.io/crates/ureq): HTTP client for symbol file downloads
+- [png](https://crates.io/crates/png): PNG encoding for rendered images
+- [binrw](https://crates.io/crates/binrw): Binary data parsing of ROM structures
+- [bilge](https://crates.io/crates/bilge): Bitfield struct support
+- [rayon](https://crates.io/crates/rayon): Parallel iteration for performance
+- [wasm-bindgen](https://crates.io/crates/wasm-bindgen) / [js-sys](https://crates.io/crates/js-sys): WebAssembly bindings
+- [serde](https://crates.io/crates/serde): Serialization framework
+- [thiserror](https://crates.io/crates/thiserror) / [anyhow](https://crates.io/crates/anyhow): Error handling
+- [dialoguer](https://crates.io/crates/dialoguer): Interactive prompts
+- [indicatif](https://crates.io/crates/indicatif): Progress bars
+- [sha2](https://crates.io/crates/sha2): ROM hashing / game identification
+- [dirs](https://crates.io/crates/dirs): Platform cache directory resolution
+
+### Tools
+
+- [wasm-pack](https://github.com/rustwasm/wasm-pack): WebAssembly build tooling
+- [insta](https://crates.io/crates/insta): Snapshot testing framework
+
+### Reference
+
 - [pret/pokeemerald](https://github.com/pret/pokeemerald/tree/symbols), [pret/pokefirered](https://github.com/pret/pokefirered/tree/symbols), [pret/pokeruby](https://github.com/pret/pokeruby/tree/symbols)
   - Only the memory maps are used. This project contains no content from any Pokemon ROM dump.

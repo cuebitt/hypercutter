@@ -39,7 +39,7 @@ cargo run --example compare -- \
 The comparison tool reports:
 
 - `matching (diff <= 10)`: percentage of pixels whose per-channel sum-of-abs-diffs
-  is at most 10 (i.e., close enough — small palette rounding or PNG-encoder
+  is at most 10 (i.e., close enough: small palette rounding or PNG-encoder
   differences are tolerated).
 - `significant (diff > 10)`: percentage of pixels with larger differences.
   These are the candidates for visual inspection.
@@ -53,8 +53,8 @@ The comparison tool reports:
 - **Mostly red, with structure visible**: tile indices or palette indices are off.
 - **Yellow everywhere with no clear pattern**: palette rounding (expected to be small).
 - **Single solid color offset**: background-pixels look identical but everything
-  else is shifted by a constant — likely a palette index translation error.
-- **Tiles in wrong slots**: only a few cells in the grid are red — those are
+  else is shifted by a constant: likely a palette index translation error.
+- **Tiles in wrong slots**: only a few cells in the grid are red: those are
   the metatiles whose source data is wrong.
 
 ## Files

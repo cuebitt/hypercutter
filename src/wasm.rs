@@ -1,6 +1,6 @@
 //! WASM bindings for hypercutter.
 //!
-//! This is a skeleton — the exact JS surface will be finalized alongside the
+//! This is a skeleton: the exact JS surface will be finalized alongside the
 //! rebuilt web app.
 
 #![cfg(target_arch = "wasm32")]
@@ -14,16 +14,42 @@ fn to_js<E: std::fmt::Display>(err: E) -> JsError {
     JsError::new(&err.to_string())
 }
 
+/// Symbol names referenced by the extraction logic (exact matches).
+const USED_SYMBOL_NAMES: &[&str] = &[
+    "Start",
+    "gMapLayouts",
+    "gMonBackPicCoords",
+    "gMonBackPicTable",
+    "gMonFrontPicCoords",
+    "gMonFrontPicTable",
+    "gMonPaletteTable",
+    "gMonShinyPaletteTable",
+    "gSpeciesNames",
+    "sSpeciesToNationalPokedexNum",
+];
+
+/// Symbol name prefixes referenced by the extraction logic.
+const USED_SYMBOL_PREFIXES: &[&str] = &[
+    "gMetatiles_",
+    "gMonBackPic_",
+    "gMonFrontPic_",
+    "gMonPalette_",
+    "gMonShinyPalette_",
+    "gTilesetPalettes_",
+    "gTilesetTiles_",
+    "gTileset_",
+];
+
 /// WASM-facing wrapper around an extraction session.
 #[wasm_bindgen]
 #[derive(Debug)]
-pub struct HyExtractor {
+pub struct HypercutterExtractor {
     rom: Rom,
     symbols: SymbolTable,
 }
 
 #[wasm_bindgen]
-impl HyExtractor {
+impl HypercutterExtractor {
     /// # Errors
     ///
     /// Returns a [`JsError`] if the ROM is invalid.
@@ -97,6 +123,21 @@ impl HyExtractor {
         let extractor = Extractor::new(&self.rom, &self.symbols);
         let names = extractor.species_names().map_err(to_js)?;
         Ok(names.into_iter().map(JsValue::from).collect())
+    }
+
+    /// Returns the names of every symbol from the memory map that
+    /// hypercutter references. Useful for clients that cache the
+    /// symbols file so they can avoid storing irrelevant symbols.
+    #[wasm_bindgen]
+    pub fn symbol_names(&self) -> Vec<JsValue> {
+        self.symbols
+            .iter()
+            .filter(|s| {
+                USED_SYMBOL_NAMES.contains(&s.name.as_str())
+                    || USED_SYMBOL_PREFIXES.iter().any(|p| s.name.starts_with(p))
+            })
+            .map(|s| JsValue::from(s.name.as_str()))
+            .collect()
     }
 }
 
