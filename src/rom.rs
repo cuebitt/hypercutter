@@ -56,9 +56,12 @@ impl Rom {
                 needed: GAME_CODE_OFFSET + GAME_CODE_LENGTH,
             });
         }
-        let code: [u8; 4] = bytes[GAME_CODE_OFFSET..GAME_CODE_OFFSET + GAME_CODE_LENGTH]
-            .try_into()
-            .expect("slice is exactly 4 bytes");
+        let code = [
+            bytes[GAME_CODE_OFFSET],
+            bytes[GAME_CODE_OFFSET + 1],
+            bytes[GAME_CODE_OFFSET + 2],
+            bytes[GAME_CODE_OFFSET + 3],
+        ];
         let game = Game::from_code(code).ok_or(Error::InvalidGameCode { code })?;
         Ok(Self {
             bytes,

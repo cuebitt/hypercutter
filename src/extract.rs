@@ -438,7 +438,7 @@ impl<'rom> Extractor<'rom> {
                 continue;
             }
             let id = SpeciesId(species_id as u16);
-            if let Some(sprite) = self.read_base_sprite(id, &addrs, start, &species_names)? {
+            if let Some(sprite) = self.read_base_sprite(id, &addrs, &species_names)? {
                 out.push(sprite);
             }
         }
@@ -449,7 +449,6 @@ impl<'rom> Extractor<'rom> {
         &self,
         id: SpeciesId,
         addrs: &BTreeMap<&'static str, usize>,
-        start: u32,
         species_names: &[String],
     ) -> Result<Option<Sprite>> {
         let front_offset = addrs["gMonFrontPicTable"];
@@ -506,8 +505,6 @@ impl<'rom> Extractor<'rom> {
         let back_coords = self
             .read_mon_coords(back_coords_offset, id.0 as usize)?
             .unwrap_or_default();
-
-        let _ = start;
 
         let front_sheet = SpriteSheet {
             tiles: TileData::from_bytes(front),
@@ -692,7 +689,7 @@ impl<'rom> Extractor<'rom> {
             let key = (species.clone(), form.clone());
             let entry = by_key.entry(key).or_insert_with(|| FormSprite {
                 base: SpeciesId(0),
-                form: form.clone(),
+                form,
                 front_tiles: None,
                 back_tiles: None,
                 palette: None,
@@ -831,9 +828,12 @@ impl<'rom> Extractor<'rom> {
     }
 }
 
+/// Tileset-related byte lengths read from the symbol table.
 #[derive(Default, Debug, Clone, Copy)]
 pub struct TilesetInfo {
+    /// Length of tile graphics data in bytes (0 if unknown).
     pub tiles_length: usize,
+    /// Length of palette data in bytes (0 if unknown).
     pub palettes_length: usize,
 }
 

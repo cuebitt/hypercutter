@@ -80,8 +80,7 @@ pub fn run(cli: Cli) -> Result<()> {
     );
 
     let (dump_sprites, dump_tilesets) = resolve_dump_flags(&cli);
-    let symbols =
-        sym::load_or_download(&cli, rom.game(), dump_sprites).with_context(|| "loading symbols")?;
+    let symbols = sym::load_or_download(&cli, rom.game()).with_context(|| "loading symbols")?;
 
     if cli.clear {
         clear_dir(&cli.export)?;

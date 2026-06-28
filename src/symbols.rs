@@ -71,8 +71,8 @@ impl SymbolTable {
                 continue;
             }
             let address = parse_hex(addr_str).ok_or(Error::SymbolNotFound { name: "address" })?;
-            let length: u32 =
-                u32::from_str_radix(len_str, 16).map_err(|_| Error::SymbolNotFound { name: "length" })?;
+            let length: u32 = u32::from_str_radix(len_str, 16)
+                .map_err(|_| Error::SymbolNotFound { name: "length" })?;
             let scope = match scope_str {
                 "g" => Scope::Global,
                 "l" => Scope::Local,

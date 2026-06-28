@@ -23,7 +23,9 @@ pub fn decompress(data: &[u8]) -> Result<Vec<u8>> {
     if first != 0x10 && first != 0x11 {
         return Err(Error::InvalidLzssMagic { magic: first });
     }
-    nintendo_lz::decompress_arr(data).map_err(|source| Error::Decompression { message: source.to_string() })
+    nintendo_lz::decompress_arr(data).map_err(|source| Error::Decompression {
+        message: source.to_string(),
+    })
 }
 
 /// Returns `true` if the buffer starts with a valid LZSS magic byte
