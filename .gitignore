@@ -382,6 +382,15 @@ out/
 *.sym
 data/
 
+# Rust
+/target
+**/*.rs.bk
+Cargo.lock
+Cargo.lock.bak
+tests/fixtures/*.gba
+tests/fixtures/*.sym
+tests/fixtures/*.zip
+
 # Slop stuff
 AGENTS.md
 .agents/
