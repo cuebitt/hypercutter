@@ -77,5 +77,5 @@ module_name_repetitions = "warn"
 must_use_candidate = "warn"
 
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-O", "--enable-gc", "--enable-bulk-memory-opt", "--enable-reference-types"]
+wasm-opt = ["-O", "--enable-gc", "--enable-bulk-memory", "--enable-reference-types"]
 
