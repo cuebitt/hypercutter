@@ -42,18 +42,29 @@ Options:
 - `--sym-file`: Path to a `.sym` file (auto-downloaded if not provided)
 - `-e, --export`: Directory to export PNGs (default: `out`)
 - `-v, --verbose`: Verbose output
+- `-q, --quiet`: Suppress all non-error output
 - `-c, --clear`: Clear export directory before writing
-- `-y, --yes`: Skip confirmation prompts
+- `-y, --yes`: Clear without prompting
+- `--overwrite`: Write over existing files without prompting (skips clear)
 
 Output selection (mutually inclusive with each other; omitting both dumps everything):
 
 - `--tilesets`: Render and export tileset PNGs
 - `--sprites`: Dump Pokemon battle sprites
 
+Output filtering:
+
+- `--tileset-filter <PATTERN>`: Glob pattern to filter which tilesets to extract (e.g. `Battle*`)
+- `--sprite-filter <PATTERN>`: Glob pattern to filter which sprites to extract (e.g. `pikachu`)
+
 Sprite output options (only meaningful with `--sprites`):
 
 - `--spritesheet`: Output sprites as a spritesheet instead of individual PNGs
 - `--spritesheet-columns`: Columns in spritesheet (default: 8)
+
+Other:
+
+- `--list`: List available tilesets or sprites without extracting
 
 ### Output directory structure
 
@@ -279,10 +290,10 @@ The publish workflows are in `.github/workflows/`.
 
 Forks need these repository secrets to publish:
 
-| Secret | Purpose | Where to get it |
-|--------|---------|----------------|
-| `CRATES_IO_TOKEN` | Publish to crates.io | [crates.io/settings/tokens](https://crates.io/settings/tokens) |
-| `NPM_TOKEN` | Publish to npm | [npmjs.com → Access Tokens](https://www.npmjs.com/settings/tokens) |
+| Secret            | Purpose              | Where to get it                                                    |
+| ----------------- | -------------------- | ------------------------------------------------------------------ |
+| `CRATES_IO_TOKEN` | Publish to crates.io | [crates.io/settings/tokens](https://crates.io/settings/tokens)     |
+| `NPM_TOKEN`       | Publish to npm       | [npmjs.com → Access Tokens](https://www.npmjs.com/settings/tokens) |
 
 To release:
 
@@ -315,13 +326,15 @@ This project builds on the work of many open-source libraries and tools:
 - [thiserror](https://crates.io/crates/thiserror) / [anyhow](https://crates.io/crates/anyhow): Error handling
 - [dialoguer](https://crates.io/crates/dialoguer): Interactive prompts
 - [indicatif](https://crates.io/crates/indicatif): Progress bars
+- [console](https://crates.io/crates/console): Terminal styling
+- [rayon](https://crates.io/crates/rayon): Parallel iteration
+- [glob](https://crates.io/crates/glob): Pattern matching
 - [sha2](https://crates.io/crates/sha2): ROM hashing / game identification
 - [dirs](https://crates.io/crates/dirs): Platform cache directory resolution
 
 ### Tools
 
 - [wasm-pack](https://github.com/rustwasm/wasm-pack): WebAssembly build tooling
-- [insta](https://crates.io/crates/insta): Snapshot testing framework
 
 ### Reference
 
