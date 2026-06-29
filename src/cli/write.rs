@@ -62,8 +62,7 @@ pub(crate) fn run(
                 style("\u{2192}").cyan().bold(),
             );
         }
-        let count =
-            output::write_sprites(&sprites, &species_names, &national_map, &sprites_dir, cli)?;
+        let count = output::write_sprites(&sprites, &national_map, &sprites_dir, cli)?;
         summary.sprites = count;
         if !q {
             println!(
@@ -169,24 +168,18 @@ pub(crate) mod output {
 
     pub(super) fn write_sprites(
         sprites: &[Sprite],
-        species_names: &[String],
         national_map: &[u16],
         out_dir: &Path,
         cli: &Cli,
     ) -> Result<usize> {
         if cli.spritesheet {
-            write_spritesheet(sprites, species_names, out_dir, cli.spritesheet_columns)?;
+            write_spritesheet(sprites, out_dir, cli.spritesheet_columns)?;
             return Ok(sprites.len());
         }
-        write_individual(sprites, species_names, national_map, out_dir, cli)
+        write_individual(sprites, national_map, out_dir, cli)
     }
 
-    fn write_spritesheet(
-        sprites: &[Sprite],
-        _species_names: &[String],
-        out_dir: &Path,
-        columns: usize,
-    ) -> Result<()> {
+    fn write_spritesheet(sprites: &[Sprite], out_dir: &Path, columns: usize) -> Result<()> {
         std::fs::create_dir_all(out_dir)
             .with_context(|| format!("creating {}", out_dir.display()))?;
         let mut front_imgs = Vec::new();
@@ -226,7 +219,6 @@ pub(crate) mod output {
 
     fn write_individual(
         sprites: &[Sprite],
-        _species_names: &[String],
         national_map: &[u16],
         out_dir: &Path,
         cli: &Cli,
