@@ -30,7 +30,7 @@ bilge = "0.3"
 nintendo_lz = { package = "nintendo-lz", version = "0.1" }
 sha2 = "0.10"
 serde = { version = "1", features = ["derive"] }
-png = "0.17"
+png = "0.18"
 log = "0.4"
 
 # Native-only deps (CLI + HTTP downloader). Not pulled into the WASM
