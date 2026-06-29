@@ -1,10 +1,11 @@
 //! CLI implementation: argument parsing, symbol lookup, output writing.
 
-use std::io::Write;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use clap::Parser;
+use console::style;
+use dialoguer::Confirm;
 
 pub mod sym;
 pub mod write;
@@ -38,6 +39,10 @@ pub struct Cli {
     #[arg(short, long)]
     pub verbose: bool,
 
+    /// Suppress all non-error output.
+    #[arg(short, long)]
+    pub quiet: bool,
+
     /// Clear output directory before writing.
     #[arg(short, long)]
     pub clear: bool,
@@ -45,6 +50,22 @@ pub struct Cli {
     /// Automatically clear output directory without prompting.
     #[arg(short = 'y', long)]
     pub yes: bool,
+
+    /// Write over existing files without prompting.
+    #[arg(long)]
+    pub overwrite: bool,
+
+    /// List available tilesets or sprites without extracting.
+    #[arg(long)]
+    pub list: bool,
+
+    /// Glob pattern to filter which tilesets to extract.
+    #[arg(long, value_name = "PATTERN")]
+    pub tileset_filter: Option<String>,
+
+    /// Glob pattern to filter which sprites to extract.
+    #[arg(long, value_name = "PATTERN")]
+    pub sprite_filter: Option<String>,
 
     /// Dump Pokemon battle sprites (front/back, normal + shiny).
     #[arg(long)]
@@ -70,26 +91,80 @@ pub struct Cli {
 /// Returns an error if the ROM cannot be opened, symbols cannot be loaded,
 /// or any PNG export fails.
 pub fn run(cli: Cli) -> Result<()> {
-    log::info!("reading ROM: {}", cli.rom.display());
+    let start = std::time::Instant::now();
+    let q = cli.quiet;
+
+    if !q {
+        println!(
+            "  {} Reading ROM: {}",
+            style("\u{2192}").cyan().bold(),
+            style(cli.rom.display()).bold(),
+        );
+    }
     let rom =
         crate::Rom::open(&cli.rom).with_context(|| format!("opening ROM {}", cli.rom.display()))?;
-    log::info!(
-        "identified: {} ({})",
-        rom.game().name(),
-        rom.game().short_name()
-    );
+    if !q {
+        println!(
+            "  {} Identified: {} ({})",
+            style("\u{2192}").cyan().bold(),
+            style(rom.game().name()).bold(),
+            rom.game().short_name(),
+        );
+    }
 
     let (dump_sprites, dump_tilesets) = resolve_dump_flags(&cli);
     let symbols = sym::load_or_download(&cli, &rom).with_context(|| "loading symbols")?;
 
+    if cli.list {
+        return list_contents(&cli, &rom, &symbols, dump_sprites, dump_tilesets);
+    }
+
     if cli.clear {
         clear_dir(&cli.export)?;
-    } else if !cli.yes && has_contents(&cli.export) && !prompt_clear(&cli.export)? {
-        log::info!("skipping clear of {}", cli.export.display());
+    } else if !cli.yes
+        && !cli.overwrite
+        && has_contents(&cli.export)
+        && !q
+        && !prompt_clear(&cli.export)?
+    {
+        println!(
+            "  {} Skipping clear of {}",
+            style("\u{2192}").cyan().bold(),
+            style(cli.export.display()).bold(),
+        );
     }
 
     let extractor = crate::Extractor::new(&rom, &symbols);
-    write::run(&cli, &extractor, dump_sprites, dump_tilesets)
+    let summary = write::run(&cli, &extractor, dump_sprites, dump_tilesets)?;
+
+    let elapsed = start.elapsed();
+    if !q {
+        let mut parts = Vec::new();
+        if summary.tilesets > 0 {
+            parts.push(format!("{} tilesets", style(summary.tilesets).bold()));
+        }
+        if summary.sprites > 0 {
+            parts.push(format!("{} sprites", style(summary.sprites).bold()));
+        }
+        if summary.forms > 0 {
+            parts.push(format!("{} forms", style(summary.forms).bold()));
+        }
+        if !parts.is_empty() {
+            println!(
+                "  {} {} to {}",
+                style("\u{2713}").green().bold(),
+                parts.join(", "),
+                style(cli.export.display()).bold(),
+            );
+        }
+        println!(
+            "  {} Done in {}",
+            style("\u{2192}").cyan().bold(),
+            style(format!("{:.2?}", elapsed)).bold(),
+        );
+    }
+
+    Ok(())
 }
 
 fn resolve_dump_flags(cli: &Cli) -> (bool, bool) {
@@ -101,20 +176,97 @@ fn resolve_dump_flags(cli: &Cli) -> (bool, bool) {
     }
 }
 
+pub(crate) struct Summary {
+    pub tilesets: usize,
+    pub sprites: usize,
+    pub forms: usize,
+}
+
+fn list_contents(
+    cli: &Cli,
+    rom: &crate::Rom,
+    symbols: &crate::SymbolTable,
+    dump_sprites: bool,
+    dump_tilesets: bool,
+) -> Result<()> {
+    let extractor = crate::Extractor::new(rom, symbols);
+
+    if dump_tilesets {
+        let metatiles = extractor
+            .metatiles()
+            .with_context(|| "extracting metatiles")?;
+        let exclude = game_exclude(rom.game());
+        let filter = cli
+            .tileset_filter
+            .as_deref()
+            .map(glob::Pattern::new)
+            .transpose()
+            .with_context(|| "invalid tileset filter pattern")?;
+
+        println!("{}", style("Tilesets:").bold());
+        for name in metatiles.names() {
+            if exclude.contains(&name) {
+                continue;
+            }
+            if let Some(ref pat) = filter {
+                if !pat.matches(name) {
+                    continue;
+                }
+            }
+            println!("  {name}");
+        }
+    }
+
+    if dump_sprites {
+        let species_names = extractor
+            .species_names()
+            .with_context(|| "loading species names")?;
+        let filter = cli
+            .sprite_filter
+            .as_deref()
+            .map(glob::Pattern::new)
+            .transpose()
+            .with_context(|| "invalid sprite filter pattern")?;
+
+        println!("{}", style("Sprites:").bold());
+        for (i, name) in species_names.iter().enumerate() {
+            if name.is_empty() || name == "?" {
+                continue;
+            }
+            if let Some(ref pat) = filter {
+                if !pat.matches(name) {
+                    continue;
+                }
+            }
+            println!("  {:03}: {name}", i);
+        }
+    }
+
+    Ok(())
+}
+
+pub(crate) fn game_exclude(game: crate::Game) -> &'static [&'static str] {
+    match game {
+        crate::Game::FireRed | crate::Game::LeafGreen => &["HoennBuilding"],
+        _ => &[],
+    }
+}
+
 fn has_contents(path: &std::path::Path) -> bool {
     path.is_dir() && std::fs::read_dir(path).is_ok_and(|mut d| d.next().is_some())
 }
 
 fn prompt_clear(path: &std::path::Path) -> Result<bool> {
-    print!(
-        "Output directory {} contains files. Clear before writing? [y/N] ",
+    let prompt = format!(
+        "Output directory {} contains files. Clear before writing?",
         path.display()
     );
-    std::io::stdout().flush().ok();
-    let mut line = String::new();
-    std::io::stdin().read_line(&mut line)?;
-    let lower = line.trim().to_ascii_lowercase();
-    Ok(lower == "y" || lower == "yes")
+    let answer = Confirm::new()
+        .with_prompt(&prompt)
+        .default(false)
+        .interact()
+        .with_context(|| "reading user input")?;
+    Ok(answer)
 }
 
 fn clear_dir(path: &std::path::Path) -> Result<()> {
