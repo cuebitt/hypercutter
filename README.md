@@ -148,7 +148,7 @@ JS glue code, TypeScript types, and a `package.json` ready for npm publishing.
 Once published to npm, install with:
 
 ```bash
-pnpm install @cuebitt/hypercutter
+pnpm install hypercutter
 ```
 
 ```js
@@ -156,7 +156,7 @@ import init, {
   HypercutterExtractor,
   identifyGame,
   countSym,
-} from "@cuebitt/hypercutter";
+} from "hypercutter";
 
 await init();
 
