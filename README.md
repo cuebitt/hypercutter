@@ -154,8 +154,8 @@ pnpm install hypercutter
 ```js
 import init, {
   HypercutterExtractor,
-  identifyGame,
-  countSym,
+  identify_game,
+  count_sym,
 } from "hypercutter";
 
 await init();
@@ -167,35 +167,35 @@ const romBytes = new Uint8Array(
 const symText = await (await fetch("pokeemerald.sym")).text();
 
 // Identify the game
-console.log(await identifyGame(romBytes)); // "emerald"
+console.log(identify_game(romBytes)); // "emerald"
 
 // Count symbols in a .sym file
-console.log(await countSym(symText)); // 14026
+console.log(count_sym(symText)); // 14026
 
 // Create an extractor
 const ex = new HypercutterExtractor(romBytes, symText);
 console.log(ex.game); // "emerald"
 
 // List metatile groups
-const names = await ex.metatileNames();
+const names = ex.metatile_names();
 console.log(names); // ["General", "Petalburg", ...]
 
 // Render a tileset to PNG bytes
-const pngBytes = await ex.renderTileset("General");
+const pngBytes = ex.render_tileset("General");
 const blob = new Blob([pngBytes], { type: "image/png" });
 const url = URL.createObjectURL(blob);
 // <img src={url} /> or save to disk
 
 // List symbol names used by hypercutter (filtered subset of the memory map)
-const symbols = ex.symbolNames();
+const symbols = ex.symbol_names();
 console.log(symbols); // ["Start", "gMonFrontPicTable", "gTileset_Overworld", ...]
 
 // List species names
-const species = await ex.speciesNames();
+const species = ex.species_names();
 console.log(species); // ["bulbasaur", "ivysaur", ...]
 
 // Render a Pokémon sprite (by national dex ID) to PNG bytes
-const spritePng = await ex.renderSprite(1); // Bulbasaur front sprite
+const spritePng = ex.render_sprite(1); // Bulbasaur front sprite
 ```
 
 ### Vite
@@ -222,15 +222,15 @@ export default defineConfig({
 
 | JS name                                        | Type                                               | Description                                     |
 | ---------------------------------------------- | -------------------------------------------------- | ----------------------------------------------- |
-| `identifyGame(romBytes)`                       | `(Uint8Array) => string`                           | Identify game from raw ROM bytes                |
-| `countSym(symText)`                            | `(string) => number`                               | Count symbols in a `.sym` file                  |
+| `identify_game(romBytes)`                      | `(Uint8Array) => string`                           | Identify game from raw ROM bytes                |
+| `count_sym(symText)`                           | `(string) => number`                               | Count symbols in a `.sym` file                  |
 | `HypercutterExtractor` constructor             | `new (Uint8Array, string) => HypercutterExtractor` | Create an extractor from ROM bytes and sym text |
 | `HypercutterExtractor.game`                    | `getter => string`                                 | Identified game short name                      |
-| `HypercutterExtractor.metatileNames()`         | `() => string[]`                                   | Available metatile group names                  |
-| `HypercutterExtractor.renderTileset(name)`     | `(string) => Uint8Array`                           | Render a tileset as PNG bytes                   |
-| `HypercutterExtractor.speciesNames()`          | `() => string[]`                                   | All species names by dex order                  |
-| `HypercutterExtractor.symbolNames()`           | `() => string[]`                                   | Symbol names used by the extraction logic       |
-| `HypercutterExtractor.renderSprite(speciesId)` | `(number) => Uint8Array`                           | Render a Pokémon front sprite as PNG bytes      |
+| `HypercutterExtractor.metatile_names()`        | `() => string[]`                                   | Available metatile group names                  |
+| `HypercutterExtractor.render_tileset(name)`    | `(string) => Uint8Array`                           | Render a tileset as PNG bytes                   |
+| `HypercutterExtractor.species_names()`         | `() => string[]`                                   | All species names by dex order                  |
+| `HypercutterExtractor.symbol_names()`          | `() => string[]`                                   | Symbol names used by the extraction logic       |
+| `HypercutterExtractor.render_sprite(speciesId)`| `(number) => Uint8Array`                           | Render a Pokémon front sprite as PNG bytes      |
 
 ## Development
 

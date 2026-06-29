@@ -42,7 +42,7 @@ jobs:
           node-version: "lts/*"
           registry-url: "https://registry.npmjs.org"
       - name: Build WASM package
-        run: wasm-pack build --release --target web
+        run: wasm-pack build --release --target bundler
       - name: Publish to npm
         run: pnpm publish --no-git-checks --access public
         working-directory: pkg
