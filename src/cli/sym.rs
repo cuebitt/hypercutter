@@ -3,6 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use console::style;
 
 use crate::{Extractor, Rom, SymbolTable};
 
@@ -20,6 +21,7 @@ pub(crate) fn load_or_download(cli: &Cli, rom: &Rom) -> Result<SymbolTable> {
         return SymbolTable::from_path(sym).with_context(|| format!("parsing {}", sym.display()));
     }
 
+    let q = cli.quiet;
     let game = rom.game();
     let cache_dir = cache_dir().context("resolving cache directory")?;
     std::fs::create_dir_all(&cache_dir)
@@ -30,7 +32,13 @@ pub(crate) fn load_or_download(cli: &Cli, rom: &Rom) -> Result<SymbolTable> {
     let default_cached = cache_dir.join(default_name);
     if !default_cached.exists() {
         let url = game.sym_url();
-        log::info!("downloading symbols from {url}");
+        if !q {
+            println!(
+                "  {} Downloading symbols from {}",
+                style("\u{2193}").cyan().bold(),
+                style(&url).dim(),
+            );
+        }
         download(&url, &default_cached)?;
     } else {
         log::debug!("using cached symbols at {}", default_cached.display());
@@ -40,23 +48,44 @@ pub(crate) fn load_or_download(cli: &Cli, rom: &Rom) -> Result<SymbolTable> {
         .with_context(|| format!("parsing {}", default_cached.display()))?;
 
     if validate(rom, &symbols) {
-        log::info!("default symbol file matches ROM");
+        if !q {
+            println!(
+                "  {} Symbol file matches ROM",
+                style("\u{2713}").green().bold(),
+            );
+        }
         return Ok(symbols);
     }
 
-    log::warn!(
-        "default symbol file ({}) does not match ROM — trying revision files",
-        default_name,
-    );
+    if !q {
+        println!(
+            "  {} Default symbol file ({}) does not match ROM \u{2014} trying revisions",
+            style("\u{26a0}").yellow().bold(),
+            style(default_name).dim(),
+        );
+    }
 
     // 2. Try revision-specific .sym files.
     for rev_name in game.revision_sym_files() {
         let rev_cached = cache_dir.join(rev_name);
         if !rev_cached.exists() {
             let url = game.sym_url_for_file(rev_name);
-            log::info!("downloading revision symbols from {url}");
+            if !q {
+                println!(
+                    "  {} Downloading revision symbols from {}",
+                    style("\u{2193}").cyan().bold(),
+                    style(&url).dim(),
+                );
+            }
             if let Err(e) = download(&url, &rev_cached) {
-                log::warn!("failed to download {rev_name}: {e}");
+                if !q {
+                    println!(
+                        "  {} Failed to download {}: {}",
+                        style("\u{26a0}").yellow().bold(),
+                        style(rev_name).dim(),
+                        style(e).red(),
+                    );
+                }
                 continue;
             }
         } else {
@@ -66,22 +95,38 @@ pub(crate) fn load_or_download(cli: &Cli, rom: &Rom) -> Result<SymbolTable> {
         match SymbolTable::from_path(&rev_cached) {
             Ok(rev_symbols) => {
                 if validate(rom, &rev_symbols) {
-                    log::info!("revision symbol file {rev_name} matches ROM");
+                    if !q {
+                        println!(
+                            "  {} Revision symbol file {} matches ROM",
+                            style("\u{2713}").green().bold(),
+                            style(rev_name).dim(),
+                        );
+                    }
                     return Ok(rev_symbols);
                 }
                 log::debug!("{rev_name} does not match ROM");
             }
             Err(e) => {
-                log::warn!("failed to parse {rev_name}: {e}");
+                if !q {
+                    println!(
+                        "  {} Failed to parse {}: {}",
+                        style("\u{26a0}").yellow().bold(),
+                        style(rev_name).dim(),
+                        style(e).red(),
+                    );
+                }
             }
         }
     }
 
     // 3. Fall back to the default even though it doesn't match.
-    log::warn!(
-        "no matching revision symbol file found — using default ({})",
-        default_name,
-    );
+    if !q {
+        println!(
+            "  {} No matching revision found \u{2014} using default ({})",
+            style("\u{26a0}").yellow().bold(),
+            style(default_name).dim(),
+        );
+    }
     Ok(symbols)
 }
 
