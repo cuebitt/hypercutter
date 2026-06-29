@@ -67,9 +67,10 @@ pub(crate) fn run(
         summary.sprites = count;
         if !q {
             println!(
-                "  {} Extracted {} sprites",
+                "  {} Extracted {} sprites to {}",
                 style("\u{2713}").green().bold(),
                 style(count).bold(),
+                style(sprites_dir.display()).bold(),
             );
         }
         // Also extract and write alternate forms.
