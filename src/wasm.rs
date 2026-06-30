@@ -24,8 +24,10 @@ const USED_SYMBOL_NAMES: &[&str] = &[
     "gMonFrontPicTable",
     "gMonPaletteTable",
     "gMonShinyPaletteTable",
+    "gObjectEventGraphicsInfoPointers",
     "gSpeciesNames",
     "gSpeciesToNationalPokedexNum",
+    "sObjectEventSpritePalettes",
     "sSpeciesToNationalPokedexNum",
     "SpeciesToNationalPokedexNum",
 ];
@@ -37,6 +39,9 @@ const USED_SYMBOL_PREFIXES: &[&str] = &[
     "gMonFrontPic_",
     "gMonPalette_",
     "gMonShinyPalette_",
+    "gObjectEventGraphicsInfo_",
+    "gObjectEventPal_",
+    "gObjectEventPic_",
     "gTilesetPalettes_",
     "gTilesetTiles_",
     "gTileset_",
@@ -130,6 +135,51 @@ impl HypercutterExtractor {
         let extractor = Extractor::new(&self.rom, &self.symbols);
         let names = extractor.species_names().map_err(to_js)?;
         Ok(names.into_iter().map(JsValue::from).collect())
+    }
+
+    /// Returns the names of all overworld sprites.
+    #[wasm_bindgen]
+    pub fn overworld_sprite_names(&self) -> std::result::Result<Vec<JsValue>, JsError> {
+        let extractor = Extractor::new(&self.rom, &self.symbols);
+        let sprites = extractor.overworld_sprites().map_err(to_js)?;
+        Ok(sprites.into_iter().map(|s| JsValue::from(s.name)).collect())
+    }
+
+    /// Returns the RGBA bytes for a single overworld sprite frame as a PNG.
+    #[wasm_bindgen]
+    pub fn render_overworld_frame(
+        &self,
+        name: &str,
+        frame_index: u16,
+    ) -> std::result::Result<Vec<u8>, JsError> {
+        use crate::OverworldSpriteRenderer;
+        let extractor = Extractor::new(&self.rom, &self.symbols);
+        let sprites = extractor.overworld_sprites().map_err(to_js)?;
+        let sprite = sprites
+            .iter()
+            .find(|s| s.name == name)
+            .ok_or_else(|| JsError::new(&format!("unknown overworld sprite: {name}")))?;
+        let frame = sprite
+            .frames
+            .iter()
+            .find(|f| f.index == frame_index)
+            .ok_or_else(|| JsError::new(&format!("frame {frame_index} not found for {name}")))?;
+        let palette = sprite
+            .palette
+            .get(0)
+            .ok_or_else(|| JsError::new("sprite has no palette"))?;
+        let renderer = OverworldSpriteRenderer::new(
+            &frame.tiles,
+            sprite.width_tiles,
+            sprite.height_tiles,
+            palette,
+        );
+        let mut png_bytes: Vec<u8> = Vec::new();
+        renderer
+            .render()
+            .write_png(&mut png_bytes)
+            .map_err(to_js)?;
+        Ok(png_bytes)
     }
 
     /// Returns the names of every symbol from the memory map that

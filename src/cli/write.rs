@@ -7,7 +7,7 @@ use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
-use crate::{Extractor, SpriteRenderer, TilesetRenderer};
+use crate::{render_footprint, Extractor, SpriteRenderer, TilesetRenderer};
 
 use super::{Cli, Summary};
 
@@ -17,12 +17,14 @@ pub(crate) fn run(
     extractor: &Extractor<'_>,
     dump_sprites: bool,
     dump_tilesets: bool,
+    dump_overworld: bool,
 ) -> Result<Summary> {
     let q = cli.quiet;
     let mut summary = Summary {
         tilesets: 0,
         sprites: 0,
         forms: 0,
+        overworld: 0,
     };
 
     if dump_tilesets {
@@ -55,7 +57,7 @@ pub(crate) fn run(
         let national_map = extractor
             .national_dex_map()
             .with_context(|| "loading national dex map")?;
-        let sprites_dir = cli.export.join("pokemon/sprites");
+        let sprites_dir = cli.export.join("sprites/pokemon");
         if !q {
             println!(
                 "  {} Extracting sprites...",
@@ -93,12 +95,35 @@ pub(crate) fn run(
             }
         }
     }
+    if dump_overworld {
+        let overworld = extractor
+            .overworld_sprites()
+            .with_context(|| "extracting overworld sprites")?;
+        let overworld_dir = cli.export.join("sprites/overworld");
+        if !q {
+            println!(
+                "  {} Extracting overworld sprites...",
+                style("\u{2192}").cyan().bold(),
+            );
+        }
+        let count =
+            output::write_overworld_sprites(&overworld, &overworld_dir, cli)?;
+        summary.overworld = count;
+        if !q {
+            println!(
+                "  {} Extracted {} overworld sprites to {}",
+                style("\u{2713}").green().bold(),
+                style(count).bold(),
+                style(overworld_dir.display()).bold(),
+            );
+        }
+    }
     Ok(summary)
 }
 
 pub(crate) mod output {
     use super::*;
-    use crate::{Metatiles, Sprite, SpriteSheet};
+    use crate::{Metatiles, OverworldSprite, Sprite, SpriteSheet};
 
     fn progress_bar(len: u64, quiet: bool) -> ProgressBar {
         if quiet {
@@ -244,7 +269,7 @@ pub(crate) mod output {
             })
             .collect();
 
-        let pb = progress_bar(filtered.len() as u64 * 4, cli.quiet);
+        let pb = progress_bar(filtered.len() as u64 * 5, cli.quiet);
         let count = filtered.len();
 
         filtered.par_iter().try_for_each(|sprite| {
@@ -274,6 +299,12 @@ pub(crate) mod output {
                     }
                     pb.inc(1);
                 }
+            }
+            if let Some(ref fp) = sprite.footprint {
+                let img = render_footprint(fp);
+                let path = species_dir.join("footprint.png");
+                img.save_png(&path)
+                    .with_context(|| format!("saving {}", path.display()))?;
             }
             Ok::<(), anyhow::Error>(())
         })?;
@@ -420,4 +451,198 @@ pub(crate) mod output {
         }
         sheet
     }
+
+    pub(super) fn write_overworld_sprites(
+        sprites: &[OverworldSprite],
+        out_dir: &Path,
+        cli: &Cli,
+    ) -> Result<usize> {
+        if cli.overworld_spritesheet {
+            return write_overworld_spritesheet(sprites, out_dir, cli);
+        }
+        write_overworld_individual(sprites, out_dir, cli)
+    }
+
+    fn write_overworld_individual(
+        sprites: &[OverworldSprite],
+        out_dir: &Path,
+        cli: &Cli,
+    ) -> Result<usize> {
+        std::fs::create_dir_all(out_dir)
+            .with_context(|| format!("creating {}", out_dir.display()))?;
+
+        let filter = cli
+            .overworld_filter
+            .as_deref()
+            .map(glob::Pattern::new)
+            .transpose()
+            .with_context(|| "invalid overworld filter pattern")?;
+
+        let filtered: Vec<_> = sprites
+            .iter()
+            .filter(|s| {
+                if let Some(ref pat) = filter {
+                    pat.matches(&s.name)
+                } else {
+                    true
+                }
+            })
+            .collect();
+
+        let total_frames: u64 = filtered.iter().map(|s| {
+            let base = s.frames.len() as u64;
+            if cli.overworld_shiny && s.shiny_palette.is_some() {
+                base * 2
+            } else {
+                base
+            }
+        }).sum();
+        let pb = progress_bar(total_frames, cli.quiet);
+        let count = filtered.len();
+
+        filtered.par_iter().try_for_each(|sprite| {
+            let sprite_dir = out_dir.join(format!("{:03}_{}", sprite.id, sprite.name));
+            std::fs::create_dir_all(&sprite_dir)
+                .with_context(|| format!("creating {}", sprite_dir.display()))?;
+
+            let palette_data = sprite.palette.get(0);
+            for frame in &sprite.frames {
+                if let Some(pal) = palette_data {
+                    use crate::OverworldSpriteRenderer;
+                    let renderer = OverworldSpriteRenderer::new(
+                        &frame.tiles,
+                        sprite.width_tiles,
+                        sprite.height_tiles,
+                        pal,
+                    );
+                    let img = renderer.render();
+                    let path = sprite_dir.join(format!("frame_{}.png", frame.index));
+                    img.save_png(&path)
+                        .with_context(|| format!("saving {}", path.display()))?;
+                }
+                pb.inc(1);
+            }
+
+            if cli.overworld_shiny {
+                if let Some(shiny_pal_data) = sprite.shiny_palette.as_ref() {
+                    if let Some(shiny_pal) = shiny_pal_data.get(0) {
+                        use crate::OverworldSpriteRenderer;
+                        for frame in &sprite.frames {
+                            let renderer = OverworldSpriteRenderer::new(
+                                &frame.tiles,
+                                sprite.width_tiles,
+                                sprite.height_tiles,
+                                shiny_pal,
+                            );
+                            let img = renderer.render();
+                            let path = sprite_dir.join(format!("frame_{}_shiny.png", frame.index));
+                            img.save_png(&path)
+                                .with_context(|| format!("saving {}", path.display()))?;
+                            pb.inc(1);
+                        }
+                    }
+                }
+            }
+
+            Ok::<(), anyhow::Error>(())
+        })?;
+
+        pb.finish_and_clear();
+
+        let mut list_lines: Vec<String> = Vec::new();
+        for sprite in &filtered {
+            list_lines.push(format!("{}: {}", sprite.id, sprite.name));
+        }
+        std::fs::write(out_dir.join("sprite_list.txt"), list_lines.join("\n"))
+            .with_context(|| "writing sprite_list.txt")?;
+
+        Ok(count)
+    }
+
+    fn write_overworld_spritesheet(
+        sprites: &[OverworldSprite],
+        out_dir: &Path,
+        cli: &Cli,
+    ) -> Result<usize> {
+        std::fs::create_dir_all(out_dir)
+            .with_context(|| format!("creating {}", out_dir.display()))?;
+
+        let filter = cli
+            .overworld_filter
+            .as_deref()
+            .map(glob::Pattern::new)
+            .transpose()
+            .with_context(|| "invalid overworld filter pattern")?;
+
+        let filtered: Vec<_> = sprites
+            .iter()
+            .filter(|s| {
+                if let Some(ref pat) = filter {
+                    pat.matches(&s.name)
+                } else {
+                    true
+                }
+            })
+            .collect();
+
+        let mut normal_imgs = Vec::new();
+        let mut shiny_imgs = Vec::new();
+        let mut sprite_list = Vec::new();
+
+        for sprite in &filtered {
+            if let Some(pal) = sprite.palette.get(0) {
+                if let Some(frame) = sprite.frames.first() {
+                    use crate::OverworldSpriteRenderer;
+                    let renderer = OverworldSpriteRenderer::new(
+                        &frame.tiles,
+                        sprite.width_tiles,
+                        sprite.height_tiles,
+                        pal,
+                    );
+                    normal_imgs.push(renderer.render());
+                    sprite_list.push(sprite.name.clone());
+                }
+            }
+            if cli.overworld_shiny {
+                if let Some(shiny_pal) = sprite.shiny_palette.as_ref().and_then(|p| p.get(0)) {
+                    if let Some(frame) = sprite.frames.first() {
+                        use crate::OverworldSpriteRenderer;
+                        let renderer = OverworldSpriteRenderer::new(
+                            &frame.tiles,
+                            sprite.width_tiles,
+                            sprite.height_tiles,
+                            shiny_pal,
+                        );
+                        shiny_imgs.push(renderer.render());
+                    }
+                }
+            }
+        }
+
+        let columns = cli.overworld_columns;
+        if !normal_imgs.is_empty() {
+            let sheet = compose_spritesheet(&normal_imgs, columns);
+            sheet
+                .save_png(out_dir.join("overworld_spritesheet.png"))
+                .with_context(|| "saving overworld spritesheet")?;
+        }
+        if !shiny_imgs.is_empty() {
+            let sheet = compose_spritesheet(&shiny_imgs, columns);
+            sheet
+                .save_png(out_dir.join("overworld_spritesheet_shiny.png"))
+                .with_context(|| "saving overworld shiny spritesheet")?;
+        }
+
+        let list = sprite_list
+            .into_iter()
+            .enumerate()
+            .map(|(i, name)| format!("{}: {}", i, name))
+            .collect::<Vec<_>>()
+            .join("\n");
+        std::fs::write(out_dir.join("sprite_list.txt"), list)
+            .with_context(|| "writing sprite_list.txt")?;
+
+        Ok(filtered.len())
+    }
+
 }

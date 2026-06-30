@@ -82,6 +82,26 @@ pub struct Cli {
     /// Columns in the spritesheet.
     #[arg(long, default_value_t = 8)]
     pub spritesheet_columns: usize,
+
+    /// Dump overworld object event sprites (NPCs, Pokemon, items, etc.).
+    #[arg(long)]
+    pub overworld: bool,
+
+    /// Glob pattern to filter overworld sprites.
+    #[arg(long, value_name = "PATTERN")]
+    pub overworld_filter: Option<String>,
+
+    /// Include shiny palette variants for overworld sprites.
+    #[arg(long)]
+    pub overworld_shiny: bool,
+
+    /// Output overworld sprites as a spritesheet.
+    #[arg(long)]
+    pub overworld_spritesheet: bool,
+
+    /// Columns in the overworld spritesheet.
+    #[arg(long, default_value_t = 8)]
+    pub overworld_columns: usize,
 }
 
 /// Run the CLI with the given arguments.
@@ -112,11 +132,11 @@ pub fn run(cli: Cli) -> Result<()> {
         );
     }
 
-    let (dump_sprites, dump_tilesets) = resolve_dump_flags(&cli);
+    let (dump_sprites, dump_tilesets, dump_overworld) = resolve_dump_flags(&cli);
     let symbols = sym::load_or_download(&cli, &rom).with_context(|| "loading symbols")?;
 
     if cli.list {
-        return list_contents(&cli, &rom, &symbols, dump_sprites, dump_tilesets);
+        return list_contents(&cli, &rom, &symbols, dump_sprites, dump_tilesets, dump_overworld);
     }
 
     if cli.clear {
@@ -135,7 +155,7 @@ pub fn run(cli: Cli) -> Result<()> {
     }
 
     let extractor = crate::Extractor::new(&rom, &symbols);
-    let summary = write::run(&cli, &extractor, dump_sprites, dump_tilesets)?;
+    let summary = write::run(&cli, &extractor, dump_sprites, dump_tilesets, dump_overworld)?;
 
     let elapsed = start.elapsed();
     if !q {
@@ -148,6 +168,9 @@ pub fn run(cli: Cli) -> Result<()> {
         }
         if summary.forms > 0 {
             parts.push(format!("{} forms", style(summary.forms).bold()));
+        }
+        if summary.overworld > 0 {
+            parts.push(format!("{} overworld", style(summary.overworld).bold()));
         }
         if !parts.is_empty() {
             println!(
@@ -167,12 +190,12 @@ pub fn run(cli: Cli) -> Result<()> {
     Ok(())
 }
 
-fn resolve_dump_flags(cli: &Cli) -> (bool, bool) {
-    let any = cli.sprites || cli.tilesets;
+fn resolve_dump_flags(cli: &Cli) -> (bool, bool, bool) {
+    let any = cli.sprites || cli.tilesets || cli.overworld;
     if any {
-        (cli.sprites, cli.tilesets)
+        (cli.sprites, cli.tilesets, cli.overworld)
     } else {
-        (true, true)
+        (true, true, true)
     }
 }
 
@@ -180,6 +203,7 @@ pub(crate) struct Summary {
     pub tilesets: usize,
     pub sprites: usize,
     pub forms: usize,
+    pub overworld: usize,
 }
 
 fn list_contents(
@@ -188,6 +212,7 @@ fn list_contents(
     symbols: &crate::SymbolTable,
     dump_sprites: bool,
     dump_tilesets: bool,
+    dump_overworld: bool,
 ) -> Result<()> {
     let extractor = crate::Extractor::new(rom, symbols);
 
@@ -239,6 +264,35 @@ fn list_contents(
                 }
             }
             println!("  {:03}: {name}", i);
+        }
+    }
+
+    if dump_overworld {
+        let overworld = extractor
+            .overworld_sprites()
+            .with_context(|| "extracting overworld sprites")?;
+        let filter = cli
+            .overworld_filter
+            .as_deref()
+            .map(glob::Pattern::new)
+            .transpose()
+            .with_context(|| "invalid overworld filter pattern")?;
+
+        println!("{}", style("Overworld sprites:").bold());
+        for sprite in &overworld {
+            if let Some(ref pat) = filter {
+                if !pat.matches(&sprite.name) {
+                    continue;
+                }
+            }
+            println!(
+                "  {:03}: {} ({}x{}, {} frames)",
+                sprite.id,
+                sprite.name,
+                sprite.width_tiles * 8,
+                sprite.height_tiles * 8,
+                sprite.frames.len(),
+            );
         }
     }
 
