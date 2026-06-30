@@ -39,11 +39,6 @@ impl Rom {
 
     /// Construct a ROM from already-loaded bytes and identify its game.
     ///
-    /// # Panics
-    ///
-    /// This function calls `.expect()` on an infallible `try_into()` of a
-    /// known-length slice: the panic will never trigger in practice.
-    ///
     /// # Errors
     ///
     /// Returns [`Error::RomTooSmall`] if `bytes` is smaller than the header,
