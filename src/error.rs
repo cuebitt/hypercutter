@@ -39,6 +39,13 @@ pub enum Error {
         name: &'static str,
     },
 
+    /// A symbol line could not be parsed.
+    #[error("malformed symbol line: {detail}")]
+    MalformedSymbol {
+        /// Description of what made the line unparseable.
+        detail: &'static str,
+    },
+
     /// A ROM address fell outside the loaded bytes.
     #[error("offset 0x{offset:#x} out of range (ROM size 0x{size:#x})")]
     OutOfRange {
