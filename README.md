@@ -10,6 +10,8 @@ Binary extraction tool for GBA Pokemon ROMs. Rust library + CLI + WebAssembly.
 - Render metatiles as PNG images
 - Dump Pokemon battle sprites (front, back, normal, shiny, alternate forms)
 - Per-form palette and shiny palette support
+- Extract overworld object event sprites (NPCs, Pokemon, items, decorations)
+- Extract Pokemon footprints as PNG images
 - CLI and Rust API
 - WebAssembly bindings for in-browser use
 
@@ -47,10 +49,11 @@ Options:
 - `-y, --yes`: Clear without prompting
 - `--overwrite`: Write over existing files without prompting (skips clear)
 
-Output selection (mutually inclusive with each other; omitting both dumps everything):
+Output selection (mutually inclusive with each other; omitting all dumps everything):
 
 - `--tilesets`: Render and export tileset PNGs
 - `--sprites`: Dump Pokemon battle sprites
+- `--overworld`: Dump overworld object event sprites
 
 Output filtering:
 
@@ -62,9 +65,16 @@ Sprite output options (only meaningful with `--sprites`):
 - `--spritesheet`: Output sprites as a spritesheet instead of individual PNGs
 - `--spritesheet-columns`: Columns in spritesheet (default: 8)
 
+Overworld output options (only meaningful with `--overworld`):
+
+- `--overworld-filter <PATTERN>`: Glob pattern to filter overworld sprites
+- `--overworld-shiny`: Include shiny palette variants for overworld sprites
+- `--overworld-spritesheet`: Output overworld sprites as a spritesheet
+- `--overworld-columns`: Columns in overworld spritesheet (default: 8)
+
 Other:
 
-- `--list`: List available tilesets or sprites without extracting
+- `--list`: List available tilesets, sprites, or overworld objects without extracting
 
 ### Output directory structure
 
@@ -74,25 +84,27 @@ out/
 │   ├── General.png
 │   ├── Petalburg.png
 │   └── ...
-└── pokemon/sprites/       # One subdirectory per species
-    ├── 001_bulbasaur/
+├── sprites/pokemon/       # One subdirectory per species
+│   ├── 001_bulbasaur/
+│   │   ├── front.png
+│   │   ├── front_shiny.png
+│   │   ├── back.png
+│   │   ├── back_shiny.png
+│   │   └── footprint.png
+│   ├── 025_pikachu/
+│   │   └── ...
+│   ├── egg/               # Egg sprite (species 412)
+│   └── 000_??????????/    # Circled Question Mark (species 0)
+├── sprites/overworld/     # One subdirectory per overworld sprite
+│   ├── 000_Brendan/
+│   │   ├── frame_0.png
+│   │   └── ...
+│   └── ...
+└── forms/                 # Alternate forms (adjacent to sprites/pokemon)
+    ├── unown_a/
     │   ├── front.png
-    │   ├── front_shiny.png
-    │   ├── back.png
-    │   └── back_shiny.png
-    ├── 025_pikachu/
-    │   └── ...
+    │   └── back.png
     └── ...
-```
-
-When alternate forms exist (e.g. Unown, Castform), they are written under a `forms/` subdirectory:
-
-```
-    025_pikachu/
-    └── forms/
-        └── <form-name>/
-            ├── front.png
-            └── back.png
 ```
 
 ### Symbol file auto-download
@@ -105,8 +117,8 @@ Override with the `HYPERCUTTER_CACHE_DIR` environment variable.
 
 ```rust
 use hypercutter::{
-    Extractor, FormSprite, Game, Rom, SpeciesId, Sprite, SymbolTable,
-    TilesetRenderer, SpriteRenderer,
+    Extractor, Footprint, FormSprite, Game, Rom, SpeciesId, Sprite, SymbolTable,
+    TilesetRenderer, SpriteRenderer, render_footprint,
 };
 
 let rom = Rom::open("pokeemerald.gba")?;
@@ -124,13 +136,22 @@ for (name, entry) in metatiles.iter() {
     // img.save_png("...")?;
 }
 
-// Base species sprites
+// Base species sprites (includes front, back, palette, footprint)
 let sprites: Vec<Sprite> = extractor.sprites()?;
 let names = extractor.species_names()?;
 let national_dex = extractor.national_dex_map()?;
 
+// Render a footprint to PNG
+if let Some(ref fp) = sprites[0].footprint {
+    let img = render_footprint(fp);
+    // img.save_png("bulbasaur_footprint.png")?;
+}
+
 // Alternate forms
 let forms: Vec<FormSprite> = extractor.forms()?;
+
+// Overworld sprites (NPCs, Pokemon, items, decorations)
+let overworld: Vec<OverworldSprite> = extractor.overworld_sprites()?;
 ```
 
 ## WebAssembly / JavaScript
@@ -142,7 +163,7 @@ cargo install wasm-pack
 wasm-pack build --release
 ```
 
-The build target is configured in `wasm-pack.toml`. This produces a `pkg/` directory with
+WASM optimization settings are configured in `Cargo.toml` under `[package.metadata.wasm-pack.profile.release]`. This produces a `pkg/` directory with
 JS glue code, TypeScript types, and a `package.json` ready for npm publishing.
 
 Once published to npm, install with:
@@ -190,12 +211,19 @@ const url = URL.createObjectURL(blob);
 const symbols = ex.symbol_names();
 console.log(symbols); // ["Start", "gMonFrontPicTable", "gTileset_Overworld", ...]
 
-// List species names
+// List species names (by species index)
 const species = ex.species_names();
 console.log(species); // ["bulbasaur", "ivysaur", ...]
 
 // Render a Pokémon sprite (by national dex ID) to PNG bytes
 const spritePng = ex.render_sprite(1); // Bulbasaur front sprite
+
+// List overworld sprite names
+const overworld = ex.overworld_sprite_names();
+console.log(overworld); // ["Brendan", "May", "CuttableTree", ...]
+
+// Render a single frame of an overworld sprite to PNG bytes
+const framePng = ex.render_overworld_frame("Brendan", 0);
 ```
 
 ### Vite
@@ -228,9 +256,11 @@ export default defineConfig({
 | `HypercutterExtractor.game`                    | `getter => string`                                 | Identified game short name                      |
 | `HypercutterExtractor.metatile_names()`        | `() => string[]`                                   | Available metatile group names                  |
 | `HypercutterExtractor.render_tileset(name)`    | `(string) => Uint8Array`                           | Render a tileset as PNG bytes                   |
-| `HypercutterExtractor.species_names()`         | `() => string[]`                                   | All species names by dex order                  |
+| `HypercutterExtractor.species_names()`         | `() => string[]`                                   | All species names by species index order        |
 | `HypercutterExtractor.symbol_names()`          | `() => string[]`                                   | Symbol names used by the extraction logic       |
-| `HypercutterExtractor.render_sprite(speciesId)`| `(number) => Uint8Array`                           | Render a Pokémon front sprite as PNG bytes      |
+| `HypercutterExtractor.render_sprite(id)`       | `(number) => Uint8Array`                           | Render a Pokémon front sprite as PNG bytes      |
+| `HypercutterExtractor.overworld_sprite_names()`| `() => string[]`                                   | Names of all overworld object event sprites     |
+| `HypercutterExtractor.render_overworld_frame(name, frame)` | `(string, number) => Uint8Array`        | Render a single overworld sprite frame          |
 
 ## Development
 
@@ -339,4 +369,4 @@ This project builds on the work of many open-source libraries and tools:
 ### Reference
 
 - [pret/pokeemerald](https://github.com/pret/pokeemerald/tree/symbols), [pret/pokefirered](https://github.com/pret/pokefirered/tree/symbols), [pret/pokeruby](https://github.com/pret/pokeruby/tree/symbols)
-  - Only the memory maps are used. This project contains no content from any Pokemon ROM dump.
+  - Only the memory maps and symbol names are used. This project contains no content from any Pokemon ROM dump, no game code, and no copyrighted assets.
