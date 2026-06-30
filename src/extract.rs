@@ -1,16 +1,17 @@
 //! High-level extraction facade.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use binrw::BinRead;
+
 
 use crate::error::{Error, Result};
 use crate::lzss::decompress as decompress_lzss;
 use crate::lzss::is_lzss;
 use crate::rom::Rom;
 use crate::sprite::{
-    FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteSheet, POKEMON_PALETTE_BYTES,
-    POKEMON_PIC_BYTES,
+    Footprint, FormSprite, MonCoords, MonCoordsOnDisk, OverworldFrame, OverworldSprite,
+    SpeciesId, Sprite, SpriteSheet, POKEMON_PALETTE_BYTES, POKEMON_PIC_BYTES,
 };
 use crate::symbols::SymbolTable;
 use crate::tileset::{
@@ -20,6 +21,19 @@ use crate::tileset::{
 /// Default number of tiles in a primary tileset (Emerald, Ruby, Sapphire).
 const DEFAULT_PRIMARY_TILE_COUNT: u16 = 0x200;
 
+/// Maximum bytes to read when probing for LZSS-compressed data.
+const MAX_LZSS_READ: usize = 0x10000;
+
+/// Maximum bytes to read when probing for a compressed palette block.
+const MAX_PALETTE_READ: usize = 0x1000;
+
+/// Species indices at or above this threshold are alternate-form slots
+/// handled by the `forms()` method rather than `sprites()`.
+const FORM_SPECIES_THRESHOLD: u16 = 413;
+
+/// Length of a species name field in the `gSpeciesNames` table.
+const SPECIES_NAME_LENGTH: usize = 11;
+
 /// Sprite-table symbol names we need for extraction.
 const SPRITE_SYMBOL_NAMES: &[&str] = &[
     "gMonFrontPicTable",
@@ -28,7 +42,37 @@ const SPRITE_SYMBOL_NAMES: &[&str] = &[
     "gMonShinyPaletteTable",
     "gMonFrontPicCoords",
     "gMonBackPicCoords",
+    "gMonFootprintTable",
 ];
+
+/// Overworld sprite symbol names we need for extraction.
+const OVERWORLD_SYMBOL_NAMES: &[&str] = &["gObjectEventGraphicsInfoPointers"];
+
+/// Size of the `ObjectEventGraphicsInfo` struct in bytes (0x24).
+const OBJ_EVENT_GFX_INFO_SIZE: usize = 0x24;
+
+/// On-disk `ObjectEventGraphicsInfo` struct (36 bytes).
+///
+/// Matches the C struct in `include/global.fieldmap.h` of the pret projects.
+#[derive(Debug, Clone, BinRead)]
+#[br(little)]
+#[allow(dead_code)]
+struct ObjectEventGraphicsInfoRaw {
+    tile_tag: u16,
+    palette_tag: u16,
+    reflection_palette_tag: u16,
+    size: u16,
+    width: u16,
+    height: u16,
+    flags: u8,
+    tracks: u8,
+    _padding: u16,
+    oam_ptr: u32,
+    subsprite_tables_ptr: u32,
+    anims_ptr: u32,
+    images_ptr: u32,
+    affine_anims_ptr: u32,
+}
 
 /// Configuration for extraction.
 #[derive(Debug, Clone)]
@@ -310,7 +354,7 @@ impl<'rom> Extractor<'rom> {
                 let end = (offset + length).min(bytes.len());
                 return Ok(bytes[offset..end].to_vec());
             }
-            let max_read = 0x10000usize.min(bytes.len() - offset);
+            let max_read = MAX_LZSS_READ.min(bytes.len() - offset);
             let compressed = &bytes[offset..offset + max_read];
             let decompressed = decompress_lzss(compressed)?;
             Ok(decompressed)
@@ -457,13 +501,8 @@ impl<'rom> Extractor<'rom> {
 
         let mut out = Vec::with_capacity(count);
         for species_id in 0..count {
-            // Skip placeholder species 0.
-            if species_id == 0 {
-                continue;
-            }
-
             // Species 413+ are alternate-form slots handled by forms().
-            if species_id >= 413 {
+            if species_id >= FORM_SPECIES_THRESHOLD as usize {
                 continue;
             }
             let id = SpeciesId(species_id as u16);
@@ -498,20 +537,6 @@ impl<'rom> Extractor<'rom> {
             .cloned()
             .unwrap_or_default();
 
-        // Species 412 is the Egg slot: its name in the ROM is `?` or may
-        // be absent from the name table entirely.
-        let name = if id.0 == 412 && (name == "?" || name.is_empty()) {
-            "egg".to_owned()
-        } else if name.is_empty() {
-            return Ok(None);
-        } else {
-            name
-        };
-
-        if name.starts_with("old_unown") {
-            return Ok(None);
-        }
-
         let front = match front {
             Some(f) => f,
             None => return Ok(None),
@@ -519,6 +544,18 @@ impl<'rom> Extractor<'rom> {
         let back = match back {
             Some(b) => b,
             None => return Ok(None),
+        };
+
+        // Species with no name entry in the ROM table but with valid sprite
+        // data: use a contextual fallback.
+        let name = if name.is_empty() {
+            match id.0 {
+                0 => "question".to_owned(),
+                412 => "egg".to_owned(),
+                _ => return Ok(None),
+            }
+        } else {
+            name
         };
 
         let palette = self
@@ -534,6 +571,8 @@ impl<'rom> Extractor<'rom> {
         let back_coords = self
             .read_mon_coords(back_coords_offset, id.0 as usize)?
             .unwrap_or_default();
+
+        let footprint = self.read_footprint(id, addrs);
 
         let front_sheet = SpriteSheet {
             tiles: TileData::from_bytes(front),
@@ -553,6 +592,7 @@ impl<'rom> Extractor<'rom> {
             shiny_palette,
             front_coords,
             back_coords,
+            footprint,
         }))
     }
 
@@ -608,6 +648,33 @@ impl<'rom> Extractor<'rom> {
         Ok(Some(MonCoords::from_disk(&disk)))
     }
 
+    /// Read a footprint image for a species.
+    ///
+    /// Footprints are 16×16 1bpp images (32 bytes uncompressed) stored in
+    /// the `gMonFootprintTable` (array of `u8*` pointers).
+    fn read_footprint(&self, id: SpeciesId, addrs: &BTreeMap<&'static str, usize>) -> Option<Footprint> {
+        let table_offset = *addrs.get("gMonFootprintTable")?;
+        let elem_offset = table_offset + id.0 as usize * 4;
+        if elem_offset + 4 > self.rom.bytes().len() {
+            return None;
+        }
+        let b = &self.rom.bytes()[elem_offset..elem_offset + 4];
+        let data_ptr = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
+        if data_ptr == 0 {
+            return None;
+        }
+        let data_offset = match self.rom.offset_of(data_ptr) {
+            Ok(o) => o,
+            Err(_) => return None,
+        };
+        if data_offset + 32 > self.rom.bytes().len() {
+            return None;
+        }
+        let mut data = [0u8; 32];
+        data.copy_from_slice(&self.rom.bytes()[data_offset..data_offset + 32]);
+        Some(Footprint { data })
+    }
+
     /// Read all species names from the `gSpeciesNames` table.
     ///
     /// # Errors
@@ -627,7 +694,7 @@ impl<'rom> Extractor<'rom> {
                 name: "gSpeciesNames",
             })?;
         let offset = (sym.address - start) as usize;
-        let name_length: usize = 11;
+        let name_length = SPECIES_NAME_LENGTH;
         let count = (sym.length as usize) / name_length;
         let mut names = Vec::with_capacity(count);
         for i in 0..count {
@@ -737,7 +804,7 @@ impl<'rom> Extractor<'rom> {
             });
             entry.base = SpeciesId(species_index_of(&species, &species_names));
             let offset = (sym.address - start) as usize;
-            let max_read = 0x10000usize.min(self.rom.bytes().len() - offset);
+            let max_read = MAX_LZSS_READ.min(self.rom.bytes().len() - offset);
             let compressed = &self.rom.bytes()[offset..offset + max_read];
             let Ok(mut data) = decompress_lzss(compressed) else {
                 continue;
@@ -812,7 +879,7 @@ impl<'rom> Extractor<'rom> {
                 continue;
             }
             let offset = (sym.address - start) as usize;
-            let max_read = 0x1000usize.min(self.rom.bytes().len() - offset);
+            let max_read = MAX_PALETTE_READ.min(self.rom.bytes().len() - offset);
             let compressed = &self.rom.bytes()[offset..offset + max_read];
             let Ok(pal_data) = decompress_lzss(compressed) else {
                 continue;
@@ -850,7 +917,7 @@ impl<'rom> Extractor<'rom> {
                 continue;
             }
             let offset = (sym.address - start) as usize;
-            let max_read = 0x1000usize.min(self.rom.bytes().len() - offset);
+            let max_read = MAX_PALETTE_READ.min(self.rom.bytes().len() - offset);
             let compressed = &self.rom.bytes()[offset..offset + max_read];
             let Ok(pal_data) = decompress_lzss(compressed) else {
                 continue;
@@ -865,6 +932,300 @@ impl<'rom> Extractor<'rom> {
         }
 
         Ok(by_key.into_values().collect())
+    }
+
+    /// Extract all overworld object event sprites.
+    ///
+    /// Reads the `gObjectEventGraphicsInfoPointers` table to discover every
+    /// overworld sprite, decompresses tile data and palettes, and splits
+    /// multi-frame sprites into individual [`OverworldFrame`] entries.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::SymbolNotFound`] if `Start` or the pointer table
+    /// symbol is missing. Returns [`Error::OutOfRange`] or
+    /// [`Error::Decompression`] if data cannot be read.
+    pub fn overworld_sprites(&self) -> Result<Vec<OverworldSprite>> {
+        let start_sym = self
+            .symbols
+            .get("Start")
+            .ok_or(Error::SymbolNotFound { name: "Start" })?;
+        let start = start_sym.address;
+
+        let table_sym = self
+            .symbols
+            .get(OVERWORLD_SYMBOL_NAMES[0])
+            .ok_or(Error::SymbolNotFound {
+                name: OVERWORLD_SYMBOL_NAMES[0],
+            })?;
+        let table_offset = (table_sym.address - start) as usize;
+        let num_entries = table_sym.length as usize / 4;
+
+        let mut info_syms: Vec<&crate::symbols::Symbol> = self
+            .symbols
+            .iter()
+            .filter(|s| s.name.starts_with("gObjectEventGraphicsInfo_"))
+            .collect();
+        info_syms.sort_by_key(|s| s.address);
+
+        let pal_syms: HashMap<String, &crate::symbols::Symbol> = self
+            .symbols
+            .iter()
+            .filter(|s| s.name.starts_with("gObjectEventPal_"))
+            .filter(|s| !s.name.contains("Null"))
+            .map(|s| {
+                let key = s
+                    .name
+                    .strip_prefix("gObjectEventPal_")
+                    .expect("gObjectEventPal_ prefix verified by filter")
+                    .to_owned();
+                (key, s)
+            })
+            .collect();
+
+        let palette_map = self.build_palette_tag_map(start)?;
+
+        let species_names = self.species_names().unwrap_or_default();
+
+        let mut sprites = Vec::new();
+
+        for idx in 0..num_entries {
+            let ptr_pos = table_offset + idx * 4;
+            if ptr_pos + 4 > self.rom.bytes().len() {
+                break;
+            }
+            let b = &self.rom.bytes()[ptr_pos..ptr_pos + 4];
+            let ptr = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
+            if ptr == 0 {
+                continue;
+            }
+            let info_offset = match self.rom.offset_of(ptr) {
+                Ok(o) => o,
+                Err(_) => continue,
+            };
+            if info_offset + OBJ_EVENT_GFX_INFO_SIZE > self.rom.bytes().len() {
+                continue;
+            }
+            let raw = &self.rom.bytes()[info_offset..info_offset + OBJ_EVENT_GFX_INFO_SIZE];
+            // Manually parse the struct fields (little-endian) to avoid
+            // potential binrw alignment issues with u32 fields.
+            let info_size = u16::from_le_bytes([raw[6], raw[7]]);
+            let info_width = u16::from_le_bytes([raw[8], raw[9]]);
+            let info_height = u16::from_le_bytes([raw[10], raw[11]]);
+            let info_images_ptr = u32::from_le_bytes([raw[28], raw[29], raw[30], raw[31]]);
+            let info_palette_tag = u16::from_le_bytes([raw[2], raw[3]]);
+
+            if info_size == 0 || info_width == 0 || info_height == 0 {
+                continue;
+            }
+
+            // width and height are in pixels.
+            // Convert to tiles for the struct fields.
+            let width_tiles = info_width / 8;
+            let height_tiles = info_height / 8;
+            if width_tiles == 0 || height_tiles == 0 {
+                continue;
+            }
+            // 4bpp: 32 bytes per 8x8 tile.
+            let frame_size = width_tiles as usize * height_tiles as usize * 32;
+            if frame_size == 0 {
+                continue;
+            }
+
+            let name = info_syms
+                .iter()
+                .find(|s| {
+                    let offset = (s.address - start) as usize;
+                    offset == info_offset
+                })
+                .map(|s| {
+                    s.name
+                        .strip_prefix("gObjectEventGraphicsInfo_")
+                        .unwrap_or(&s.name)
+                        .to_owned()
+                })
+                .unwrap_or_else(|| format!("Unknown_{idx}"));
+
+            let tile_data = self.read_frame_data(info_images_ptr);
+            let tile_data = match tile_data {
+                Some(d) => d,
+                None => continue,
+            };
+            if tile_data.is_empty() {
+                continue;
+            }
+
+            let frame_count = tile_data.len() / frame_size;
+            if frame_count == 0 {
+                continue;
+            }
+
+            let palette = self.resolve_palette(
+                info_palette_tag,
+                &name,
+                &palette_map,
+                &pal_syms,
+                start,
+            );
+            let shiny_palette = self.resolve_shiny_palette(&name, &species_names);
+
+            let mut frames = Vec::with_capacity(frame_count);
+            for f in 0..frame_count {
+                let offset = f * frame_size;
+                let end = (offset + frame_size).min(tile_data.len());
+                let raw = &tile_data[offset..end];
+                let rearranged = rearrange_quadrant_tiles(raw, width_tiles, height_tiles);
+                frames.push(OverworldFrame {
+                    tiles: TileData::from_bytes(rearranged),
+                    index: f as u16,
+                });
+            }
+
+            if frames.is_empty() {
+                continue;
+            }
+
+            sprites.push(OverworldSprite {
+                id: idx as u16,
+                name,
+                width_tiles,
+                height_tiles,
+                total_size: info_size,
+                frames,
+                palette,
+                shiny_palette,
+            });
+        }
+
+        sprites.sort_by_key(|a| a.id);
+        Ok(sprites)
+    }
+
+
+
+    /// Build a mapping from palette tag → palette data ROM address.
+    ///
+    /// Reads the `sObjectEventSpritePalettes` local symbol if available.
+    fn build_palette_tag_map(
+        &self,
+        start: u32,
+    ) -> Result<HashMap<u16, u32>> {
+        let mut map = HashMap::new();
+        let Some(sym) = self.symbols.get("sObjectEventSpritePalettes") else {
+            return Ok(map);
+        };
+        let offset = (sym.address - start) as usize;
+        let count = sym.length as usize / 8;
+        for i in 0..count {
+            let pos = offset + i * 8;
+            if pos + 8 > self.rom.bytes().len() {
+                break;
+            }
+            let b = &self.rom.bytes()[pos..pos + 8];
+            let data_ptr = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
+            // The pret struct is { data, size, tag } but the table is
+            // initialized as { ptr, tag_value } — the tag goes into the
+            // `size` field; the `tag` field is zero-padded.
+            let tag = u16::from_le_bytes([b[4], b[5]]);
+            if tag != 0 && data_ptr != 0 {
+                map.insert(tag, data_ptr);
+            }
+        }
+        Ok(map)
+    }
+
+    /// Read tile data by following the `images` pointer in the graphics info.
+    ///
+    /// The `images_ptr` points to a `SpriteFrameImage` table. Each entry is
+    /// `{ data_ptr: u32, size: u16, _pad: u16 }` (8 bytes, padded to align).
+    /// We read the first entry's data pointer, find the matching pic symbol
+    /// in the .sym file to get the data bounds, and decompress that range.
+    fn read_frame_data(&self, images_ptr: u32) -> Option<Vec<u8>> {
+        let images_offset = self.rom.offset_of(images_ptr).ok()?;
+        let bytes = self.rom.bytes();
+
+        // Read the first SpriteFrameImage entry to get the data pointer.
+        if images_offset + 8 > bytes.len() {
+            return None;
+        }
+        let b = &bytes[images_offset..images_offset + 4];
+        let data_ptr = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
+        if data_ptr == 0 {
+            return None;
+        }
+
+        // Find the symbol whose address matches this data pointer to get bounds.
+        if let Some(sym) = self.symbols.by_address(data_ptr) {
+            let data = self.read_field(data_ptr, sym.length as usize, true).ok()?;
+            if data.is_empty() {
+                None
+            } else {
+                Some(data)
+            }
+        } else {
+            // Fallback: read up to 64KB
+            let data = self.read_field(data_ptr, MAX_LZSS_READ, true).ok()?;
+            if data.is_empty() {
+                None
+            } else {
+                Some(data)
+            }
+        }
+    }
+
+    /// Resolve a palette for an overworld sprite given its palette tag.
+    fn resolve_palette(
+        &self,
+        palette_tag: u16,
+        name: &str,
+        palette_map: &HashMap<u16, u32>,
+        pal_syms: &HashMap<String, &crate::symbols::Symbol>,
+        start: u32,
+    ) -> PaletteData {
+        if palette_tag == 0 {
+            return PaletteData::default();
+        }
+        if let Some(&data_ptr) = palette_map.get(&palette_tag) {
+            if let Ok(raw) = self.read_field(data_ptr, 32, true) {
+                if let Ok(p) = PaletteData::from_bgr555(&raw) {
+                    return p;
+                }
+            }
+        }
+        if let Some(sym) = pal_syms.get(name) {
+            let offset = (sym.address - start) as usize;
+            if offset + 32 <= self.rom.bytes().len() {
+                let slice = slice_lzss(self.rom, offset);
+                if let Ok(raw) = decompress_lzss(slice) {
+                    if let Ok(p) = PaletteData::from_bgr555(&raw) {
+                        return p;
+                    }
+                }
+            }
+        }
+        PaletteData::default()
+    }
+
+    /// Derive a shiny palette for an overworld sprite from the battle sprite palette.
+    fn resolve_shiny_palette(
+        &self,
+        name: &str,
+        species_names: &[String],
+    ) -> Option<PaletteData> {
+        let lower = name.to_ascii_lowercase();
+        let species_idx = species_names.iter().position(|n| n == &lower)?;
+        let start_sym = self.symbols.get("Start")?;
+        let start = start_sym.address;
+        let table_sym = self.symbols.get("gMonShinyPaletteTable")?;
+        let table_offset = (table_sym.address - start) as usize;
+        let elem_offset = table_offset + species_idx * 8;
+        let b = &self.rom.bytes()[elem_offset..elem_offset + 8];
+        let data_ptr = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
+        if data_ptr == 0 {
+            return None;
+        }
+        let raw = self.read_field(data_ptr, POKEMON_PALETTE_BYTES, true).ok()?;
+        PaletteData::from_bgr555(&raw).ok()
     }
 }
 
@@ -893,7 +1254,7 @@ fn find_primary<'a>(
 }
 
 fn slice_lzss(rom: &Rom, offset: usize) -> &[u8] {
-    let end = (offset + 0x10000).min(rom.bytes().len());
+    let end = (offset + MAX_LZSS_READ).min(rom.bytes().len());
     &rom.bytes()[offset..end]
 }
 
@@ -1017,6 +1378,59 @@ pub fn pokemon_char(b: u8) -> Option<&'static str> {
         0xE1 => "D",
         _ => return None,
     })
+}
+
+/// Rearrange tile data from GBA quadrant layout to row-major order.
+///
+/// The GBA OAM stores tiles for sprites larger than 64x64 in quadrants:
+///   - Top-left: tiles 0..N
+///   - Top-right: tiles N..2N
+///   - Bottom-left: tiles 2N..3N
+///   - Bottom-right: tiles 3N..4N
+///
+/// where N = (width_tiles/2) * (height_tiles/2).
+///
+/// This function rearranges them into row-major order so that tile index `i`
+/// corresponds to column `i % width_tiles` and row `i / width_tiles`.
+///
+/// For sprites ≤ 64x64, the data is already in row-major order and this
+/// function returns a copy unchanged.
+fn rearrange_quadrant_tiles(data: &[u8], width_tiles: u16, height_tiles: u16) -> Vec<u8> {
+    const TILE_BYTES: usize = 32; // 4bpp: 32 bytes per 8x8 tile
+    let total_tiles = width_tiles as usize * height_tiles as usize;
+    let expected = total_tiles * TILE_BYTES;
+
+    // Only rearrange for the 2×2 quadrant layout used by 128x64 sprites.
+    // Sprites without -mwidth (like SS Tidal) use default row-major order.
+    if width_tiles <= 8 || height_tiles < 8 || data.len() < expected {
+        return data[..data.len().min(expected)].to_vec();
+    }
+
+    let half_w = width_tiles as usize / 2;
+    let half_h = height_tiles as usize / 2;
+    let quadrant_tiles = half_w * half_h;
+
+    let mut out = vec![0u8; expected];
+
+    for qy in 0..2 {
+        for qx in 0..2 {
+            let src_q = (qy * 2 + qx) * quadrant_tiles;
+            for ty in 0..half_h {
+                for tx in 0..half_w {
+                    let src_idx = src_q + ty * half_w + tx;
+                    let dst_idx = (qy * half_h + ty) * width_tiles as usize + (qx * half_w + tx);
+                    let src_byte = src_idx * TILE_BYTES;
+                    let dst_byte = dst_idx * TILE_BYTES;
+                    if src_byte + TILE_BYTES <= data.len() && dst_byte + TILE_BYTES <= out.len() {
+                        out[dst_byte..dst_byte + TILE_BYTES]
+                            .copy_from_slice(&data[src_byte..src_byte + TILE_BYTES]);
+                    }
+                }
+            }
+        }
+    }
+
+    out
 }
 
 #[cfg(test)]
