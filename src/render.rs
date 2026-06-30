@@ -1,8 +1,8 @@
 //! Render tilesets and Pokemon sprites into [`RgbaImage`] buffers.
 
 use crate::graphics::{decode_tile_4bpp, Rgba, RgbaImage};
-use crate::sprite::{Sprite, SpriteSheet};
-use crate::tileset::{Palette, PaletteData, Tileset, TILE_SIZE};
+use crate::sprite::{Footprint, Sprite, SpriteSheet};
+use crate::tileset::{Palette, PaletteData, TileData, Tileset, TILE_SIZE};
 
 /// Width and height of a single metatile in pixels.
 const METATILE_PX: u32 = 16;
@@ -212,14 +212,14 @@ impl<'a> SpriteRenderer<'a> {
     /// used for positioning within the frame, not for clipping.
     #[must_use]
     pub fn render(&self) -> RgbaImage {
-        const FRAME_TILES: usize = 8; // 64 / 8
-        let width_px = (FRAME_TILES * 8) as u32;
-        let height_px = (FRAME_TILES * 8) as u32;
+        let width_px = crate::MON_PIC_WIDTH_TILES as u32 * 8;
+        let height_px = crate::MON_PIC_HEIGHT_TILES as u32 * 8;
         let mut img = RgbaImage::new(width_px, height_px);
 
-        for tile_y in 0..FRAME_TILES {
-            for tile_x in 0..FRAME_TILES {
-                let tile_idx = tile_y * FRAME_TILES + tile_x;
+        let tiles = crate::MON_PIC_WIDTH_TILES as usize;
+        for tile_y in 0..tiles {
+            for tile_x in 0..tiles {
+                let tile_idx = tile_y * tiles + tile_x;
                 let Some(tile) = self.sheet.tiles.tile(tile_idx) else {
                     continue;
                 };
@@ -257,6 +257,82 @@ pub fn renderer_for_sprite(sprite: &Sprite, is_front: bool) -> Option<SpriteRend
     };
     let palette = sprite_palette(&sprite.palette)?;
     Some(SpriteRenderer::new(sheet, palette))
+}
+
+/// Renderer for a single overworld sprite frame (variable dimensions, 4bpp).
+#[derive(Debug)]
+pub struct OverworldSpriteRenderer<'a> {
+    frame: &'a TileData,
+    width_tiles: u16,
+    height_tiles: u16,
+    palette: &'a Palette,
+}
+
+impl<'a> OverworldSpriteRenderer<'a> {
+    /// Create a renderer for the given overworld frame.
+    #[must_use]
+    pub const fn new(frame: &'a TileData, width_tiles: u16, height_tiles: u16, palette: &'a Palette) -> Self {
+        Self {
+            frame,
+            width_tiles,
+            height_tiles,
+            palette,
+        }
+    }
+
+    /// Render the frame to an RGBA image.
+    #[must_use]
+    pub fn render(&self) -> RgbaImage {
+        let w = self.width_tiles as u32 * 8;
+        let h = self.height_tiles as u32 * 8;
+        let mut img = RgbaImage::new(w, h);
+        for tile_y in 0..self.height_tiles {
+            for tile_x in 0..self.width_tiles {
+                let tile_idx = tile_y * self.width_tiles + tile_x;
+                let Some(tile) = self.frame.tile(tile_idx as usize) else {
+                    continue;
+                };
+                let indices = decode_tile_4bpp(tile);
+                for (i, &idx) in indices.iter().enumerate() {
+                    let x = tile_x as u32 * 8 + (i % 8) as u32;
+                    let y = tile_y as u32 * 8 + (i / 8) as u32;
+                    let color = self.palette.0[idx as usize % 16];
+                    let pixel = if idx == 0 {
+                        Rgba::TRANSPARENT
+                    } else {
+                        color
+                    };
+                    img.set_pixel(x, y, pixel);
+                }
+            }
+        }
+        img
+    }
+}
+
+/// Render a Pokemon footprint (16×16 1bpp) into an RGBA image.
+#[must_use]
+pub fn render_footprint(fp: &Footprint) -> RgbaImage {
+    const W: u32 = 16;
+    const H: u32 = 16;
+    let mut img = RgbaImage::new(W, H);
+    for y in 0..H {
+        for x in 0..W {
+            let tile_x = (x / 8) as usize;
+            let tile_y = (y / 8) as usize;
+            let tile_idx = tile_y * 2 + tile_x;
+            let in_tile_x = (x % 8) as usize;
+            let in_tile_y = (y % 8) as usize;
+            let byte_idx = tile_idx * 8 + in_tile_y;
+            let bit = 1 << in_tile_x;
+            if fp.data[byte_idx] & bit != 0 {
+                img.set_pixel(x, y, Rgba(0, 0, 0, 255));
+            } else {
+                img.set_pixel(x, y, Rgba::TRANSPARENT);
+            }
+        }
+    }
+    img
 }
 
 #[cfg(test)]

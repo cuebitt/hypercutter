@@ -8,18 +8,10 @@ use crate::tileset::TileData;
 
 /// Width of a Pokemon battle sprite frame in tiles.
 pub const MON_PIC_WIDTH_TILES: u8 = 8;
-/// Height of a Pokemon battle sprite frame in tiles.
 pub const MON_PIC_HEIGHT_TILES: u8 = 8;
 
-/// Pixels per side of a 4bpp Pokemon frame.
-pub const MON_PIC_PIXELS: u16 = 64;
-/// Bytes in a fully-populated 64×64 4bpp sprite frame.
-pub const MON_PIC_BYTES: usize = 2048;
-/// Bytes in a fully-populated 64×64 4bpp sprite frame
-/// (used by the form-packing heuristic).
 pub const POKEMON_PIC_BYTES: usize = 2048;
 
-/// Bytes in a single 16-color Pokemon palette.
 pub const POKEMON_PALETTE_BYTES: usize = 32;
 
 /// Identifier for a Pokemon species.
@@ -96,7 +88,7 @@ pub struct SpriteSheet {
     pub coords: MonCoords,
 }
 
-/// A full base-species sprite (front, back, normal and shiny palettes).
+/// A full base-species sprite (front, back, normal and shiny palettes, footprint).
 #[derive(Debug, Clone)]
 pub struct Sprite {
     /// Species id.
@@ -115,6 +107,15 @@ pub struct Sprite {
     pub front_coords: MonCoords,
     /// Back sprite coords.
     pub back_coords: MonCoords,
+    /// Footprint image (16×16, 1bpp), if present.
+    pub footprint: Option<Footprint>,
+}
+
+/// A 16×16 1bpp footprint image (32 bytes).
+#[derive(Debug, Clone)]
+pub struct Footprint {
+    /// Raw 1bpp tile data (4 tiles × 32 bytes each = 128 bytes expanded).
+    pub data: [u8; 32],
 }
 
 /// An alternate-form sprite (e.g. Unown B, Deoxys Attack).
@@ -131,6 +132,36 @@ pub struct FormSprite {
     /// Normal palette, if any.
     pub palette: Option<PaletteData>,
     /// Shiny palette, if any.
+    pub shiny_palette: Option<PaletteData>,
+}
+
+/// A single frame of an overworld sprite.
+#[derive(Debug, Clone)]
+pub struct OverworldFrame {
+    /// Decompressed 4bpp tile data for this frame.
+    pub tiles: TileData,
+    /// Frame index (0-based).
+    pub index: u16,
+}
+
+/// An overworld object event sprite (NPC, Pokemon, item ball, tree, etc.).
+#[derive(Debug, Clone)]
+pub struct OverworldSprite {
+    /// Index in `gObjectEventGraphicsInfoPointers`.
+    pub id: u16,
+    /// Name derived from the symbol (e.g. "BrendanNormal", "ItemBall").
+    pub name: String,
+    /// Width in 8x8 tiles.
+    pub width_tiles: u16,
+    /// Height in 8x8 tiles.
+    pub height_tiles: u16,
+    /// Total decompressed tile data size in bytes.
+    pub total_size: u16,
+    /// Animation frames (derived from total_size / frame_size).
+    pub frames: Vec<OverworldFrame>,
+    /// Normal palette.
+    pub palette: PaletteData,
+    /// Optional shiny palette (derived from battle sprite palette).
     pub shiny_palette: Option<PaletteData>,
 }
 
