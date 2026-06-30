@@ -39,18 +39,21 @@ pub use error::{Error, Result};
 pub use extract::{pokemon_char, ExtractOptions, Extractor, MetatileEntry, Metatiles};
 pub use graphics::{bgr555_to_rgba, decode_tile_4bpp, Rgba, RgbaImage};
 pub use lzss::{decompress as decompress_lzss, is_lzss};
-pub use render::{renderer_for_sprite, sprite_palette, SpriteRenderer, TilesetRenderer};
+pub use render::{
+    render_footprint, renderer_for_sprite, sprite_palette, OverworldSpriteRenderer,
+    SpriteRenderer, TilesetRenderer,
+};
 pub use rom::{
     Game, GameProfile, Rom, DEFAULT_ROM_BASE_ADDRESS, GAME_CODE_LENGTH, GAME_CODE_OFFSET,
 };
 pub use sprite::{
-    FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteExport, SpriteSheet,
-    MON_PIC_BYTES, MON_PIC_HEIGHT_TILES, MON_PIC_PIXELS, MON_PIC_WIDTH_TILES,
-    POKEMON_PALETTE_BYTES, POKEMON_PIC_BYTES,
+    Footprint, FormSprite, MonCoords, MonCoordsOnDisk, OverworldFrame, OverworldSprite,
+    SpeciesId, Sprite, SpriteExport, SpriteSheet, MON_PIC_HEIGHT_TILES,
+    MON_PIC_WIDTH_TILES, POKEMON_PALETTE_BYTES, POKEMON_PIC_BYTES,
 };
 pub use symbols::{Scope, Symbol, SymbolTable};
 pub use tileset::{
-    read_ptr_table, read_slice_at, read_struct_at, read_u32_at, MapLayout, Metatile, MetatileData,
+    read_ptr_table, read_struct_at, MapLayout, Metatile, MetatileData,
     MetatileLayer, MetatileLayerBits, Palette, PaletteData, TileData, Tileset, TilesetHeader,
-    MAP_LAYOUT_SIZE, METATILE_LAYER_COUNT, PALETTE_COLORS, PALETTE_COUNT, TILESET_SIZE, TILE_SIZE,
+    METATILE_LAYER_COUNT, PALETTE_COLORS, PALETTE_COUNT, TILE_SIZE,
 };
