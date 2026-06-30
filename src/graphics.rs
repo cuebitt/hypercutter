@@ -21,18 +21,17 @@ impl Rgba {
 /// Convert a 16-bit BGR555 color to 8-bit RGBA with full opacity.
 ///
 /// The GBA stores 5 bits per channel in the order B-G-R, with the top bit
-/// unused. Each 5-bit value is expanded to 8 bits by replicating the top
-/// 3 bits into the low bits.
+/// unused. Each 5-bit value is scaled to 8 bits by multiplying by 8.
 #[must_use]
 pub const fn bgr555_to_rgba(c: u16) -> Rgba {
     let r5 = c & 0x1F;
     let g5 = (c >> 5) & 0x1F;
     let b5 = (c >> 10) & 0x1F;
-    Rgba(expand_5_to_8(r5), expand_5_to_8(g5), expand_5_to_8(b5), 255)
+    Rgba(scale_5_to_8(r5), scale_5_to_8(g5), scale_5_to_8(b5), 255)
 }
 
-const fn expand_5_to_8(v: u16) -> u8 {
-    ((v << 3) | (v >> 2)) as u8
+const fn scale_5_to_8(v: u16) -> u8 {
+    (v * 8) as u8
 }
 
 /// Decode 32 bytes of 4bpp tile data into 64 palette indices (row-major, 8×8).
@@ -237,25 +236,25 @@ mod tests {
 
     #[test]
     fn bgr555_white_is_rgba_white() {
-        assert_eq!(bgr555_to_rgba(0x7FFF), Rgba(255, 255, 255, 255));
+        assert_eq!(bgr555_to_rgba(0x7FFF), Rgba(248, 248, 248, 255));
     }
 
     #[test]
     fn bgr555_pure_red() {
         // Low bit is R; pure red is R=31, G=0, B=0 → 0x001F
-        assert_eq!(bgr555_to_rgba(0x001F), Rgba(255, 0, 0, 255));
+        assert_eq!(bgr555_to_rgba(0x001F), Rgba(248, 0, 0, 255));
     }
 
     #[test]
     fn bgr555_pure_green() {
         // Middle bits are G; pure green is G=31, R=0, B=0 → 0x03E0
-        assert_eq!(bgr555_to_rgba(0x03E0), Rgba(0, 255, 0, 255));
+        assert_eq!(bgr555_to_rgba(0x03E0), Rgba(0, 248, 0, 255));
     }
 
     #[test]
     fn bgr555_pure_blue() {
         // High bits are B; pure blue is B=31, R=0, G=0 → 0x7C00
-        assert_eq!(bgr555_to_rgba(0x7C00), Rgba(0, 0, 255, 255));
+        assert_eq!(bgr555_to_rgba(0x7C00), Rgba(0, 0, 248, 255));
     }
 
     #[test]
