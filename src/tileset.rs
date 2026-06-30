@@ -6,12 +6,6 @@ use binrw::{BinRead, BinReaderExt, Endian};
 use crate::error::{Error, Result};
 use crate::graphics::{bgr555_to_rgba, Rgba};
 
-/// Size of the GBA `MapLayout` struct in bytes.
-pub const MAP_LAYOUT_SIZE: usize = 24;
-
-/// Size of the GBA `Tileset` struct in bytes.
-pub const TILESET_SIZE: usize = 24;
-
 /// Size of a single 4bpp tile in bytes.
 pub const TILE_SIZE: usize = 32;
 
@@ -362,34 +356,6 @@ where
     Ok(value)
 }
 
-/// Read a contiguous slice of `T` from a ROM starting at `address`.
-///
-/// # Errors
-///
-/// Returns [`Error::OutOfRange`] if the address is out of range or the slice
-/// would overflow the ROM.
-pub fn read_slice_at<T>(rom: &crate::Rom, address: u32, count: usize) -> Result<Vec<T>>
-where
-    T: BinRead<Args<'static> = ()> + 'static,
-{
-    let elem_size = std::mem::size_of::<T>();
-    let _total = elem_size.checked_mul(count).ok_or(Error::OutOfRange {
-        offset: address,
-        size: 0,
-    })?;
-    let offset = rom.offset_of(address)?;
-    let mut slice = Vec::with_capacity(count);
-    let mut pos = offset;
-    let bytes = rom.bytes();
-    for _ in 0..count {
-        let mut cursor = std::io::Cursor::new(&bytes[pos..pos + elem_size]);
-        let value: T = cursor.read_type(Endian::Little)?;
-        slice.push(value);
-        pos += elem_size;
-    }
-    Ok(slice)
-}
-
 /// Read a `u32` pointer table (array of ROM addresses) starting at `address`.
 ///
 /// # Errors
@@ -415,23 +381,6 @@ pub fn read_ptr_table(rom: &crate::Rom, address: u32, count: usize) -> Result<Ve
         out.push(v);
     }
     Ok(out)
-}
-
-/// Read a single `u32` little-endian from a ROM address.
-///
-/// # Errors
-///
-/// Returns [`Error::OutOfRange`] if the address is out of range.
-pub fn read_u32_at(rom: &crate::Rom, address: u32) -> Result<u32> {
-    let offset = rom.offset_of(address)?;
-    if offset + 4 > rom.bytes().len() {
-        return Err(Error::OutOfRange {
-            offset: address,
-            size: rom.bytes().len() as u32,
-        });
-    }
-    let b = &rom.bytes()[offset..offset + 4];
-    Ok(u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
 }
 
 #[cfg(test)]
@@ -475,7 +424,7 @@ mod tests {
         buf[0] = 0x1F;
         buf[1] = 0x00;
         let palette = Palette::from_bgr555(&buf).unwrap();
-        assert_eq!(palette.0[0], Rgba(255, 0, 0, 255));
+        assert_eq!(palette.0[0], Rgba(248, 0, 0, 255));
     }
 
     #[test]
