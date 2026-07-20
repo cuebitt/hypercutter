@@ -224,7 +224,7 @@ impl Game {
         }
     }
 
-    /// Short identifier used in CLI flags and the `.sym` URL.
+    /// Short identifier used in CLI flags and symbol file naming.
     #[must_use]
     pub const fn short_name(self) -> &'static str {
         match self {
@@ -236,60 +236,6 @@ impl Game {
         }
     }
 
-    /// pret disassembly repository name on GitHub.
-    #[must_use]
-    pub const fn sym_repo(self) -> &'static str {
-        match self {
-            Self::Emerald => "pokeemerald",
-            Self::FireRed | Self::LeafGreen => "pokefirered",
-            Self::Ruby | Self::Sapphire => "pokeruby",
-        }
-    }
-
-    /// Default symbol file name for this game.
-    #[must_use]
-    pub const fn default_sym_file(self) -> &'static str {
-        match self {
-            Self::Emerald => "pokeemerald.sym",
-            Self::FireRed | Self::LeafGreen => "pokefirered.sym",
-            Self::Ruby | Self::Sapphire => "pokeruby.sym",
-        }
-    }
-
-    /// URL to download the default `.sym` file for this game.
-    #[must_use]
-    pub fn sym_url(self) -> String {
-        format!(
-            "https://cdn.jsdelivr.net/gh/pret/{repo}@symbols/{file}",
-            repo = self.sym_repo(),
-            file = self.default_sym_file(),
-        )
-    }
-
-    /// URL to download a revision-specific `.sym` file for this game.
-    #[must_use]
-    pub fn sym_url_for_file(self, file: &str) -> String {
-        format!(
-            "https://cdn.jsdelivr.net/gh/pret/{repo}@symbols/{file}",
-            repo = self.sym_repo(),
-            file = file,
-        )
-    }
-
-    /// Revision `.sym` filenames to try when the default does not match.
-    ///
-    /// Returns an empty slice for games without known revisions.
-    #[must_use]
-    pub fn revision_sym_files(self) -> &'static [&'static str] {
-        match self {
-            Self::Ruby => &["pokeruby_rev1.sym", "pokeruby_rev2.sym"],
-            Self::Sapphire => &["pokesapphire_rev1.sym", "pokesapphire_rev2.sym"],
-            Self::FireRed => &["pokefirered_rev1.sym"],
-            Self::LeafGreen => &["pokeleafgreen_rev1.sym"],
-            Self::Emerald => &[],
-        }
-    }
-
     /// Number of tiles in this game's primary tileset.
     #[must_use]
     pub const fn primary_tile_count(self) -> u16 {
@@ -298,37 +244,32 @@ impl Game {
             _ => 0x200,
         }
     }
-}
 
-/// Per-game configuration that drives symbol download and extraction.
-#[derive(Debug, Clone)]
-pub struct GameProfile {
-    /// The game this profile describes.
-    pub game: Game,
-    /// SHA-256 → symbol filename overrides for ROM revisions.
-    pub revisions: Vec<(String, &'static str)>,
-}
-
-impl GameProfile {
-    /// Return the canonical `.sym` URL for a known SHA-256, if any.
+    /// Bundled TOML symbol tables for this game, in try-order (default first,
+    /// then revision-specific). Each is embedded via `include_str!`.
     #[must_use]
-    pub fn sym_url_for(&self, sha256: &str) -> Option<String> {
-        let (_, filename) = self.revisions.iter().find(|(s, _)| s == sha256)?;
-        Some(format!(
-            "https://cdn.jsdelivr.net/gh/pret/{repo}@symbols/{file}",
-            repo = self.game.sym_repo(),
-            file = filename,
-        ))
-    }
-
-    /// Default `.sym` URL when the SHA-256 is not in the revision table.
-    #[must_use]
-    pub fn default_sym_url(&self) -> String {
-        format!(
-            "https://cdn.jsdelivr.net/gh/pret/{repo}@symbols/{file}",
-            repo = self.game.sym_repo(),
-            file = self.game.default_sym_file(),
-        )
+    pub fn bundled_symbol_tables(self) -> &'static [&'static str] {
+        match self {
+            Self::Emerald => &[include_str!("../symbols/emerald.toml")],
+            Self::FireRed => &[
+                include_str!("../symbols/firered.toml"),
+                include_str!("../symbols/firered_rev1.toml"),
+            ],
+            Self::LeafGreen => &[
+                include_str!("../symbols/leafgreen.toml"),
+                include_str!("../symbols/leafgreen_rev1.toml"),
+            ],
+            Self::Ruby => &[
+                include_str!("../symbols/ruby.toml"),
+                include_str!("../symbols/ruby_rev1.toml"),
+                include_str!("../symbols/ruby_rev2.toml"),
+            ],
+            Self::Sapphire => &[
+                include_str!("../symbols/sapphire.toml"),
+                include_str!("../symbols/sapphire_rev1.toml"),
+                include_str!("../symbols/sapphire_rev2.toml"),
+            ],
+        }
     }
 }
 

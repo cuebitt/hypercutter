@@ -13,7 +13,7 @@ pub mod write;
 /// Command-line arguments.
 #[derive(Parser, Debug)]
 #[command(
-    name = "hypercutter",
+    name = "hc",
     version,
     about = "Extract data from GBA Pokemon ROMs",
     long_about = None
@@ -22,16 +22,12 @@ pub struct Cli {
     /// Path to a .gba ROM file.
     pub rom: PathBuf,
 
-    /// Game to use for symbol file download. Supported:
-    /// emerald, firered, leafgreen, ruby, sapphire.
-    #[arg(short, long)]
-    pub game: Option<String>,
-
-    /// Path to a .sym file (auto-downloaded if not provided).
+    /// Path to a symbol file (TOML, or legacy .sym).
+    /// By default, bundled symbol tables are used.
     #[arg(long = "sym-file", value_name = "SYM")]
     pub sym_file: Option<PathBuf>,
 
-    /// Directory to export PNGs.
+    /// Directory to export data to.
     #[arg(short, long, default_value = "out")]
     pub export: PathBuf,
 
@@ -82,6 +78,12 @@ pub struct Cli {
     /// Columns in the spritesheet.
     #[arg(long, default_value_t = 8)]
     pub spritesheet_columns: usize,
+
+    /// Use the flat export format (tileset PNGs + battle sprite PNGs).
+    /// By default, hc exports a sprite pack (field/overworld sprites in a
+    /// facing-frames grid layout with a manifest.json).
+    #[arg(long)]
+    pub flat: bool,
 }
 
 /// Run the CLI with the given arguments.
@@ -89,7 +91,7 @@ pub struct Cli {
 /// # Errors
 ///
 /// Returns an error if the ROM cannot be opened, symbols cannot be loaded,
-/// or any PNG export fails.
+/// or any export fails.
 pub fn run(cli: Cli) -> Result<()> {
     let start = std::time::Instant::now();
     let q = cli.quiet;
@@ -112,33 +114,39 @@ pub fn run(cli: Cli) -> Result<()> {
         );
     }
 
-    let (dump_sprites, dump_tilesets) = resolve_dump_flags(&cli);
-    let symbols = sym::load_or_download(&cli, &rom).with_context(|| "loading symbols")?;
+    let use_flat = cli.flat || cli.sprites || cli.tilesets;
+    let symbols = sym::load_symbols(&cli, &rom).with_context(|| "loading symbols")?;
+
+    if use_flat {
+        run_flat(&cli, &rom, &symbols, start)?;
+    } else {
+        run_pack(&cli, &rom, &symbols, start)?;
+    }
+
+    Ok(())
+}
+
+fn run_flat(
+    cli: &Cli,
+    rom: &crate::Rom,
+    symbols: &crate::SymbolTable,
+    start: std::time::Instant,
+) -> Result<()> {
+    let q = cli.quiet;
+    let (dump_sprites, dump_tilesets) = resolve_flat_flags(cli);
+    let dump_any = dump_sprites || dump_tilesets;
 
     if cli.list {
-        return list_contents(&cli, &rom, &symbols, dump_sprites, dump_tilesets);
+        return list_contents(cli, rom, symbols, dump_sprites, dump_tilesets);
     }
 
-    if cli.clear {
-        clear_dir(&cli.export)?;
-    } else if !cli.yes
-        && !cli.overwrite
-        && has_contents(&cli.export)
-        && !q
-        && !prompt_clear(&cli.export)?
-    {
-        println!(
-            "  {} Skipping clear of {}",
-            style("\u{2192}").cyan().bold(),
-            style(cli.export.display()).bold(),
-        );
-    }
+    ensure_clear(cli)?;
 
-    let extractor = crate::Extractor::new(&rom, &symbols);
-    let summary = write::run(&cli, &extractor, dump_sprites, dump_tilesets)?;
-
+    let extractor = crate::Extractor::new(rom, symbols);
+    let summary = write::run(cli, &extractor, dump_sprites, dump_tilesets)?;
     let elapsed = start.elapsed();
-    if !q {
+
+    if !q && dump_any {
         let mut parts = Vec::new();
         if summary.tilesets > 0 {
             parts.push(format!("{} tilesets", style(summary.tilesets).bold()));
@@ -157,6 +165,9 @@ pub fn run(cli: Cli) -> Result<()> {
                 style(cli.export.display()).bold(),
             );
         }
+    }
+
+    if !q {
         println!(
             "  {} Done in {}",
             style("\u{2192}").cyan().bold(),
@@ -167,13 +178,60 @@ pub fn run(cli: Cli) -> Result<()> {
     Ok(())
 }
 
-fn resolve_dump_flags(cli: &Cli) -> (bool, bool) {
+fn run_pack(
+    cli: &Cli,
+    rom: &crate::Rom,
+    symbols: &crate::SymbolTable,
+    start: std::time::Instant,
+) -> Result<()> {
+    let q = cli.quiet;
+
+    if cli.list {
+        anyhow::bail!("--list is only supported with --flat (sprite pack mode has no tileset/battle-sprite listing)");
+    }
+
+    ensure_clear(cli)?;
+
+    crate::sprite_pack::write_pack(rom, symbols, &cli.export)
+        .with_context(|| "writing sprite pack")?;
+
+    if !q {
+        let elapsed = start.elapsed();
+        println!(
+            "  {} Done in {}",
+            style("\u{2192}").cyan().bold(),
+            style(format!("{:.2?}", elapsed)).bold(),
+        );
+    }
+
+    Ok(())
+}
+
+fn resolve_flat_flags(cli: &Cli) -> (bool, bool) {
     let any = cli.sprites || cli.tilesets;
     if any {
         (cli.sprites, cli.tilesets)
     } else {
         (true, true)
     }
+}
+
+fn ensure_clear(cli: &Cli) -> Result<()> {
+    if cli.clear {
+        clear_dir(&cli.export)?;
+    } else if !cli.yes
+        && !cli.overwrite
+        && has_contents(&cli.export)
+        && !cli.quiet
+        && !prompt_clear(&cli.export)?
+    {
+        println!(
+            "  {} Skipping clear of {}",
+            style("\u{2192}").cyan().bold(),
+            style(cli.export.display()).bold(),
+        );
+    }
+    Ok(())
 }
 
 pub(crate) struct Summary {

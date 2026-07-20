@@ -1,0 +1,4774 @@
+game = "emerald"
+revision = ""
+start = 134217728
+
+[[tables]]
+name = "Start"
+offset = 0
+
+[[tables]]
+name = "SpeciesToNationalPokedexNum"
+offset = 447652
+
+[[tables]]
+name = "gSpeciesNames"
+offset = 3245512
+
+[[tables]]
+name = "sSpeciesToNationalPokedexNum"
+offset = 3267714
+
+[[tables]]
+name = "gMapLayouts"
+offset = 4726228
+
+[[tables]]
+name = "sObjectEventSpritePalettes"
+offset = 5290952
+
+[[tilesets]]
+name = "gTileset_BattleArena"
+offset = 4062476
+tiles = 3707984
+palettes = 3710860
+[[tilesets]]
+name = "gTileset_BattleDome"
+offset = 4062404
+tiles = 3692352
+palettes = 3697040
+[[tilesets]]
+name = "gTileset_BattleFactory"
+offset = 4062428
+tiles = 3697552
+palettes = 3702140
+[[tilesets]]
+name = "gTileset_BattleFrontier"
+offset = 4062356
+tiles = 3686084
+palettes = 3689416
+[[tilesets]]
+name = "gTileset_BattleFrontierOutsideEast"
+offset = 4061292
+tiles = 3466724
+palettes = 3471748
+[[tilesets]]
+name = "gTileset_BattleFrontierOutsideWest"
+offset = 4061268
+tiles = 3459252
+palettes = 3466212
+[[tilesets]]
+name = "gTileset_BattleFrontierRankingHall"
+offset = 4062644
+tiles = 3744856
+palettes = 3746988
+[[tilesets]]
+name = "gTileset_BattlePalace"
+offset = 4062380
+tiles = 3689928
+palettes = 3691840
+[[tilesets]]
+name = "gTileset_BattlePike"
+offset = 4062452
+tiles = 3702652
+palettes = 3707472
+[[tilesets]]
+name = "gTileset_BattlePyramid"
+offset = 4062500
+tiles = 3711372
+palettes = 3715996
+[[tilesets]]
+name = "gTileset_BattleTent"
+offset = 4062668
+tiles = 3747500
+palettes = 3750160
+[[tilesets]]
+name = "gTileset_BikeShop"
+offset = 4061652
+tiles = 3551376
+palettes = 3556288
+[[tilesets]]
+name = "gTileset_BrendansMaysHouse"
+offset = 4061940
+tiles = 3596460
+palettes = 3600760
+[[tilesets]]
+name = "gTileset_Building"
+offset = 4061316
+[[tilesets]]
+name = "gTileset_CableClub"
+offset = 4061532
+tiles = 3513292
+palettes = 3533516
+[[tilesets]]
+name = "gTileset_Cave"
+offset = 4061388
+tiles = 3487604
+palettes = 3494496
+[[tilesets]]
+name = "gTileset_Contest"
+offset = 4061892
+tiles = 3587644
+palettes = 3590544
+[[tilesets]]
+name = "gTileset_Dewford"
+offset = 4061004
+tiles = 3391680
+palettes = 3396928
+[[tilesets]]
+name = "gTileset_DewfordGym"
+offset = 4062132
+tiles = 3625268
+palettes = 3625984
+[[tilesets]]
+name = "gTileset_EliteFour"
+offset = 4062332
+tiles = 3681352
+palettes = 3685572
+[[tilesets]]
+name = "gTileset_EverGrande"
+offset = 4061196
+tiles = 3444752
+palettes = 3447848
+[[tilesets]]
+name = "gTileset_Facility"
+offset = 4061628
+tiles = 3543516
+palettes = 3550864
+[[tilesets]]
+name = "gTileset_Fallarbor"
+offset = 4061100
+tiles = 3420200
+palettes = 3426208
+[[tilesets]]
+name = "gTileset_Fortree"
+offset = 4061124
+tiles = 3426720
+palettes = 3432480
+[[tilesets]]
+name = "gTileset_FortreeGym"
+offset = 4062228
+tiles = 3632464
+palettes = 3633348
+[[tilesets]]
+name = "gTileset_General"
+offset = 4060932
+[[tilesets]]
+name = "gTileset_GenericBuilding"
+offset = 4062060
+tiles = 3611032
+palettes = 3617732
+[[tilesets]]
+name = "gTileset_InsideOfTruck"
+offset = 4061844
+tiles = 3586528
+palettes = 3587132
+[[tilesets]]
+name = "gTileset_InsideShip"
+offset = 4062276
+tiles = 3644536
+palettes = 3647560
+[[tilesets]]
+name = "gTileset_IslandHarbor"
+offset = 4062572
+tiles = 3725316
+palettes = 3731924
+[[tilesets]]
+name = "gTileset_Lab"
+offset = 4061964
+tiles = 3601272
+palettes = 3605468
+[[tilesets]]
+name = "gTileset_Lavaridge"
+offset = 4061076
+tiles = 3414316
+palettes = 3419688
+[[tilesets]]
+name = "gTileset_LavaridgeGym"
+offset = 4062180
+tiles = 3628932
+palettes = 3629740
+[[tilesets]]
+name = "gTileset_Lilycove"
+offset = 4061148
+tiles = 3432992
+palettes = 3438016
+[[tilesets]]
+name = "gTileset_LilycoveMuseum"
+offset = 4061916
+tiles = 3591056
+palettes = 3595948
+[[tilesets]]
+name = "gTileset_Mauville"
+offset = 4061052
+tiles = 3406088
+palettes = 3413804
+[[tilesets]]
+name = "gTileset_MauvilleGameCorner"
+offset = 4062084
+tiles = 3618244
+palettes = 3621512
+[[tilesets]]
+name = "gTileset_MauvilleGym"
+offset = 4062156
+tiles = 3626496
+palettes = 3628420
+[[tilesets]]
+name = "gTileset_MeteorFalls"
+offset = 4061484
+tiles = 3500832
+palettes = 3508288
+[[tilesets]]
+name = "gTileset_MirageTower"
+offset = 4062524
+tiles = 3716508
+palettes = 3723236
+[[tilesets]]
+name = "gTileset_Mossdeep"
+offset = 4061172
+tiles = 3438528
+palettes = 3444240
+[[tilesets]]
+name = "gTileset_MossdeepGameCorner"
+offset = 4062548
+tiles = 3723748
+palettes = 3724804
+[[tilesets]]
+name = "gTileset_MossdeepGym"
+offset = 4062252
+tiles = 3633860
+palettes = 3634992
+[[tilesets]]
+name = "gTileset_MysteryEventsHouse"
+offset = 4062692
+tiles = 3750672
+palettes = 3757176
+[[tilesets]]
+name = "gTileset_NavelRock"
+offset = 4062620
+tiles = 3737284
+palettes = 3744344
+[[tilesets]]
+name = "gTileset_OceanicMuseum"
+offset = 4061508
+tiles = 3508800
+palettes = 3512780
+[[tilesets]]
+name = "gTileset_Pacifidlog"
+offset = 4061220
+tiles = 3448360
+palettes = 3454388
+[[tilesets]]
+name = "gTileset_Petalburg"
+offset = 4060956
+tiles = 3382792
+palettes = 3385092
+[[tilesets]]
+name = "gTileset_PetalburgGym"
+offset = 4062012
+tiles = 3630252
+palettes = 3631952
+[[tilesets]]
+name = "gTileset_PokemonCenter"
+offset = 4061364
+tiles = 3482332
+palettes = 3487092
+[[tilesets]]
+name = "gTileset_PokemonDayCare"
+offset = 4061604
+tiles = 3540384
+palettes = 3543004
+[[tilesets]]
+name = "gTileset_PokemonFanClub"
+offset = 4061436
+tiles = 3497384
+palettes = 3499732
+[[tilesets]]
+name = "gTileset_PokemonSchool"
+offset = 4061412
+tiles = 3495008
+palettes = 3496872
+[[tilesets]]
+name = "gTileset_PrettyPetalFlowerShop"
+offset = 4061580
+tiles = 3536808
+palettes = 3539872
+[[tilesets]]
+name = "gTileset_Rustboro"
+offset = 4060980
+tiles = 3385604
+palettes = 3391168
+[[tilesets]]
+name = "gTileset_RustboroGym"
+offset = 4062108
+tiles = 3623856
+palettes = 3624756
+[[tilesets]]
+name = "gTileset_RusturfTunnel"
+offset = 4061676
+tiles = 3556800
+palettes = 3559432
+[[tilesets]]
+name = "gTileset_SeashoreHouse"
+offset = 4061556
+tiles = 3534028
+palettes = 3536296
+[[tilesets]]
+name = "gTileset_SecretBase"
+offset = 4062300
+tiles = 3648072
+palettes = 3680840
+[[tilesets]]
+name = "gTileset_SecretBaseBlueCave"
+offset = 4061772
+tiles = 3578560
+palettes = 3566640
+[[tilesets]]
+name = "gTileset_SecretBaseBrownCave"
+offset = 4061700
+tiles = 3570592
+palettes = 3561352
+[[tilesets]]
+name = "gTileset_SecretBaseRedCave"
+offset = 4061820
+tiles = 3583872
+palettes = 3570080
+[[tilesets]]
+name = "gTileset_SecretBaseShrub"
+offset = 4061748
+tiles = 3575904
+palettes = 3565076
+[[tilesets]]
+name = "gTileset_SecretBaseTree"
+offset = 4061724
+tiles = 3573248
+palettes = 3563180
+[[tilesets]]
+name = "gTileset_SecretBaseYellowCave"
+offset = 4061796
+tiles = 3581216
+palettes = 3568488
+[[tilesets]]
+name = "gTileset_Shop"
+offset = 4061340
+tiles = 3476156
+palettes = 3481820
+[[tilesets]]
+name = "gTileset_Slateport"
+offset = 4061028
+tiles = 3397440
+palettes = 3405576
+[[tilesets]]
+name = "gTileset_Sootopolis"
+offset = 4061244
+tiles = 3454900
+palettes = 3458740
+[[tilesets]]
+name = "gTileset_SootopolisGym"
+offset = 4062036
+tiles = 3635504
+palettes = 3640004
+[[tilesets]]
+name = "gTileset_TrainerHill"
+offset = 4062596
+tiles = 3732436
+palettes = 3736772
+[[tilesets]]
+name = "gTileset_TrickHousePuzzle"
+offset = 4062204
+tiles = 3640516
+palettes = 3644024
+[[tilesets]]
+name = "gTileset_Underwater"
+offset = 4061988
+tiles = 3605980
+palettes = 3610520
+[[tilesets]]
+name = "gTileset_UnionRoom"
+offset = 4062716
+tiles = 3758200
+palettes = 3757688
+[[tilesets]]
+name = "gTileset_Unused1"
+offset = 4061460
+tiles = 3500244
+palettes = 3500320
+[[tilesets]]
+name = "gTileset_Unused2"
+offset = 4061868
+tiles = 3622024
+palettes = 3623344
+
+[[metatiles]]
+name = "gMetatiles_General"
+offset = 3760368
+
+[[metatiles]]
+name = "gMetatiles_Petalburg"
+offset = 3769584
+
+[[metatiles]]
+name = "gMetatiles_Rustboro"
+offset = 3772176
+
+[[metatiles]]
+name = "gMetatiles_Dewford"
+offset = 3778476
+
+[[metatiles]]
+name = "gMetatiles_Slateport"
+offset = 3785298
+
+[[metatiles]]
+name = "gMetatiles_Mauville"
+offset = 3792606
+
+[[metatiles]]
+name = "gMetatiles_Lavaridge"
+offset = 3801786
+
+[[metatiles]]
+name = "gMetatiles_Fallarbor"
+offset = 3809724
+
+[[metatiles]]
+name = "gMetatiles_Fortree"
+offset = 3816330
+
+[[metatiles]]
+name = "gMetatiles_Lilycove"
+offset = 3821370
+
+[[metatiles]]
+name = "gMetatiles_Mossdeep"
+offset = 3827688
+
+[[metatiles]]
+name = "gMetatiles_EverGrande"
+offset = 3835860
+
+[[metatiles]]
+name = "gMetatiles_Pacifidlog"
+offset = 3838884
+
+[[metatiles]]
+name = "gMetatiles_Sootopolis"
+offset = 3842538
+
+[[metatiles]]
+name = "gMetatiles_BattleFrontierOutsideWest"
+offset = 3847110
+
+[[metatiles]]
+name = "gMetatiles_BattleFrontierOutsideEast"
+offset = 3856290
+
+[[metatiles]]
+name = "gMetatiles_InsideBuilding"
+offset = 3865470
+
+[[metatiles]]
+name = "gMetatiles_Shop"
+offset = 3865614
+
+[[metatiles]]
+name = "gMetatiles_PokemonCenter"
+offset = 3870816
+
+[[metatiles]]
+name = "gMetatiles_Cave"
+offset = 3874992
+
+[[metatiles]]
+name = "gMetatiles_PokemonSchool"
+offset = 3882444
+
+[[metatiles]]
+name = "gMetatiles_PokemonFanClub"
+offset = 3883488
+
+[[metatiles]]
+name = "gMetatiles_Unused1"
+offset = 3885360
+
+[[metatiles]]
+name = "gMetatiles_MeteorFalls"
+offset = 3885396
+
+[[metatiles]]
+name = "gMetatiles_OceanicMuseum"
+offset = 3888258
+
+[[metatiles]]
+name = "gMetatiles_CableClub"
+offset = 3890454
+
+[[metatiles]]
+name = "gMetatiles_SeashoreHouse"
+offset = 3895062
+
+[[metatiles]]
+name = "gMetatiles_PrettyPetalFlowerShop"
+offset = 3896070
+
+[[metatiles]]
+name = "gMetatiles_PokemonDayCare"
+offset = 3897366
+
+[[metatiles]]
+name = "gMetatiles_Facility"
+offset = 3898590
+
+[[metatiles]]
+name = "gMetatiles_BikeShop"
+offset = 3907788
+
+[[metatiles]]
+name = "gMetatiles_RusturfTunnel"
+offset = 3912252
+
+[[metatiles]]
+name = "gMetatiles_SecretBaseSecondary"
+offset = 3913746
+
+[[metatiles]]
+name = "gMetatiles_InsideOfTruck"
+offset = 3919578
+
+[[metatiles]]
+name = "gMetatiles_Contest"
+offset = 3920262
+
+[[metatiles]]
+name = "gMetatiles_LilycoveMuseum"
+offset = 3924456
+
+[[metatiles]]
+name = "gMetatiles_BrendansMaysHouse"
+offset = 3927030
+
+[[metatiles]]
+name = "gMetatiles_Lab"
+offset = 3930558
+
+[[metatiles]]
+name = "gMetatiles_Underwater"
+offset = 3933402
+
+[[metatiles]]
+name = "gMetatiles_GenericBuilding"
+offset = 3937650
+
+[[metatiles]]
+name = "gMetatiles_MauvilleGameCorner"
+offset = 3946866
+
+[[metatiles]]
+name = "gMetatiles_Unused2"
+offset = 3948594
+
+[[metatiles]]
+name = "gMetatiles_RustboroGym"
+offset = 3949638
+
+[[metatiles]]
+name = "gMetatiles_DewfordGym"
+offset = 3950646
+
+[[metatiles]]
+name = "gMetatiles_MauvilleGym"
+offset = 3951888
+
+[[metatiles]]
+name = "gMetatiles_LavaridgeGym"
+offset = 3953994
+
+[[metatiles]]
+name = "gMetatiles_PetalburgGym"
+offset = 3955092
+
+[[metatiles]]
+name = "gMetatiles_FortreeGym"
+offset = 3959124
+
+[[metatiles]]
+name = "gMetatiles_MossdeepGym"
+offset = 3960564
+
+[[metatiles]]
+name = "gMetatiles_SootopolisGym"
+offset = 3962670
+
+[[metatiles]]
+name = "gMetatiles_TrickHousePuzzle"
+offset = 3964866
+
+[[metatiles]]
+name = "gMetatiles_InsideShip"
+offset = 3968268
+
+[[metatiles]]
+name = "gMetatiles_SecretBasePrimary"
+offset = 3972804
+
+[[metatiles]]
+name = "gMetatiles_EliteFour"
+offset = 3972840
+
+[[metatiles]]
+name = "gMetatiles_BattleFrontier"
+offset = 3978816
+
+[[metatiles]]
+name = "gMetatiles_BattlePalace"
+offset = 3987978
+
+[[metatiles]]
+name = "gMetatiles_BattleDome"
+offset = 3991110
+
+[[metatiles]]
+name = "gMetatiles_BattleFactory"
+offset = 3998796
+
+[[metatiles]]
+name = "gMetatiles_BattlePike"
+offset = 4005168
+
+[[metatiles]]
+name = "gMetatiles_BattleArena"
+offset = 4011414
+
+[[metatiles]]
+name = "gMetatiles_BattlePyramid"
+offset = 4014600
+
+[[metatiles]]
+name = "gMetatiles_MirageTower"
+offset = 4018578
+
+[[metatiles]]
+name = "gMetatiles_MossdeepGameCorner"
+offset = 4026030
+
+[[metatiles]]
+name = "gMetatiles_IslandHarbor"
+offset = 4026984
+
+[[metatiles]]
+name = "gMetatiles_TrainerHill"
+offset = 4035444
+
+[[metatiles]]
+name = "gMetatiles_NavelRock"
+offset = 4044192
+
+[[metatiles]]
+name = "gMetatiles_BattleFrontierRankingHall"
+offset = 4052310
+
+[[metatiles]]
+name = "gMetatiles_BattleTent"
+offset = 4054002
+
+[[metatiles]]
+name = "gMetatiles_MysteryEventsHouse"
+offset = 4058844
+
+[[metatiles]]
+name = "gMetatiles_UnionRoom"
+offset = 4060050
+
+[[pokemon_tables]]
+name = "gMonFrontPicCoords"
+offset = 3149112
+
+[[pokemon_tables]]
+name = "gMonBackPicCoords"
+offset = 3154392
+
+[[pokemon_tables]]
+name = "gMonBackPicTable"
+offset = 3156152
+
+[[pokemon_tables]]
+name = "gMonPaletteTable"
+offset = 3159672
+
+[[pokemon_tables]]
+name = "gMonShinyPaletteTable"
+offset = 3163192
+
+[[pokemon_tables]]
+name = "gMonFrontPicTable"
+offset = 3187084
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfoPointers"
+offset = 5264928
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BrendanNormal"
+offset = 5282132
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BrendanMachBike"
+offset = 5282168
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BrendanAcroBike"
+offset = 5282204
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BrendanSurfing"
+offset = 5282240
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BrendanFieldMove"
+offset = 5282276
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_QuintyPlump"
+offset = 5282312
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_NinjaBoy"
+offset = 5282348
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Twin"
+offset = 5282384
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Boy1"
+offset = 5282420
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Girl1"
+offset = 5282456
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Boy2"
+offset = 5282492
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Girl2"
+offset = 5282528
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_LittleBoy"
+offset = 5282564
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_LittleGirl"
+offset = 5282600
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Boy3"
+offset = 5282636
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Girl3"
+offset = 5282672
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RichBoy"
+offset = 5282708
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Woman1"
+offset = 5282744
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_FatMan"
+offset = 5282780
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_PokefanF"
+offset = 5282816
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Man1"
+offset = 5282852
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Woman2"
+offset = 5282888
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ExpertM"
+offset = 5282924
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ExpertF"
+offset = 5282960
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Man2"
+offset = 5282996
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Woman3"
+offset = 5283032
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_PokefanM"
+offset = 5283068
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Woman4"
+offset = 5283104
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Cook"
+offset = 5283140
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_LinkReceptionist"
+offset = 5283176
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_OldMan"
+offset = 5283212
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_OldWoman"
+offset = 5283248
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Camper"
+offset = 5283284
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Picnicker"
+offset = 5283320
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Man3"
+offset = 5283356
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Woman5"
+offset = 5283392
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Youngster"
+offset = 5283428
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BugCatcher"
+offset = 5283464
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_PsychicM"
+offset = 5283500
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SchoolKidM"
+offset = 5283536
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Maniac"
+offset = 5283572
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_HexManiac"
+offset = 5283608
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RayquazaStill"
+offset = 5283644
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SwimmerM"
+offset = 5283680
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SwimmerF"
+offset = 5283716
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BlackBelt"
+offset = 5283752
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Beauty"
+offset = 5283788
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Scientist1"
+offset = 5283824
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Lass"
+offset = 5283860
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Gentleman"
+offset = 5283896
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Sailor"
+offset = 5283932
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Fisherman"
+offset = 5283968
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RunningTriathleteM"
+offset = 5284004
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RunningTriathleteF"
+offset = 5284040
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_TuberF"
+offset = 5284076
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_TuberM"
+offset = 5284112
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Hiker"
+offset = 5284148
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_CyclingTriathleteM"
+offset = 5284184
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_CyclingTriathleteF"
+offset = 5284220
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Nurse"
+offset = 5284256
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ItemBall"
+offset = 5284292
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BerryTree"
+offset = 5284328
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BerryTreeEarlyStages"
+offset = 5284364
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BerryTreeLateStages"
+offset = 5284400
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ProfBirch"
+offset = 5284436
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Man4"
+offset = 5284472
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Man5"
+offset = 5284508
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ReporterM"
+offset = 5284544
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ReporterF"
+offset = 5284580
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Bard"
+offset = 5284616
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Hipster"
+offset = 5284652
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Trader"
+offset = 5284688
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Storyteller"
+offset = 5284724
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Giddy"
+offset = 5284760
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_UnusedMauvilleOldMan1"
+offset = 5284796
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_UnusedMauvilleOldMan2"
+offset = 5284832
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_UnusedNatuDoll"
+offset = 5284868
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_UnusedMagnemiteDoll"
+offset = 5284904
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_UnusedSquirtleDoll"
+offset = 5284940
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_UnusedWooperDoll"
+offset = 5284976
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_UnusedPikachuDoll"
+offset = 5285012
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_UnusedPorygon2Doll"
+offset = 5285048
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_CuttableTree"
+offset = 5285084
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MartEmployee"
+offset = 5285120
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RooftopSaleWoman"
+offset = 5285156
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Teala"
+offset = 5285192
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BreakableRock"
+offset = 5285228
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_PushableBoulder"
+offset = 5285264
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MrBrineysBoat"
+offset = 5285300
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MayNormal"
+offset = 5285336
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MayMachBike"
+offset = 5285372
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MayAcroBike"
+offset = 5285408
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MaySurfing"
+offset = 5285444
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MayFieldMove"
+offset = 5285480
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Truck"
+offset = 5285516
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_VigorothCarryingBox"
+offset = 5285552
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_VigorothFacingAway"
+offset = 5285588
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BirchsBag"
+offset = 5285624
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_EnemyZigzagoon"
+offset = 5285660
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Poochyena"
+offset = 5285696
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Artist"
+offset = 5285732
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalBrendanNormal"
+offset = 5285768
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalBrendanMachBike"
+offset = 5285804
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalBrendanAcroBike"
+offset = 5285840
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalBrendanSurfing"
+offset = 5285876
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalBrendanFieldMove"
+offset = 5285912
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalMayNormal"
+offset = 5285948
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalMayMachBike"
+offset = 5285984
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalMayAcroBike"
+offset = 5286020
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalMaySurfing"
+offset = 5286056
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RivalMayFieldMove"
+offset = 5286092
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Cameraman"
+offset = 5286128
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BrendanUnderwater"
+offset = 5286164
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MayUnderwater"
+offset = 5286200
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MovingBox"
+offset = 5286236
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_CableCar"
+offset = 5286272
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Scientist2"
+offset = 5286308
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_DevonEmployee"
+offset = 5286344
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_AquaMemberM"
+offset = 5286380
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_AquaMemberF"
+offset = 5286416
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MagmaMemberM"
+offset = 5286452
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MagmaMemberF"
+offset = 5286488
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Sidney"
+offset = 5286524
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Phoebe"
+offset = 5286560
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Glacia"
+offset = 5286596
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Drake"
+offset = 5286632
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Roxanne"
+offset = 5286668
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Brawly"
+offset = 5286704
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Wattson"
+offset = 5286740
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Flannery"
+offset = 5286776
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Norman"
+offset = 5286812
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Winona"
+offset = 5286848
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Liza"
+offset = 5286884
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Tate"
+offset = 5286920
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Wallace"
+offset = 5286956
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Steven"
+offset = 5286992
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Wally"
+offset = 5287028
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RubySapphireLittleBoy"
+offset = 5287064
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BrendanFishing"
+offset = 5287100
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MayFishing"
+offset = 5287136
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_HotSpringsOldWoman"
+offset = 5287172
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SSTidal"
+offset = 5287208
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SubmarineShadow"
+offset = 5287244
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_PichuDoll"
+offset = 5287280
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_PikachuDoll"
+offset = 5287316
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MarillDoll"
+offset = 5287352
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_TogepiDoll"
+offset = 5287388
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_CyndaquilDoll"
+offset = 5287424
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ChikoritaDoll"
+offset = 5287460
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_TotodileDoll"
+offset = 5287496
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_JigglypuffDoll"
+offset = 5287532
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MeowthDoll"
+offset = 5287568
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ClefairyDoll"
+offset = 5287604
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_DittoDoll"
+offset = 5287640
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SmoochumDoll"
+offset = 5287676
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_TreeckoDoll"
+offset = 5287712
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_TorchicDoll"
+offset = 5287748
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MudkipDoll"
+offset = 5287784
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_DuskullDoll"
+offset = 5287820
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_WynautDoll"
+offset = 5287856
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BaltoyDoll"
+offset = 5287892
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_KecleonDoll"
+offset = 5287928
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_AzurillDoll"
+offset = 5287964
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SkittyDoll"
+offset = 5288000
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SwabluDoll"
+offset = 5288036
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_GulpinDoll"
+offset = 5288072
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_LotadDoll"
+offset = 5288108
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SeedotDoll"
+offset = 5288144
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_PikaCushion"
+offset = 5288180
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RoundCushion"
+offset = 5288216
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_KissCushion"
+offset = 5288252
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ZigzagCushion"
+offset = 5288288
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_SpinCushion"
+offset = 5288324
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_DiamondCushion"
+offset = 5288360
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BallCushion"
+offset = 5288396
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_GrassCushion"
+offset = 5288432
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_FireCushion"
+offset = 5288468
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_WaterCushion"
+offset = 5288504
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigSnorlaxDoll"
+offset = 5288540
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigRhydonDoll"
+offset = 5288576
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigLaprasDoll"
+offset = 5288612
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigVenusaurDoll"
+offset = 5288648
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigCharizardDoll"
+offset = 5288684
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigBlastoiseDoll"
+offset = 5288720
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigWailmerDoll"
+offset = 5288756
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigRegirockDoll"
+offset = 5288792
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigRegiceDoll"
+offset = 5288828
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BigRegisteelDoll"
+offset = 5288864
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Latias"
+offset = 5288900
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Latios"
+offset = 5288936
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_GameboyKid"
+offset = 5288972
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_ContestJudge"
+offset = 5289008
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BrendanWatering"
+offset = 5289044
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MayWatering"
+offset = 5289080
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BrendanDecorating"
+offset = 5289116
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MayDecorating"
+offset = 5289152
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Archie"
+offset = 5289188
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Maxie"
+offset = 5289224
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_KyogreFront"
+offset = 5289260
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_GroudonFront"
+offset = 5289296
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_KyogreSide"
+offset = 5289332
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_GroudonSide"
+offset = 5289368
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Fossil"
+offset = 5289404
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Regirock"
+offset = 5289440
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Regice"
+offset = 5289476
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Registeel"
+offset = 5289512
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Skitty"
+offset = 5289548
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Kecleon"
+offset = 5289584
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_KyogreAsleep"
+offset = 5289620
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_GroudonAsleep"
+offset = 5289656
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Rayquaza"
+offset = 5289692
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Zigzagoon"
+offset = 5289728
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Pikachu"
+offset = 5289764
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Azumarill"
+offset = 5289800
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Wingull"
+offset = 5289836
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_KecleonBridgeShadow"
+offset = 5289872
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_TuberMSwimming"
+offset = 5289908
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Azurill"
+offset = 5289944
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Mom"
+offset = 5289980
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_LinkBrendan"
+offset = 5290016
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_LinkMay"
+offset = 5290052
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Juan"
+offset = 5290088
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Scott"
+offset = 5290124
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_MysteryEventDeliveryman"
+offset = 5290160
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Statue"
+offset = 5290196
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Kirlia"
+offset = 5290232
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Dusclops"
+offset = 5290268
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_UnionRoomAttendant"
+offset = 5290304
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Red"
+offset = 5290340
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Leaf"
+offset = 5290376
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Sudowoodo"
+offset = 5290412
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Mew"
+offset = 5290448
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Deoxys"
+offset = 5290484
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_BirthIslandStone"
+offset = 5290520
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Anabel"
+offset = 5290556
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Tucker"
+offset = 5290592
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Greta"
+offset = 5290628
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Spenser"
+offset = 5290664
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Noland"
+offset = 5290700
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Lucy"
+offset = 5290736
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Brandon"
+offset = 5290772
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RubySapphireBrendan"
+offset = 5290808
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_RubySapphireMay"
+offset = 5290844
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_Lugia"
+offset = 5290880
+
+[[field_sprites]]
+name = "gObjectEventGraphicsInfo_HoOh"
+offset = 5290916
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Brendan"
+offset = 4818936
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_RubySapphireBrendan"
+offset = 4823576
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null1"
+offset = 4823608
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null2"
+offset = 4823640
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null3"
+offset = 4823672
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null4"
+offset = 4823704
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null5"
+offset = 4823736
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null6"
+offset = 4823768
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null7"
+offset = 4823800
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null8"
+offset = 4823832
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null9"
+offset = 4823864
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null10"
+offset = 4823896
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null11"
+offset = 4823928
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null12"
+offset = 4823960
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null13"
+offset = 4823992
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null14"
+offset = 4824024
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null15"
+offset = 4824056
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_BrendanReflection"
+offset = 4824088
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_BridgeReflection"
+offset = 4824120
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_PlayerUnderwater"
+offset = 4862040
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_May"
+offset = 4866680
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_MayReflection"
+offset = 4866712
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_RubySapphireMay"
+offset = 4871352
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null16"
+offset = 4871416
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null17"
+offset = 4871448
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null18"
+offset = 4871480
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null19"
+offset = 4871512
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null20"
+offset = 4871544
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null21"
+offset = 4871576
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null22"
+offset = 4871608
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null23"
+offset = 4871640
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null24"
+offset = 4871672
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null25"
+offset = 4871704
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null26"
+offset = 4871736
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null27"
+offset = 4871768
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null28"
+offset = 4871800
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Null29"
+offset = 4871832
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Npc1"
+offset = 4905144
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Npc2"
+offset = 4905176
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Npc3"
+offset = 4905208
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Npc4"
+offset = 4905240
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Npc1Reflection"
+offset = 4905272
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Npc2Reflection"
+offset = 4905304
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Npc3Reflection"
+offset = 4905336
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Npc4Reflection"
+offset = 4905368
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Kyogre"
+offset = 5119672
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_KyogreReflection"
+offset = 5119704
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Groudon"
+offset = 5119736
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_GroudonReflection"
+offset = 5119768
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_SubmarineShadow"
+offset = 5134392
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Truck"
+offset = 5135576
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Vigoroth"
+offset = 5138168
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_EnemyZigzagoon"
+offset = 5142936
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Poochyena"
+offset = 5147576
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_CableCar"
+offset = 5149656
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_SSTidal"
+offset = 5151608
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_QuintyPlump"
+offset = 5203992
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_QuintyPlumpReflection"
+offset = 5204024
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_MovingBox"
+offset = 5236856
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_RedLeaf"
+offset = 5239960
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_BirthIslandStone"
+offset = 5244600
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Deoxys"
+offset = 5245144
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_Lugia"
+offset = 5263352
+
+[[field_sprite_palettes]]
+name = "gObjectEventPal_HoOh"
+offset = 5264408
+
+[pokemon.Abra]
+back = 12952740
+footprint = 12954588
+front = 11631928
+palette = 12952704
+shiny_palette = 12953528
+
+[pokemon.Absol]
+back = 13769748
+footprint = 13771676
+front = 12077648
+palette = 13769708
+shiny_palette = 13770612
+
+[pokemon.Aerodactyl]
+back = 13182300
+footprint = 13184136
+front = 11761628
+palette = 13182260
+shiny_palette = 13183072
+
+[pokemon.Aggron]
+back = 13792272
+footprint = 13794400
+front = 12089464
+palette = 13792232
+shiny_palette = 13793336
+
+[pokemon.Aipom]
+back = 13313868
+footprint = 13315688
+front = 11832440
+palette = 13313828
+shiny_palette = 13314624
+
+[pokemon.Alakazam]
+back = 12958928
+footprint = 12961084
+front = 11634960
+palette = 12958888
+shiny_palette = 12960020
+
+[pokemon.Altaria]
+back = 13721248
+footprint = 13723200
+front = 12050728
+palette = 13721208
+shiny_palette = 13722136
+
+[pokemon.Ampharos]
+back = 13289820
+footprint = 13291772
+front = 11820084
+palette = 13289780
+shiny_palette = 13290708
+
+[pokemon.Anorith]
+back = 13813516
+footprint = 13815164
+front = 12101300
+palette = 13813476
+shiny_palette = 13814100
+
+[pokemon.Arbok]
+back = 12843884
+footprint = 12845620
+front = 11571596
+palette = 12843844
+shiny_palette = 12844556
+
+[pokemon.Arcanine]
+back = 12941760
+footprint = 12943816
+front = 11624936
+palette = 12941720
+shiny_palette = 12942752
+
+[pokemon.Ariados]
+back = 13257032
+footprint = 13258984
+front = 11804468
+palette = 13256992
+shiny_palette = 13257920
+
+[pokemon.Armaldo]
+back = 13816644
+footprint = 13818788
+front = 12102816
+palette = 13816604
+shiny_palette = 13817724
+
+[pokemon.Aron]
+back = 13786324
+footprint = 13787940
+front = 12086972
+palette = 13786284
+shiny_palette = 13786876
+
+[pokemon.Articuno]
+back = 13188248
+footprint = 13189916
+front = 11765388
+palette = 13188208
+shiny_palette = 13188852
+
+[pokemon.Azumarill]
+back = 13297704
+footprint = 13299468
+front = 11824260
+palette = 13297664
+shiny_palette = 13298404
+
+[pokemon.Azurill]
+back = 13696120
+footprint = 13697976
+front = 12038756
+palette = 13696080
+shiny_palette = 13696912
+
+[pokemon.Bagon]
+back = 13827392
+footprint = 13829200
+front = 12108968
+palette = 13827352
+shiny_palette = 13828136
+
+[pokemon.Baltoy]
+back = 13606452
+footprint = 13608188
+front = 11989620
+palette = 13606420
+shiny_palette = 13607132
+
+[pokemon.Banette]
+back = 13774808
+footprint = 13776508
+front = 12080576
+palette = 13774768
+shiny_palette = 13775444
+
+[pokemon.Barboach]
+back = 13620220
+footprint = 13621940
+front = 11996920
+palette = 13620180
+shiny_palette = 13620876
+
+[pokemon.Bayleef]
+back = 13214176
+footprint = 13216152
+front = 11781772
+palette = 13214136
+shiny_palette = 13215088
+
+[pokemon.Beautifly]
+back = 13536156
+footprint = 13538164
+front = 11954224
+palette = 13536116
+shiny_palette = 13537100
+
+[pokemon.Beedrill]
+back = 12818296
+footprint = 12820244
+front = 11556896
+palette = 12818256
+shiny_palette = 12819180
+
+[pokemon.Beldum]
+back = 13835548
+footprint = 13837364
+front = 12113416
+palette = 13835508
+shiny_palette = 13836300
+
+[pokemon.Bellossom]
+back = 13292468
+footprint = 13294336
+front = 11821760
+palette = 13292428
+shiny_palette = 13293272
+
+[pokemon.Bellsprout]
+back = 12970884
+footprint = 12972616
+front = 11641536
+palette = 12970844
+shiny_palette = 12971552
+
+[pokemon.Blastoise]
+back = 12802716
+footprint = 12804832
+front = 11548996
+palette = 12802676
+shiny_palette = 12803768
+
+[pokemon.Blaziken]
+back = 13506540
+footprint = 13508592
+front = 11938148
+palette = 13506500
+shiny_palette = 13507528
+
+[pokemon.Blissey]
+back = 13457656
+footprint = 13459436
+front = 11908800
+palette = 13457616
+shiny_palette = 13458372
+
+[pokemon.Breloom]
+back = 13576692
+footprint = 13578748
+front = 11974288
+palette = 13576652
+shiny_palette = 13577684
+
+[pokemon.Bulbasaur]
+back = 12778696
+footprint = 12780448
+front = 11535160
+palette = 12778656
+shiny_palette = 12779384
+
+[pokemon.Butterfree]
+back = 12810392
+footprint = 12812496
+front = 11553448
+palette = 12810352
+shiny_palette = 12811432
+
+[pokemon.Cacnea]
+back = 13678752
+footprint = 13680680
+front = 12029012
+palette = 13678712
+shiny_palette = 13679616
+
+[pokemon.Cacturne]
+back = 13681832
+footprint = 13683664
+front = 12030316
+palette = 13681792
+shiny_palette = 13682600
+
+[pokemon.Camerupt]
+back = 13667236
+footprint = 13669008
+front = 12022712
+palette = 13667196
+shiny_palette = 13667944
+
+[pokemon.Carvanha]
+back = 13639500
+footprint = 13641348
+front = 12007164
+palette = 13639460
+shiny_palette = 13640284
+
+[pokemon.Cascoon]
+back = 13538856
+footprint = 13540448
+front = 11955644
+palette = 13538816
+shiny_palette = 13539384
+
+[pokemon.Castform]
+back = 13797256
+footprint = 13800896
+front = 12091980
+palette = 13797128
+shiny_palette = 13799748
+
+[pokemon.Caterpie]
+back = 12805512
+footprint = 12807224
+front = 11551360
+palette = 12805472
+shiny_palette = 12806160
+
+[pokemon.Celebi]
+back = 13486884
+footprint = 13488888
+front = 11927696
+palette = 13486844
+shiny_palette = 13487824
+
+[pokemon.Chansey]
+back = 13097708
+footprint = 13099492
+front = 11713444
+palette = 13097672
+shiny_palette = 13098432
+
+[pokemon.Charizard]
+back = 12793888
+footprint = 12796004
+front = 11543400
+palette = 12793848
+shiny_palette = 12794940
+
+[pokemon.Charmander]
+back = 12787924
+footprint = 12789648
+front = 11540428
+palette = 12787884
+shiny_palette = 12788584
+
+[pokemon.Charmeleon]
+back = 12790656
+footprint = 12792456
+front = 11541628
+palette = 12790616
+shiny_palette = 12791392
+
+[pokemon.Chikorita]
+back = 13211352
+footprint = 13213124
+front = 11780596
+palette = 13211312
+shiny_palette = 13212060
+
+[pokemon.Chimecho]
+back = 13909644
+footprint = 13911336
+front = 12138688
+palette = 13909604
+shiny_palette = 13910272
+
+[pokemon.Chinchou]
+back = 13262640
+footprint = 13264464
+front = 11807740
+palette = 13262600
+shiny_palette = 13263400
+
+[pokemon.CircledQuestionMark]
+back = 12585368
+front = 11534336
+palette = 12585952
+shiny_palette = 12585976
+
+[pokemon.Clamperl]
+back = 13761256
+footprint = 13762980
+front = 12073224
+palette = 13761216
+shiny_palette = 13761916
+
+[pokemon.Claydol]
+back = 13609212
+footprint = 13611256
+front = 11990572
+palette = 13609172
+shiny_palette = 13610192
+
+[pokemon.Clefable]
+back = 12878124
+footprint = 12880012
+front = 11591204
+palette = 12878084
+shiny_palette = 12878948
+
+[pokemon.Clefairy]
+back = 12875440
+footprint = 12877224
+front = 11590056
+palette = 12875400
+shiny_palette = 12876160
+
+[pokemon.Cleffa]
+back = 13270080
+footprint = 13271716
+front = 11811584
+palette = 13270040
+shiny_palette = 13270652
+
+[pokemon.Cloyster]
+back = 13033656
+footprint = 13035752
+front = 11676044
+palette = 13033620
+shiny_palette = 13034692
+
+[pokemon.Combusken]
+back = 13502556
+footprint = 13504596
+front = 11936140
+palette = 13502516
+shiny_palette = 13503532
+
+[pokemon.Corphish]
+back = 13627784
+footprint = 13629644
+front = 12000432
+palette = 13627744
+shiny_palette = 13628580
+
+[pokemon.Corsola]
+back = 13401684
+footprint = 13403452
+front = 11878328
+palette = 13401644
+shiny_palette = 13402388
+
+[pokemon.Cradily]
+back = 13810556
+footprint = 13812640
+front = 12099428
+palette = 13810516
+shiny_palette = 13811576
+
+[pokemon.Crawdaunt]
+back = 13630884
+footprint = 13632944
+front = 12001764
+palette = 13630844
+shiny_palette = 13631880
+
+[pokemon.Crobat]
+back = 13260000
+footprint = 13261840
+front = 11806248
+palette = 13259960
+shiny_palette = 13260776
+
+[pokemon.Croconaw]
+back = 13231644
+footprint = 13233556
+front = 11791456
+palette = 13231604
+shiny_palette = 13232492
+
+[pokemon.Cubone]
+back = 13071188
+footprint = 13073084
+front = 11697700
+palette = 13071148
+shiny_palette = 13072020
+
+[pokemon.Cyndaquil]
+back = 13220232
+footprint = 13222108
+front = 11785684
+palette = 13220192
+shiny_palette = 13221044
+
+[pokemon.Delcatty]
+back = 13600836
+footprint = 13602824
+front = 11986312
+palette = 13600796
+shiny_palette = 13601760
+
+[pokemon.Delibird]
+back = 13409596
+footprint = 13411620
+front = 11882212
+palette = 13409556
+shiny_palette = 13410556
+
+[pokemon.Deoxys]
+back = 13873504
+footprint = 13908984
+front = 12136788
+palette = 13873464
+shiny_palette = 13875152
+
+[pokemon.Dewgong]
+back = 13022512
+footprint = 13024228
+front = 11670004
+palette = 13022480
+shiny_palette = 13023172
+
+[pokemon.Diglett]
+back = 12916524
+footprint = 12918112
+front = 11612020
+palette = 12916484
+shiny_palette = 12917048
+
+[pokemon.Ditto]
+back = 13154596
+footprint = 13156164
+front = 11747796
+palette = 13154564
+shiny_palette = 13155108
+
+[pokemon.Dodrio]
+back = 13016632
+footprint = 13018820
+front = 11666328
+palette = 13016592
+shiny_palette = 13017756
+
+[pokemon.Doduo]
+back = 13013464
+footprint = 13015316
+front = 11664796
+palette = 13013428
+shiny_palette = 13014256
+
+[pokemon.Donphan]
+back = 13430000
+footprint = 13431828
+front = 11894132
+palette = 13429960
+shiny_palette = 13430764
+
+[pokemon.DoubleQuestionMark]
+back = 13489324
+front = 11928900
+palette = 13489304
+shiny_palette = 13489712
+
+[pokemon.Dragonair]
+back = 13199856
+footprint = 13201704
+front = 11773364
+palette = 13199816
+shiny_palette = 13200640
+
+[pokemon.Dragonite]
+back = 13203168
+footprint = 13204996
+front = 11775044
+palette = 13203128
+shiny_palette = 13203932
+
+[pokemon.Dratini]
+back = 13197204
+footprint = 13198920
+front = 11772072
+palette = 13197168
+shiny_palette = 13197860
+
+[pokemon.Drowzee]
+back = 13048504
+footprint = 13050168
+front = 11685356
+palette = 13048468
+shiny_palette = 13049108
+
+[pokemon.Dugtrio]
+back = 12918988
+footprint = 12920736
+front = 11612984
+palette = 12918948
+shiny_palette = 12919672
+
+[pokemon.Dunsparce]
+back = 13357060
+footprint = 13358888
+front = 11854312
+palette = 13357020
+shiny_palette = 13357824
+
+[pokemon.Dusclops]
+back = 13729232
+footprint = 13731044
+front = 12055080
+palette = 13729192
+shiny_palette = 13729980
+
+[pokemon.Duskull]
+back = 13726480
+footprint = 13728232
+front = 12053688
+palette = 13726440
+shiny_palette = 13727168
+
+[pokemon.Dustox]
+back = 13541392
+footprint = 13543056
+front = 11956528
+palette = 13541352
+shiny_palette = 13541992
+
+[pokemon.Eevee]
+back = 13156908
+footprint = 13158776
+front = 11748680
+palette = 13156872
+shiny_palette = 13157716
+
+[pokemon.Egg]
+front = 12139784
+palette = 13911804
+
+[pokemon.Ekans]
+back = 12840896
+footprint = 12842712
+front = 11570116
+palette = 12840856
+shiny_palette = 12841648
+
+[pokemon.Electabuzz]
+back = 13133428
+footprint = 13135276
+front = 11733984
+palette = 13133388
+shiny_palette = 13134212
+
+[pokemon.Electrike]
+back = 13659336
+footprint = 13661052
+front = 12018640
+palette = 13659296
+shiny_palette = 13659988
+
+[pokemon.Electrode]
+back = 13062180
+footprint = 13063864
+front = 11692904
+palette = 13062144
+shiny_palette = 13062804
+
+[pokemon.Elekid]
+back = 13449196
+footprint = 13451116
+front = 11904420
+palette = 13449156
+shiny_palette = 13450052
+
+[pokemon.Entei]
+back = 13464516
+footprint = 13466640
+front = 11913016
+palette = 13464476
+shiny_palette = 13465576
+
+[pokemon.Espeon]
+back = 13330052
+footprint = 13331844
+front = 11840128
+palette = 13330016
+shiny_palette = 13330784
+
+[pokemon.Exeggcute]
+back = 13064960
+footprint = 13066796
+front = 11693948
+palette = 13064924
+shiny_palette = 13065736
+
+[pokemon.Exeggutor]
+back = 13068148
+footprint = 13070396
+front = 11695636
+palette = 13068108
+shiny_palette = 13069332
+
+[pokemon.Exploud]
+back = 13758356
+footprint = 13760456
+front = 12070656
+palette = 13758316
+shiny_palette = 13759392
+
+[pokemon.Farfetchd]
+back = 13010604
+footprint = 13012544
+front = 11663380
+palette = 13010564
+shiny_palette = 13011480
+
+[pokemon.Fearow]
+back = 12838232
+footprint = 12840056
+front = 11568008
+palette = 12838192
+shiny_palette = 12838992
+
+[pokemon.Feebas]
+back = 13633668
+footprint = 13635556
+front = 12003616
+palette = 13633628
+shiny_palette = 13634492
+
+[pokemon.Feraligatr]
+back = 13235016
+footprint = 13237308
+front = 11793084
+palette = 13234976
+shiny_palette = 13236244
+
+[pokemon.Flaaffy]
+back = 13287028
+footprint = 13288888
+front = 11818820
+palette = 13286988
+shiny_palette = 13287824
+
+[pokemon.Flareon]
+back = 13165480
+footprint = 13167456
+front = 11753332
+palette = 13165440
+shiny_palette = 13166392
+
+[pokemon.Flygon]
+back = 13650456
+footprint = 13652604
+front = 12012976
+palette = 13650416
+shiny_palette = 13651540
+
+[pokemon.Forretress]
+back = 13354436
+footprint = 13356204
+front = 11852772
+palette = 13354396
+shiny_palette = 13355140
+
+[pokemon.Furret]
+back = 13240744
+footprint = 13242616
+front = 11796572
+palette = 13240704
+shiny_palette = 13241552
+
+[pokemon.Gardevoir]
+back = 13824804
+footprint = 13826688
+front = 12107636
+palette = 13824764
+shiny_palette = 13825624
+
+[pokemon.Gastly]
+back = 13036776
+footprint = 13038644
+front = 11678008
+palette = 13036736
+shiny_palette = 13037580
+
+[pokemon.Gengar]
+back = 13042596
+footprint = 13044400
+front = 11681488
+palette = 13042560
+shiny_palette = 13043340
+
+[pokemon.Geodude]
+back = 12984888
+footprint = 12986600
+front = 11649048
+palette = 12984860
+shiny_palette = 12985548
+
+[pokemon.Girafarig]
+back = 13348620
+footprint = 13350624
+front = 11849668
+palette = 13348580
+shiny_palette = 13349560
+
+[pokemon.Glalie]
+back = 13687288
+footprint = 13689296
+front = 12033604
+palette = 13687248
+shiny_palette = 13688232
+
+[pokemon.Gligar]
+back = 13360024
+footprint = 13362072
+front = 11855676
+palette = 13359984
+shiny_palette = 13361008
+
+[pokemon.Gloom]
+back = 12899496
+footprint = 12901432
+front = 11602808
+palette = 12899456
+shiny_palette = 12900368
+
+[pokemon.Golbat]
+back = 12894440
+footprint = 12896204
+front = 11600264
+palette = 12894400
+shiny_palette = 12895140
+
+[pokemon.Goldeen]
+back = 13112492
+footprint = 13114436
+front = 11721652
+palette = 13112452
+shiny_palette = 13113372
+
+[pokemon.Golduck]
+back = 12929900
+footprint = 12931776
+front = 11618564
+palette = 12929860
+shiny_palette = 12930712
+
+[pokemon.Golem]
+back = 12990608
+footprint = 12992376
+front = 11651708
+palette = 12990568
+shiny_palette = 12991312
+
+[pokemon.Gorebyss]
+back = 13766796
+footprint = 13768604
+front = 12076200
+palette = 13766756
+shiny_palette = 13767540
+
+[pokemon.Granbull]
+back = 13369108
+footprint = 13370976
+front = 11861036
+palette = 13369068
+shiny_palette = 13369912
+
+[pokemon.Graveler]
+back = 12987696
+footprint = 12989388
+front = 11650216
+palette = 12987664
+shiny_palette = 12988332
+
+[pokemon.Grimer]
+back = 13025092
+footprint = 13026892
+front = 11671700
+palette = 13025056
+shiny_palette = 13025832
+
+[pokemon.Groudon]
+back = 13857352
+footprint = 13859544
+front = 12126536
+palette = 13857312
+shiny_palette = 13858480
+
+[pokemon.Grovyle]
+back = 13493616
+footprint = 13495508
+front = 11930920
+palette = 13493576
+shiny_palette = 13494444
+
+[pokemon.Growlithe]
+back = 12938464
+footprint = 12940356
+front = 11623420
+palette = 12938424
+shiny_palette = 12939292
+
+[pokemon.Grumpig]
+back = 13701336
+footprint = 13703264
+front = 12041120
+palette = 13701296
+shiny_palette = 13702200
+
+[pokemon.Gulpin]
+back = 13743460
+footprint = 13745168
+front = 12063028
+palette = 13743420
+shiny_palette = 13744104
+
+[pokemon.Gyarados]
+back = 13148804
+footprint = 13151104
+front = 11743908
+palette = 13148764
+shiny_palette = 13150040
+
+[pokemon.Hariyama]
+back = 13656552
+footprint = 13658608
+front = 12016336
+palette = 13656512
+shiny_palette = 13657544
+
+[pokemon.Haunter]
+back = 13039736
+footprint = 13041604
+front = 11679708
+palette = 13039700
+shiny_palette = 13040544
+
+[pokemon.Heracross]
+back = 13380368
+footprint = 13382312
+front = 11867248
+palette = 13380328
+shiny_palette = 13381248
+
+[pokemon.Hitmonchan]
+back = 13079704
+footprint = 13081604
+front = 11702376
+palette = 13079664
+shiny_palette = 13080540
+
+[pokemon.Hitmonlee]
+back = 13077060
+footprint = 13078800
+front = 11700552
+palette = 13077020
+shiny_palette = 13077736
+
+[pokemon.Hitmontop]
+back = 13443852
+footprint = 13445980
+front = 11901908
+palette = 13443812
+shiny_palette = 13444916
+
+[pokemon.HoOh]
+back = 13484076
+footprint = 13486180
+front = 11924732
+palette = 13484036
+shiny_palette = 13485116
+
+[pokemon.Hoothoot]
+back = 13243332
+footprint = 13245172
+front = 11798096
+palette = 13243292
+shiny_palette = 13244108
+
+[pokemon.Hoppip]
+back = 13305684
+footprint = 13307484
+front = 11828716
+palette = 13305644
+shiny_palette = 13306420
+
+[pokemon.Horsea]
+back = 13106724
+footprint = 13108524
+front = 11718836
+palette = 13106684
+shiny_palette = 13107460
+
+[pokemon.Houndoom]
+back = 13421332
+footprint = 13423200
+front = 11889264
+palette = 13421292
+shiny_palette = 13422136
+
+[pokemon.Houndour]
+back = 13418532
+footprint = 13420236
+front = 11887980
+palette = 13418492
+shiny_palette = 13419172
+
+[pokemon.Huntail]
+back = 13764024
+footprint = 13765940
+front = 12074420
+palette = 13763984
+shiny_palette = 13764876
+
+[pokemon.Hypno]
+back = 13051240
+footprint = 13053116
+front = 11686868
+palette = 13051204
+shiny_palette = 13052056
+
+[pokemon.Igglybuff]
+back = 13272276
+footprint = 13273912
+front = 11812540
+palette = 13272236
+shiny_palette = 13272848
+
+[pokemon.Illumise]
+back = 13804764
+footprint = 13806624
+front = 12096236
+palette = 13804724
+shiny_palette = 13805560
+
+[pokemon.Ivysaur]
+back = 12781404
+footprint = 12783376
+front = 11536304
+palette = 12781364
+shiny_palette = 12782312
+
+[pokemon.Jigglypuff]
+back = 12886544
+footprint = 12888212
+front = 11596236
+palette = 12886504
+shiny_palette = 12887148
+
+[pokemon.Jirachi]
+back = 13870452
+footprint = 13872444
+front = 12135336
+palette = 13870412
+shiny_palette = 13871380
+
+[pokemon.Jolteon]
+back = 13162540
+footprint = 13164516
+front = 11751576
+palette = 13162500
+shiny_palette = 13163452
+
+[pokemon.Jumpluff]
+back = 13310952
+footprint = 13313032
+front = 11831032
+palette = 13310912
+shiny_palette = 13311968
+
+[pokemon.Jynx]
+back = 13130384
+footprint = 13132208
+front = 11731788
+palette = 13130344
+shiny_palette = 13131144
+
+[pokemon.Kabuto]
+back = 13176264
+footprint = 13177992
+front = 11758772
+palette = 13176224
+shiny_palette = 13176928
+
+[pokemon.Kabutops]
+back = 13179084
+footprint = 13181076
+front = 11759752
+palette = 13179048
+shiny_palette = 13180016
+
+[pokemon.Kadabra]
+back = 12955784
+footprint = 12957836
+front = 11632964
+palette = 12955744
+shiny_palette = 12956772
+
+[pokemon.Kakuna]
+back = 12815480
+footprint = 12817184
+front = 11555908
+palette = 12815444
+shiny_palette = 12816124
+
+[pokemon.Kangaskhan]
+back = 13103884
+footprint = 13106020
+front = 11716608
+palette = 13103844
+shiny_palette = 13104956
+
+[pokemon.Kecleon]
+back = 13603792
+footprint = 13605840
+front = 11987936
+palette = 13603752
+shiny_palette = 13604776
+
+[pokemon.Kingdra]
+back = 13424328
+footprint = 13426340
+front = 11891044
+palette = 13424288
+shiny_palette = 13425276
+
+[pokemon.Kingler]
+back = 13057256
+footprint = 13059216
+front = 11689700
+palette = 13057220
+shiny_palette = 13058156
+
+[pokemon.Kirlia]
+back = 13821892
+footprint = 13823840
+front = 12106276
+palette = 13821852
+shiny_palette = 13822776
+
+[pokemon.Koffing]
+back = 13085328
+footprint = 13087160
+front = 11705680
+palette = 13085288
+shiny_palette = 13086096
+
+[pokemon.Krabby]
+back = 13053884
+footprint = 13055856
+front = 11688480
+palette = 13053844
+shiny_palette = 13054792
+
+[pokemon.Kyogre]
+back = 13854156
+footprint = 13855852
+front = 12124528
+palette = 13854116
+shiny_palette = 13854788
+
+[pokemon.Lairon]
+back = 13788984
+footprint = 13790796
+front = 12087904
+palette = 13788944
+shiny_palette = 13789732
+
+[pokemon.Lanturn]
+back = 13265416
+footprint = 13267248
+front = 11809024
+palette = 13265376
+shiny_palette = 13266184
+
+[pokemon.Lapras]
+back = 13152136
+footprint = 13154036
+front = 11746164
+palette = 13152096
+shiny_palette = 13152972
+
+[pokemon.Larvitar]
+back = 13471108
+footprint = 13472856
+front = 11917876
+palette = 13471068
+shiny_palette = 13471792
+
+[pokemon.Latias]
+back = 13864664
+footprint = 13866492
+front = 12131568
+palette = 13864624
+shiny_palette = 13865428
+
+[pokemon.Latios]
+back = 13867672
+footprint = 13869600
+front = 12133240
+palette = 13867632
+shiny_palette = 13868536
+
+[pokemon.Ledian]
+back = 13251704
+footprint = 13253624
+front = 11802140
+palette = 13251664
+shiny_palette = 13252560
+
+[pokemon.Ledyba]
+back = 13248848
+footprint = 13250728
+front = 11800832
+palette = 13248808
+shiny_palette = 13249664
+
+[pokemon.Lickitung]
+back = 13082628
+footprint = 13084396
+front = 11703928
+palette = 13082588
+shiny_palette = 13083332
+
+[pokemon.Lileep]
+back = 13807532
+footprint = 13809432
+front = 12097900
+palette = 13807492
+shiny_palette = 13808368
+
+[pokemon.Linoone]
+back = 13528752
+footprint = 13530540
+front = 11950512
+palette = 13528712
+shiny_palette = 13529476
+
+[pokemon.Lombre]
+back = 13546408
+footprint = 13548236
+front = 11959164
+palette = 13546368
+shiny_palette = 13547172
+
+[pokemon.Lotad]
+back = 13543736
+footprint = 13545544
+front = 11958068
+palette = 13543696
+shiny_palette = 13544480
+
+[pokemon.Loudred]
+back = 13754956
+footprint = 13756900
+front = 12068872
+palette = 13754916
+shiny_palette = 13755836
+
+[pokemon.Ludicolo]
+back = 13549560
+footprint = 13551388
+front = 11960608
+palette = 13549520
+shiny_palette = 13550324
+
+[pokemon.Lugia]
+back = 13480340
+footprint = 13482384
+front = 11922536
+palette = 13480300
+shiny_palette = 13481320
+
+[pokemon.Lunatone]
+back = 13690176
+footprint = 13692096
+front = 12035432
+palette = 13690136
+shiny_palette = 13691032
+
+[pokemon.Luvdisc]
+back = 13625324
+footprint = 13626852
+front = 11999612
+palette = 13625288
+shiny_palette = 13625792
+
+[pokemon.Machamp]
+back = 12967992
+footprint = 12970172
+front = 11639732
+palette = 12967952
+shiny_palette = 12969108
+
+[pokemon.Machoke]
+back = 12964648
+footprint = 12966560
+front = 11638012
+palette = 12964608
+shiny_palette = 12965496
+
+[pokemon.Machop]
+back = 12961832
+footprint = 12963632
+front = 11636940
+palette = 12961792
+shiny_palette = 12962568
+
+[pokemon.Magby]
+back = 13451832
+footprint = 13453580
+front = 11905880
+palette = 13451792
+shiny_palette = 13452516
+
+[pokemon.Magcargo]
+back = 13394008
+footprint = 13396120
+front = 11874428
+palette = 13393968
+shiny_palette = 13395056
+
+[pokemon.Magikarp]
+back = 13145468
+footprint = 13147348
+front = 11742332
+palette = 13145428
+shiny_palette = 13146284
+
+[pokemon.Magmar]
+back = 13136540
+footprint = 13138444
+front = 11736008
+palette = 13136500
+shiny_palette = 13137380
+
+[pokemon.Magnemite]
+back = 13005032
+footprint = 13006580
+front = 11660744
+palette = 13004992
+shiny_palette = 13005520
+
+[pokemon.Magneton]
+back = 13007680
+footprint = 13009640
+front = 11661664
+palette = 13007640
+shiny_palette = 13008576
+
+[pokemon.Makuhita]
+back = 13653468
+footprint = 13655280
+front = 12015124
+palette = 13653428
+shiny_palette = 13654220
+
+[pokemon.Manectric]
+back = 13661940
+footprint = 13663560
+front = 12019872
+palette = 13661900
+shiny_palette = 13662496
+
+[pokemon.Mankey]
+back = 12932640
+footprint = 12934576
+front = 11620252
+palette = 12932600
+shiny_palette = 12933512
+
+[pokemon.Mantine]
+back = 13412872
+footprint = 13414608
+front = 11883796
+palette = 13412832
+shiny_palette = 13413544
+
+[pokemon.Mareep]
+back = 13284368
+footprint = 13286188
+front = 11817628
+palette = 13284328
+shiny_palette = 13285124
+
+[pokemon.Marill]
+back = 13295116
+footprint = 13296864
+front = 11822936
+palette = 13295076
+shiny_palette = 13295800
+
+[pokemon.Marowak]
+back = 13074060
+footprint = 13075964
+front = 11698856
+palette = 13074020
+shiny_palette = 13074900
+
+[pokemon.Marshtomp]
+back = 13512864
+footprint = 13514872
+front = 11941348
+palette = 13512824
+shiny_palette = 13513808
+
+[pokemon.Masquerain]
+back = 13590200
+footprint = 13592120
+front = 11980464
+palette = 13590160
+shiny_palette = 13591056
+
+[pokemon.Mawile]
+back = 13709240
+footprint = 13711328
+front = 12045076
+palette = 13709200
+shiny_palette = 13710264
+
+[pokemon.Medicham]
+back = 13714756
+footprint = 13716644
+front = 12048100
+palette = 13714716
+shiny_palette = 13715580
+
+[pokemon.Meditite]
+back = 13712096
+footprint = 13713868
+front = 12047012
+palette = 13712056
+shiny_palette = 13712808
+
+[pokemon.Meganium]
+back = 13217596
+footprint = 13219508
+front = 11783328
+palette = 13217556
+shiny_palette = 13218444
+
+[pokemon.Meowth]
+back = 12921556
+footprint = 12923360
+front = 11614156
+palette = 12921516
+shiny_palette = 12922296
+
+[pokemon.Metagross]
+back = 13841616
+footprint = 13843396
+front = 12116540
+palette = 13841576
+shiny_palette = 13842332
+
+[pokemon.Metang]
+back = 13838552
+footprint = 13840420
+front = 12114540
+palette = 13838512
+shiny_palette = 13839356
+
+[pokemon.Metapod]
+back = 12807824
+footprint = 12809456
+front = 11552508
+palette = 12807792
+shiny_palette = 12808400
+
+[pokemon.Mew]
+back = 13208888
+footprint = 13210664
+front = 11779348
+palette = 13208852
+shiny_palette = 13209604
+
+[pokemon.Mewtwo]
+back = 13206148
+footprint = 13208180
+front = 11777388
+palette = 13206112
+shiny_palette = 13207120
+
+[pokemon.Mightyena]
+back = 13522904
+footprint = 13524856
+front = 11946688
+palette = 13522864
+shiny_palette = 13523792
+
+[pokemon.Milotic]
+back = 13636796
+footprint = 13638616
+front = 12004912
+palette = 13636756
+shiny_palette = 13637552
+
+[pokemon.Miltank]
+back = 13454596
+footprint = 13456584
+front = 11907076
+palette = 13454556
+shiny_palette = 13455520
+
+[pokemon.Minun]
+back = 13706436
+footprint = 13708212
+front = 12044020
+palette = 13706396
+shiny_palette = 13707148
+
+[pokemon.Misdreavus]
+back = 13340988
+footprint = 13342856
+front = 11846196
+palette = 13340948
+shiny_palette = 13341792
+
+[pokemon.Moltres]
+back = 13194548
+footprint = 13196440
+front = 11769856
+palette = 13194508
+shiny_palette = 13195376
+
+[pokemon.MrMime]
+back = 13123980
+footprint = 13125864
+front = 11728080
+palette = 13123940
+shiny_palette = 13124800
+
+[pokemon.Mudkip]
+back = 13509360
+footprint = 13511160
+front = 11940016
+palette = 13509320
+shiny_palette = 13510096
+
+[pokemon.Muk]
+back = 13028060
+footprint = 13029976
+front = 11673116
+palette = 13028024
+shiny_palette = 13028916
+
+[pokemon.Murkrow]
+back = 13335364
+footprint = 13337220
+front = 11843088
+palette = 13335324
+shiny_palette = 13336156
+
+[pokemon.Natu]
+back = 13279252
+footprint = 13280848
+front = 11815388
+palette = 13279212
+shiny_palette = 13279784
+
+[pokemon.Nidoking]
+back = 12872572
+footprint = 12874720
+front = 11587852
+palette = 12872532
+shiny_palette = 12873656
+
+[pokemon.Nidoqueen]
+back = 12863516
+footprint = 12865544
+front = 11582556
+palette = 12863476
+shiny_palette = 12864480
+
+[pokemon.NidoranF]
+back = 12857624
+footprint = 12859416
+front = 11579844
+palette = 12857584
+shiny_palette = 12858352
+
+[pokemon.NidoranM]
+back = 12866336
+footprint = 12868220
+front = 11584744
+palette = 12866296
+shiny_palette = 12867156
+
+[pokemon.Nidorina]
+back = 12860300
+footprint = 12862280
+front = 11580968
+palette = 12860260
+shiny_palette = 12861216
+
+[pokemon.Nidorino]
+back = 12869208
+footprint = 12871228
+front = 11586132
+palette = 12869168
+shiny_palette = 12870164
+
+[pokemon.Nincada]
+back = 13560316
+footprint = 13562076
+front = 11966584
+palette = 13560276
+shiny_palette = 13561012
+
+[pokemon.Ninetales]
+back = 12883888
+footprint = 12885840
+front = 11594248
+palette = 12883856
+shiny_palette = 12884784
+
+[pokemon.Ninjask]
+back = 13563028
+footprint = 13565064
+front = 11967748
+palette = 13562988
+shiny_palette = 13564000
+
+[pokemon.Noctowl]
+back = 13246096
+footprint = 13248020
+front = 11799116
+palette = 13246056
+shiny_palette = 13246956
+
+[pokemon.Nosepass]
+back = 13612044
+footprint = 13613780
+front = 11992328
+palette = 13612004
+shiny_palette = 13612716
+
+[pokemon.Numel]
+back = 13664352
+footprint = 13666116
+front = 12021404
+palette = 13664312
+shiny_palette = 13665052
+
+[pokemon.Nuzleaf]
+back = 13554740
+footprint = 13556516
+front = 11963828
+palette = 13554700
+shiny_palette = 13555452
+
+[pokemon.Octillery]
+back = 13406884
+footprint = 13408644
+front = 11880800
+palette = 13406844
+shiny_palette = 13407580
+
+[pokemon.Oddish]
+back = 12896840
+footprint = 12898536
+front = 11601792
+palette = 12896800
+shiny_palette = 12897472
+
+[pokemon.Omanyte]
+back = 13170732
+footprint = 13172640
+front = 11756104
+palette = 13170692
+shiny_palette = 13171576
+
+[pokemon.Omastar]
+back = 13173672
+footprint = 13175568
+front = 11757168
+palette = 13173632
+shiny_palette = 13174504
+
+[pokemon.Onix]
+back = 13045604
+footprint = 13047548
+front = 11683180
+palette = 13045576
+shiny_palette = 13046496
+
+[pokemon.Paras]
+back = 12905200
+footprint = 12906936
+front = 11605840
+palette = 12905160
+shiny_palette = 12905872
+
+[pokemon.Parasect]
+back = 12907972
+footprint = 12909800
+front = 11606956
+palette = 12907932
+shiny_palette = 12908736
+
+[pokemon.Pelipper]
+back = 13585016
+footprint = 13586976
+front = 11978004
+palette = 13584976
+shiny_palette = 13585912
+
+[pokemon.Persian]
+back = 12924380
+footprint = 12926312
+front = 11615412
+palette = 12924340
+shiny_palette = 12925248
+
+[pokemon.Phanpy]
+back = 13427016
+footprint = 13428788
+front = 11892992
+palette = 13426976
+shiny_palette = 13427724
+
+[pokemon.Pichu]
+back = 13267860
+footprint = 13269528
+front = 11810632
+palette = 13267820
+shiny_palette = 13268464
+
+[pokemon.Pidgeot]
+back = 12827192
+footprint = 12829160
+front = 11561764
+palette = 12827152
+shiny_palette = 12828096
+
+[pokemon.Pidgeotto]
+back = 12823936
+footprint = 12825844
+front = 11560012
+palette = 12823896
+shiny_palette = 12824780
+
+[pokemon.Pidgey]
+back = 12821064
+footprint = 12822980
+front = 11558712
+palette = 12821024
+shiny_palette = 12821916
+
+[pokemon.Pikachu]
+back = 12846412
+footprint = 12848204
+front = 11573604
+palette = 12846372
+shiny_palette = 12847140
+
+[pokemon.Piloswine]
+back = 13399216
+footprint = 13400868
+front = 11876988
+palette = 13399176
+shiny_palette = 13399804
+
+[pokemon.Pineco]
+back = 13351524
+footprint = 13353312
+front = 11851612
+palette = 13351488
+shiny_palette = 13352252
+
+[pokemon.Pinsir]
+back = 13139576
+footprint = 13141488
+front = 11738176
+palette = 13139540
+shiny_palette = 13140428
+
+[pokemon.Plusle]
+back = 13703988
+footprint = 13705748
+front = 12042840
+palette = 13703948
+shiny_palette = 13704684
+
+[pokemon.Politoed]
+back = 13303156
+footprint = 13304920
+front = 11827172
+palette = 13303116
+shiny_palette = 13303856
+
+[pokemon.Poliwag]
+back = 12944536
+footprint = 12946224
+front = 11627508
+palette = 12944496
+shiny_palette = 12945160
+
+[pokemon.Poliwhirl]
+back = 12947260
+footprint = 12949028
+front = 11628744
+palette = 12947220
+shiny_palette = 12947964
+
+[pokemon.Poliwrath]
+back = 12950068
+footprint = 12951932
+front = 11630260
+palette = 12950028
+shiny_palette = 12950868
+
+[pokemon.Ponyta]
+back = 12993384
+footprint = 12995276
+front = 11653472
+palette = 12993344
+shiny_palette = 12994212
+
+[pokemon.Poochyena]
+back = 13519876
+footprint = 13521752
+front = 11945316
+palette = 13519836
+shiny_palette = 13520688
+
+[pokemon.Porygon]
+back = 13168224
+footprint = 13169980
+front = 11754936
+palette = 13168188
+shiny_palette = 13168920
+
+[pokemon.Porygon2]
+back = 13432548
+footprint = 13434408
+front = 11895916
+palette = 13432508
+shiny_palette = 13433344
+
+[pokemon.Primeape]
+back = 12935592
+footprint = 12937536
+front = 11621712
+palette = 12935552
+shiny_palette = 12936472
+
+[pokemon.Psyduck]
+back = 12927112
+footprint = 12928844
+front = 11617180
+palette = 12927072
+shiny_palette = 12927780
+
+[pokemon.Pupitar]
+back = 13473680
+footprint = 13475568
+front = 11919040
+palette = 13473640
+shiny_palette = 13474504
+
+[pokemon.Quagsire]
+back = 13327324
+footprint = 13329152
+front = 11838460
+palette = 13327284
+shiny_palette = 13328088
+
+[pokemon.QuestionMark]
+footprint = 14121168
+
+[pokemon.Quilava]
+back = 13222976
+footprint = 13224924
+front = 11786900
+palette = 13222936
+shiny_palette = 13223860
+
+[pokemon.Qwilfish]
+back = 13371752
+footprint = 13373552
+front = 11862732
+palette = 13371712
+shiny_palette = 13372488
+
+[pokemon.Raichu]
+back = 12849216
+footprint = 12851080
+front = 11574844
+palette = 12849176
+shiny_palette = 12850016
+
+[pokemon.Raikou]
+back = 13460912
+footprint = 13462912
+front = 11910444
+palette = 13460872
+shiny_palette = 13461848
+
+[pokemon.Ralts]
+back = 13819420
+footprint = 13821056
+front = 12105240
+palette = 13819380
+shiny_palette = 13819992
+
+[pokemon.Rapidash]
+back = 12996580
+footprint = 12998684
+front = 11655200
+palette = 12996540
+shiny_palette = 12997620
+
+[pokemon.Raticate]
+back = 12832592
+footprint = 12834472
+front = 11565096
+palette = 12832552
+shiny_palette = 12833408
+
+[pokemon.Rattata]
+back = 12829820
+footprint = 12831616
+front = 11563996
+palette = 12829780
+shiny_palette = 12830552
+
+[pokemon.Rayquaza]
+back = 13861644
+footprint = 13863532
+front = 12129116
+palette = 13861604
+shiny_palette = 13862468
+
+[pokemon.Regice]
+back = 13848012
+footprint = 13849828
+front = 12120552
+palette = 13847972
+shiny_palette = 13848764
+
+[pokemon.Regirock]
+back = 13844680
+footprint = 13846844
+front = 12118304
+palette = 13844640
+shiny_palette = 13845780
+
+[pokemon.Registeel]
+back = 13851060
+footprint = 13852948
+front = 12122516
+palette = 13851020
+shiny_palette = 13851884
+
+[pokemon.Relicanth]
+back = 13783844
+footprint = 13785764
+front = 12085624
+palette = 13783804
+shiny_palette = 13784700
+
+[pokemon.Remoraid]
+back = 13404140
+footprint = 13405992
+front = 11879692
+palette = 13404100
+shiny_palette = 13404928
+
+[pokemon.Rhydon]
+back = 13094620
+footprint = 13096788
+front = 11711140
+palette = 13094580
+shiny_palette = 13095724
+
+[pokemon.Rhyhorn]
+back = 13091364
+footprint = 13093260
+front = 11709384
+palette = 13091332
+shiny_palette = 13092204
+
+[pokemon.Roselia]
+back = 13731992
+footprint = 13734024
+front = 12056792
+palette = 13731952
+shiny_palette = 13732960
+
+[pokemon.Sableye]
+back = 13617620
+footprint = 13619492
+front = 11995736
+palette = 13617580
+shiny_palette = 13618428
+
+[pokemon.Salamence]
+back = 13833048
+footprint = 13834852
+front = 12111528
+palette = 13833008
+shiny_palette = 13833788
+
+[pokemon.Sandshrew]
+back = 12851856
+footprint = 12853728
+front = 11576660
+palette = 12851816
+shiny_palette = 12852664
+
+[pokemon.Sandslash]
+back = 12854804
+footprint = 12856920
+front = 11577964
+palette = 12854764
+shiny_palette = 12855856
+
+[pokemon.Sceptile]
+back = 13496864
+footprint = 13498948
+front = 11933052
+palette = 13496824
+shiny_palette = 13497884
+
+[pokemon.Scizor]
+back = 13374880
+footprint = 13376840
+front = 11863936
+palette = 13374840
+shiny_palette = 13375776
+
+[pokemon.Scyther]
+back = 13127132
+footprint = 13129132
+front = 11729676
+palette = 13127092
+shiny_palette = 13128068
+
+[pokemon.Seadra]
+back = 13109556
+footprint = 13111548
+front = 11719888
+palette = 13109516
+shiny_palette = 13110484
+
+[pokemon.Seaking]
+back = 13115648
+footprint = 13117560
+front = 11723148
+palette = 13115608
+shiny_palette = 13116496
+
+[pokemon.Sealeo]
+back = 13672248
+footprint = 13673948
+front = 12025356
+palette = 13672208
+shiny_palette = 13672884
+
+[pokemon.Seedot]
+back = 13552120
+footprint = 13553920
+front = 11962608
+palette = 13552080
+shiny_palette = 13552856
+
+[pokemon.Seel]
+back = 13019668
+footprint = 13021480
+front = 11668652
+palette = 13019628
+shiny_palette = 13020416
+
+[pokemon.Sentret]
+back = 13238112
+footprint = 13239852
+front = 11795344
+palette = 13238072
+shiny_palette = 13238788
+
+[pokemon.Seviper]
+back = 13777636
+footprint = 13779864
+front = 12081868
+palette = 13777596
+shiny_palette = 13778800
+
+[pokemon.Sharpedo]
+back = 13642332
+footprint = 13644252
+front = 12008732
+palette = 13642292
+shiny_palette = 13643188
+
+[pokemon.Shedinja]
+back = 13565936
+footprint = 13567928
+front = 11969084
+palette = 13565896
+shiny_palette = 13566864
+
+[pokemon.Shelgon]
+back = 13830044
+footprint = 13831852
+front = 12110140
+palette = 13830004
+shiny_palette = 13830788
+
+[pokemon.Shellder]
+back = 13030660
+footprint = 13032508
+front = 11674936
+palette = 13030624
+shiny_palette = 13031448
+
+[pokemon.Shiftry]
+back = 13557800
+footprint = 13559572
+front = 11965048
+palette = 13557760
+shiny_palette = 13558508
+
+[pokemon.Shroomish]
+back = 13573820
+footprint = 13575620
+front = 11973320
+palette = 13573780
+shiny_palette = 13574556
+
+[pokemon.Shuckle]
+back = 13377624
+footprint = 13379288
+front = 11866124
+palette = 13377584
+shiny_palette = 13378224
+
+[pokemon.Shuppet]
+back = 13772316
+footprint = 13774044
+front = 12079552
+palette = 13772276
+shiny_palette = 13772980
+
+[pokemon.Silcoon]
+back = 13533624
+footprint = 13535228
+front = 11953304
+palette = 13533584
+shiny_palette = 13534164
+
+[pokemon.Skarmory]
+back = 13415928
+footprint = 13417764
+front = 11885920
+palette = 13415888
+shiny_palette = 13416700
+
+[pokemon.Skiploom]
+back = 13308204
+footprint = 13310004
+front = 11829940
+palette = 13308164
+shiny_palette = 13308940
+
+[pokemon.Skitty]
+back = 13597952
+footprint = 13599856
+front = 11984924
+palette = 13597912
+shiny_palette = 13598792
+
+[pokemon.Slaking]
+back = 13740824
+footprint = 13742852
+front = 12061320
+palette = 13740784
+shiny_palette = 13741788
+
+[pokemon.Slakoth]
+back = 13734840
+footprint = 13736648
+front = 12058344
+palette = 13734800
+shiny_palette = 13735584
+
+[pokemon.Slowbro]
+back = 13002500
+footprint = 13004488
+front = 11658832
+palette = 13002460
+shiny_palette = 13003424
+
+[pokemon.Slowking]
+back = 13338240
+footprint = 13340212
+front = 11844460
+palette = 13338200
+shiny_palette = 13339148
+
+[pokemon.Slowpoke]
+back = 12999536
+footprint = 13001212
+front = 11657608
+palette = 12999496
+shiny_palette = 13000148
+
+[pokemon.Slugma]
+back = 13391292
+footprint = 13393096
+front = 11873356
+palette = 13391256
+shiny_palette = 13392036
+
+[pokemon.Smeargle]
+back = 13438420
+footprint = 13440288
+front = 11898972
+palette = 13438380
+shiny_palette = 13439224
+
+[pokemon.Smoochum]
+back = 13446652
+footprint = 13448348
+front = 11903412
+palette = 13446612
+shiny_palette = 13447284
+
+[pokemon.Sneasel]
+back = 13383220
+footprint = 13385088
+front = 11868932
+palette = 13383180
+shiny_palette = 13384024
+
+[pokemon.Snorlax]
+back = 13185300
+footprint = 13186904
+front = 11763556
+palette = 13185260
+shiny_palette = 13185840
+
+[pokemon.Snorunt]
+back = 13684444
+footprint = 13686248
+front = 12032296
+palette = 13684404
+shiny_palette = 13685184
+
+[pokemon.Snubbull]
+back = 13366256
+footprint = 13368128
+front = 11859772
+palette = 13366216
+shiny_palette = 13367064
+
+[pokemon.Solrock]
+back = 13693268
+footprint = 13695336
+front = 12036752
+palette = 13693228
+shiny_palette = 13694272
+
+[pokemon.Spearow]
+back = 12835192
+footprint = 12836988
+front = 11566756
+palette = 12835152
+shiny_palette = 12835924
+
+[pokemon.Spheal]
+back = 13669708
+footprint = 13671280
+front = 12024284
+palette = 13669668
+shiny_palette = 13670216
+
+[pokemon.Spinarak]
+back = 13254324
+footprint = 13256000
+front = 11803372
+palette = 13254284
+shiny_palette = 13254936
+
+[pokemon.Spinda]
+back = 13579576
+footprint = 13581468
+front = 11975996
+palette = 13579536
+shiny_palette = 13580404
+
+[pokemon.Spoink]
+back = 13698668
+footprint = 13700308
+front = 12040116
+palette = 13698628
+shiny_palette = 13699244
+
+[pokemon.Squirtle]
+back = 12796808
+footprint = 12798512
+front = 11545960
+palette = 12796768
+shiny_palette = 12797448
+
+[pokemon.Stantler]
+back = 13435524
+footprint = 13437432
+front = 11897064
+palette = 13435484
+shiny_palette = 13436368
+
+[pokemon.Starmie]
+back = 13121224
+footprint = 13122964
+front = 11726436
+palette = 13121184
+shiny_palette = 13121900
+
+[pokemon.Staryu]
+back = 13118372
+footprint = 13120088
+front = 11725104
+palette = 13118332
+shiny_palette = 13119024
+
+[pokemon.Steelix]
+back = 13363364
+footprint = 13365460
+front = 11857516
+palette = 13363328
+shiny_palette = 13364400
+
+[pokemon.Sudowoodo]
+back = 13300332
+footprint = 13302256
+front = 11825704
+palette = 13300292
+shiny_palette = 13301192
+
+[pokemon.Suicune]
+back = 13468124
+footprint = 13470432
+front = 11915212
+palette = 13468084
+shiny_palette = 13469368
+
+[pokemon.Sunflora]
+back = 13319028
+footprint = 13321020
+front = 11834648
+palette = 13318988
+shiny_palette = 13319956
+
+[pokemon.Sunkern]
+back = 13316328
+footprint = 13318100
+front = 11833720
+palette = 13316288
+shiny_palette = 13317036
+
+[pokemon.Surskit]
+back = 13587572
+footprint = 13589204
+front = 11979532
+palette = 13587532
+shiny_palette = 13588140
+
+[pokemon.Swablu]
+back = 13718172
+footprint = 13720188
+front = 12049468
+palette = 13718132
+shiny_palette = 13719124
+
+[pokemon.Swalot]
+back = 13746076
+footprint = 13747980
+front = 12063972
+palette = 13746036
+shiny_palette = 13746916
+
+[pokemon.Swampert]
+back = 13516348
+footprint = 13518360
+front = 11942900
+palette = 13516308
+shiny_palette = 13517296
+
+[pokemon.Swellow]
+back = 13571244
+footprint = 13573132
+front = 11971932
+palette = 13571204
+shiny_palette = 13572068
+
+[pokemon.Swinub]
+back = 13396700
+footprint = 13398336
+front = 11876060
+palette = 13396660
+shiny_palette = 13397272
+
+[pokemon.Taillow]
+back = 13568600
+footprint = 13570208
+front = 11970588
+palette = 13568560
+shiny_palette = 13569144
+
+[pokemon.Tangela]
+back = 13100540
+footprint = 13102540
+front = 11714856
+palette = 13100504
+shiny_palette = 13101480
+
+[pokemon.Tauros]
+back = 13142792
+footprint = 13144548
+front = 11740120
+palette = 13142752
+shiny_palette = 13143484
+
+[pokemon.Teddiursa]
+back = 13385780
+footprint = 13387476
+front = 11870484
+palette = 13385740
+shiny_palette = 13386412
+
+[pokemon.Tentacool]
+back = 12979188
+footprint = 12980968
+front = 11646068
+palette = 12979148
+shiny_palette = 12979904
+
+[pokemon.Tentacruel]
+back = 12982220
+footprint = 12984208
+front = 11647220
+palette = 12982180
+shiny_palette = 12983144
+
+[pokemon.Togepi]
+back = 13274452
+footprint = 13276144
+front = 11813416
+palette = 13274412
+shiny_palette = 13275080
+
+[pokemon.Togetic]
+back = 13276844
+footprint = 13278720
+front = 11814220
+palette = 13276804
+shiny_palette = 13277656
+
+[pokemon.Torchic]
+back = 13499688
+footprint = 13501480
+front = 11934876
+palette = 13499648
+shiny_palette = 13500416
+
+[pokemon.Torkoal]
+back = 13615048
+footprint = 13616824
+front = 11993704
+palette = 13615008
+shiny_palette = 13615760
+
+[pokemon.Totodile]
+back = 13228900
+footprint = 13230700
+front = 11790232
+palette = 13228860
+shiny_palette = 13229636
+
+[pokemon.Trapinch]
+back = 13644864
+footprint = 13646472
+front = 12010316
+palette = 13644824
+shiny_palette = 13645408
+
+[pokemon.Treecko]
+back = 13490548
+footprint = 13492380
+front = 11929524
+palette = 13490508
+shiny_palette = 13491316
+
+[pokemon.Tropius]
+back = 13749452
+footprint = 13751320
+front = 12065400
+palette = 13749412
+shiny_palette = 13750256
+
+[pokemon.Typhlosion]
+back = 13226060
+footprint = 13228152
+front = 11788416
+palette = 13226020
+shiny_palette = 13227088
+
+[pokemon.Tyranitar]
+back = 13476980
+footprint = 13479048
+front = 11920136
+palette = 13476940
+shiny_palette = 13477984
+
+[pokemon.Tyrogue]
+back = 13441012
+footprint = 13442872
+front = 11900684
+palette = 13440972
+shiny_palette = 13441808
+
+[pokemon.Umbreon]
+back = 13332704
+footprint = 13334556
+front = 11841632
+palette = 13332664
+shiny_palette = 13333492
+
+[pokemon.Unown]
+footprint = 13344956
+palette = 13343356
+shiny_palette = 13343900
+
+[pokemon.UnownA]
+back = 13343388
+front = 11847472
+
+[pokemon.UnownB]
+back = 13912308
+front = 12140484
+
+[pokemon.UnownC]
+back = 13914380
+front = 12141196
+
+[pokemon.UnownD]
+back = 13916592
+front = 12141968
+
+[pokemon.UnownE]
+back = 13918656
+front = 12142712
+
+[pokemon.UnownExclamationMark]
+back = 13963332
+front = 12158452
+
+[pokemon.UnownF]
+back = 13920692
+front = 12143392
+
+[pokemon.UnownG]
+back = 13922732
+front = 12144136
+
+[pokemon.UnownH]
+back = 13924924
+front = 12144852
+
+[pokemon.UnownI]
+back = 13927064
+front = 12145676
+
+[pokemon.UnownJ]
+back = 13928964
+front = 12146328
+
+[pokemon.UnownK]
+back = 13930940
+front = 12147024
+
+[pokemon.UnownL]
+back = 13932900
+front = 12147728
+
+[pokemon.UnownM]
+back = 13934940
+front = 12148404
+
+[pokemon.UnownN]
+back = 13937148
+front = 12149192
+
+[pokemon.UnownO]
+back = 13939360
+front = 12149936
+
+[pokemon.UnownP]
+back = 13941504
+front = 12150748
+
+[pokemon.UnownQ]
+back = 13943416
+front = 12151404
+
+[pokemon.UnownQuestionMark]
+back = 13965256
+front = 12159096
+
+[pokemon.UnownR]
+back = 13945320
+front = 12152084
+
+[pokemon.UnownS]
+back = 13947288
+front = 12152744
+
+[pokemon.UnownT]
+back = 13949340
+front = 12153476
+
+[pokemon.UnownU]
+back = 13951336
+front = 12154152
+
+[pokemon.UnownV]
+back = 13953440
+front = 12154932
+
+[pokemon.UnownW]
+back = 13955492
+front = 12155660
+
+[pokemon.UnownX]
+back = 13957484
+front = 12156372
+
+[pokemon.UnownY]
+back = 13959476
+front = 12157064
+
+[pokemon.UnownZ]
+back = 13961432
+front = 12157776
+
+[pokemon.Ursaring]
+back = 13388628
+footprint = 13390596
+front = 11871424
+palette = 13388588
+shiny_palette = 13389532
+
+[pokemon.Vaporeon]
+back = 13159764
+footprint = 13161540
+front = 11749992
+palette = 13159724
+shiny_palette = 13160476
+
+[pokemon.Venomoth]
+back = 12913900
+footprint = 12915928
+front = 11610024
+palette = 12913860
+shiny_palette = 12914864
+
+[pokemon.Venonat]
+back = 12910760
+footprint = 12912640
+front = 11608508
+palette = 12910720
+shiny_palette = 12911576
+
+[pokemon.Venusaur]
+back = 12784868
+footprint = 12787164
+front = 11537936
+palette = 12784828
+shiny_palette = 12786100
+
+[pokemon.Vibrava]
+back = 13647424
+footprint = 13649120
+front = 12011296
+palette = 13647384
+shiny_palette = 13648056
+
+[pokemon.Victreebel]
+back = 12976460
+footprint = 12978444
+front = 11644192
+palette = 12976420
+shiny_palette = 12977380
+
+[pokemon.Vigoroth]
+back = 13737740
+footprint = 13739516
+front = 12059352
+palette = 13737700
+shiny_palette = 13738452
+
+[pokemon.Vileplume]
+back = 12902396
+footprint = 12904508
+front = 11604400
+palette = 12902356
+shiny_palette = 12903444
+
+[pokemon.Volbeat]
+back = 13801880
+footprint = 13803808
+front = 12094676
+palette = 13801840
+shiny_palette = 13802744
+
+[pokemon.Voltorb]
+back = 13059804
+footprint = 13061492
+front = 11692020
+palette = 13059768
+shiny_palette = 13060432
+
+[pokemon.Vulpix]
+back = 12880912
+footprint = 12882740
+front = 11592612
+palette = 12880872
+shiny_palette = 12881676
+
+[pokemon.Wailmer]
+back = 13592928
+footprint = 13594476
+front = 11982064
+palette = 13592888
+shiny_palette = 13593412
+
+[pokemon.Wailord]
+back = 13595512
+footprint = 13597112
+front = 11983268
+palette = 13595472
+shiny_palette = 13596048
+
+[pokemon.Walrein]
+back = 13675928
+footprint = 13677896
+front = 12027012
+palette = 13675888
+shiny_palette = 13676832
+
+[pokemon.Wartortle]
+back = 12799476
+footprint = 12801360
+front = 11547232
+palette = 12799436
+shiny_palette = 12800296
+
+[pokemon.Weedle]
+back = 12813144
+footprint = 12814824
+front = 11554944
+palette = 12813104
+shiny_palette = 12813760
+
+[pokemon.Weepinbell]
+back = 12973492
+footprint = 12975320
+front = 11642776
+palette = 12973452
+shiny_palette = 12974256
+
+[pokemon.Weezing]
+back = 13088392
+footprint = 13090272
+front = 11707240
+palette = 13088352
+shiny_palette = 13089208
+
+[pokemon.Whiscash]
+back = 13622900
+footprint = 13624808
+front = 11998208
+palette = 13622860
+shiny_palette = 13623744
+
+[pokemon.Whismur]
+back = 13752052
+footprint = 13753740
+front = 12067740
+palette = 13752012
+shiny_palette = 13752676
+
+[pokemon.Wigglytuff]
+back = 12889136
+footprint = 12890880
+front = 11597436
+palette = 12889096
+shiny_palette = 12889816
+
+[pokemon.Wingull]
+back = 13582112
+footprint = 13584024
+front = 11977008
+palette = 13582072
+shiny_palette = 13582960
+
+[pokemon.Wobbuffet]
+back = 13345876
+footprint = 13347520
+front = 11848180
+palette = 13345836
+shiny_palette = 13346456
+
+[pokemon.Wooper]
+back = 13324652
+footprint = 13326368
+front = 11837500
+palette = 13324612
+shiny_palette = 13325304
+
+[pokemon.Wurmple]
+back = 13531260
+footprint = 13532912
+front = 11952028
+palette = 13531220
+shiny_palette = 13531848
+
+[pokemon.Wynaut]
+back = 13723936
+footprint = 13725656
+front = 12052548
+palette = 13723896
+shiny_palette = 13724592
+
+[pokemon.Xatu]
+back = 13281652
+footprint = 13283604
+front = 11816200
+palette = 13281612
+shiny_palette = 13282540
+
+[pokemon.Yanma]
+back = 13321992
+footprint = 13324004
+front = 11836080
+palette = 13321952
+shiny_palette = 13322940
+
+[pokemon.Zangoose]
+back = 13780908
+footprint = 13782856
+front = 12083804
+palette = 13780868
+shiny_palette = 13781792
+
+[pokemon.Zapdos]
+back = 13191128
+footprint = 13193020
+front = 11767812
+palette = 13191088
+shiny_palette = 13191956
+
+[pokemon.Zigzagoon]
+back = 13525904
+footprint = 13527800
+front = 11948692
+palette = 13525864
+shiny_palette = 13526736
+
+[pokemon.Zubat]
+back = 12891680
+footprint = 12893444
+front = 11599056
+palette = 12891640
+shiny_palette = 12892380

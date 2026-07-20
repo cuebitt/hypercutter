@@ -25,48 +25,40 @@ Or build from source:
 git clone https://github.com/cuebitt/hypercutter
 cd hypercutter
 cargo build --release
-./target/release/hypercutter --help
+./target/release/hc --help
 ```
 
 ## Usage
 
 ```bash
-hypercutter pokeemerald.gba
+hc pokeemerald.gba
 ```
 
-Without any flag, both tilesets and sprites are dumped.
+Without any flag, hypercutter exports a **sprite pack** — a directory of
+field/overworld sprites in a facing-frames grid layout with a `manifest.json`.
 
-Options:
+Common flags:
 
-- `-g, --game`: Game to use for symbol file download (`emerald`, `firered`, `leafgreen`, `ruby`, `sapphire`)
-- `--sym-file`: Path to a `.sym` file (auto-downloaded if not provided)
-- `-e, --export`: Directory to export PNGs (default: `out`)
+- `-e, --export`: Directory to export data to (default: `out`)
+- `--flat`: Use the flat export format (tileset PNGs + battle sprite PNGs)
+- `--sym-file`: Path to a symbol file (TOML, falling back to legacy `.sym`). By default, bundled symbol tables are used.
 - `-v, --verbose`: Verbose output
 - `-q, --quiet`: Suppress all non-error output
 - `-c, --clear`: Clear export directory before writing
 - `-y, --yes`: Clear without prompting
 - `--overwrite`: Write over existing files without prompting (skips clear)
 
-Output selection (mutually inclusive with each other; omitting both dumps everything):
+Flat-mode options (only meaningful with `--flat`):
 
 - `--tilesets`: Render and export tileset PNGs
 - `--sprites`: Dump Pokemon battle sprites
-
-Output filtering:
-
 - `--tileset-filter <PATTERN>`: Glob pattern to filter which tilesets to extract (e.g. `Battle*`)
 - `--sprite-filter <PATTERN>`: Glob pattern to filter which sprites to extract (e.g. `pikachu`)
-
-Sprite output options (only meaningful with `--sprites`):
-
 - `--spritesheet`: Output sprites as a spritesheet instead of individual PNGs
 - `--spritesheet-columns`: Columns in spritesheet (default: 8)
-
-Other:
-
 - `--list`: List available tilesets or sprites without extracting
 
-### Output directory structure
+### Flat output directory structure
 
 ```
 out/
@@ -95,11 +87,7 @@ When alternate forms exist (e.g. Unown, Castform), they are written under a `for
             └── back.png
 ```
 
-### Symbol file auto-download
-
-The `.sym` file is auto-downloaded from the [pret](https://github.com/pret) disassembly
-repositories (via jsDelivr CDN) and cached in your platform's standard cache directory.
-Override with the `HYPERCUTTER_CACHE_DIR` environment variable.
+Symbol tables are bundled as TOML files in the binary — no download needed. Use `--sym-file` to override with a custom file (e.g. for ROM hacks).
 
 ## Library
 
@@ -110,7 +98,7 @@ use hypercutter::{
 };
 
 let rom = Rom::open("pokeemerald.gba")?;
-let symbols = SymbolTable::from_path("pokeemerald.sym")?;
+let symbols = SymbolTable::resolve_for_rom(&rom)?;
 let extractor = Extractor::new(&rom, &symbols);
 
 // Tilesets
@@ -160,20 +148,19 @@ import init, {
 
 await init();
 
-// Load ROM and sym file
+// Load ROM
 const romBytes = new Uint8Array(
   await (await fetch("pokeemerald.gba")).arrayBuffer(),
 );
-const symText = await (await fetch("pokeemerald.sym")).text();
 
 // Identify the game
 console.log(identify_game(romBytes)); // "emerald"
 
-// Count symbols in a .sym file
-console.log(count_sym(symText)); // 14026
-
-// Create an extractor
-const ex = new HypercutterExtractor(romBytes, symText);
+// Create an extractor (uses bundled symbol tables)
+const ex = HypercutterExtractor.with_bundled(romBytes);
+// Or with a custom symbol file (TOML or .sym):
+// const symText = await (await fetch("pokeemerald.toml")).text();
+// const ex = new HypercutterExtractor(romBytes, symText);
 console.log(ex.game); // "emerald"
 
 // List metatile groups
@@ -223,8 +210,9 @@ export default defineConfig({
 | JS name                                        | Type                                               | Description                                     |
 | ---------------------------------------------- | -------------------------------------------------- | ----------------------------------------------- |
 | `identify_game(romBytes)`                      | `(Uint8Array) => string`                           | Identify game from raw ROM bytes                |
-| `count_sym(symText)`                           | `(string) => number`                               | Count symbols in a `.sym` file                  |
-| `HypercutterExtractor` constructor             | `new (Uint8Array, string) => HypercutterExtractor` | Create an extractor from ROM bytes and sym text |
+| `count_sym(symText)`                           | `(string) => number`                               | Count symbols in a TOML or `.sym` file           |
+| `HypercutterExtractor` constructor             | `new (Uint8Array, string) => HypercutterExtractor` | Create an extractor from ROM bytes and symbol text (TOML or `.sym`) |
+| `HypercutterExtractor.with_bundled(romBytes)`  | `(Uint8Array) => HypercutterExtractor`             | Create an extractor using the bundled symbol table |
 | `HypercutterExtractor.game`                    | `getter => string`                                 | Identified game short name                      |
 | `HypercutterExtractor.metatile_names()`        | `() => string[]`                                   | Available metatile group names                  |
 | `HypercutterExtractor.render_tileset(name)`    | `(string) => Uint8Array`                           | Render a tileset as PNG bytes                   |
@@ -317,12 +305,11 @@ This project builds on the work of many open-source libraries and tools:
 
 - [nintendo-lz](https://crates.io/crates/nintendo-lz): LZSS decompression
 - [clap](https://crates.io/crates/clap): CLI argument parsing
-- [ureq](https://crates.io/crates/ureq): HTTP client for symbol file downloads
 - [png](https://crates.io/crates/png): PNG encoding for rendered images
 - [binrw](https://crates.io/crates/binrw): Binary data parsing of ROM structures
 - [bilge](https://crates.io/crates/bilge): Bitfield struct support
 - [wasm-bindgen](https://crates.io/crates/wasm-bindgen) / [js-sys](https://crates.io/crates/js-sys): WebAssembly bindings
-- [serde](https://crates.io/crates/serde): Serialization framework
+- [serde](https://crates.io/crates/serde) / [toml](https://crates.io/crates/toml): TOML symbol table parsing
 - [thiserror](https://crates.io/crates/thiserror) / [anyhow](https://crates.io/crates/anyhow): Error handling
 - [dialoguer](https://crates.io/crates/dialoguer): Interactive prompts
 - [indicatif](https://crates.io/crates/indicatif): Progress bars
@@ -330,7 +317,6 @@ This project builds on the work of many open-source libraries and tools:
 - [rayon](https://crates.io/crates/rayon): Parallel iteration
 - [glob](https://crates.io/crates/glob): Pattern matching
 - [sha2](https://crates.io/crates/sha2): ROM hashing / game identification
-- [dirs](https://crates.io/crates/dirs): Platform cache directory resolution
 
 ### Tools
 

@@ -58,7 +58,19 @@ impl HypercutterExtractor {
     #[wasm_bindgen(constructor)]
     pub fn new(rom_bytes: Vec<u8>, sym_text: &str) -> std::result::Result<Self, JsError> {
         let rom = Rom::from_bytes(rom_bytes).map_err(to_js)?;
-        let symbols = SymbolTable::from_text(sym_text).map_err(to_js)?;
+        // Try TOML first, then fall back to legacy .sym.
+        let symbols = SymbolTable::from_toml(sym_text)
+            .or_else(|_| SymbolTable::from_text(sym_text))
+            .map_err(to_js)?;
+        Ok(Self { rom, symbols })
+    }
+
+    /// Create an extractor using the bundled symbol table for the ROM's
+    /// game version.
+    #[wasm_bindgen]
+    pub fn with_bundled(rom_bytes: Vec<u8>) -> std::result::Result<Self, JsError> {
+        let rom = Rom::from_bytes(rom_bytes).map_err(to_js)?;
+        let symbols = SymbolTable::resolve_for_rom(&rom).map_err(to_js)?;
         Ok(Self { rom, symbols })
     }
 
@@ -148,11 +160,14 @@ impl HypercutterExtractor {
     }
 }
 
-/// Parse a `.sym` file from text. Returns the number of symbols.
+/// Parse a symbol file (TOML or legacy .sym) from text. Returns the
+/// number of symbols.
 #[wasm_bindgen]
 #[allow(dead_code, unreachable_pub)] // exported via wasm_bindgen
 pub fn count_sym(text: &str) -> std::result::Result<usize, JsError> {
-    let table = SymbolTable::from_text(text).map_err(to_js)?;
+    let table = SymbolTable::from_toml(text)
+        .or_else(|_| SymbolTable::from_text(text))
+        .map_err(to_js)?;
     Ok(table.len())
 }
 

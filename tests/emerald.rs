@@ -15,26 +15,21 @@ fn fixtures_dir() -> Option<PathBuf> {
     dir.exists().then_some(dir)
 }
 
-fn load_rom_and_symbols(rom_name: &str, sym_name: &str) -> Option<(Rom, SymbolTable)> {
+fn load_rom(rom_name: &str) -> Option<(Rom, SymbolTable)> {
     let dir = fixtures_dir()?;
     let rom_path = dir.join(rom_name);
     if !rom_path.exists() {
         eprintln!("skipping: ROM not found at {}", rom_path.display());
         return None;
     }
-    let sym_path = dir.join(sym_name);
-    if !sym_path.exists() {
-        eprintln!("skipping: sym not found at {}", sym_path.display());
-        return None;
-    }
     let rom = Rom::open(&rom_path).ok()?;
-    let symbols = SymbolTable::from_path(&sym_path).ok()?;
+    let symbols = SymbolTable::resolve_for_rom(&rom).ok()?;
     Some((rom, symbols))
 }
 
 #[test]
 fn identifies_emerald_rom() {
-    let Some((rom, _)) = load_rom_and_symbols("pokeemerald.gba", "pokeemerald.sym") else {
+    let Some((rom, _)) = load_rom("pokeemerald.gba") else {
         return;
     };
     assert_eq!(rom.game(), hypercutter::Game::Emerald);
@@ -42,7 +37,7 @@ fn identifies_emerald_rom() {
 
 #[test]
 fn extracts_general_metatiles_from_emerald() {
-    let Some((rom, symbols)) = load_rom_and_symbols("pokeemerald.gba", "pokeemerald.sym") else {
+    let Some((rom, symbols)) = load_rom("pokeemerald.gba") else {
         return;
     };
     let extractor = Extractor::new(&rom, &symbols);
@@ -57,7 +52,7 @@ fn extracts_general_metatiles_from_emerald() {
 
 #[test]
 fn species_names_match_known_count() {
-    let Some((rom, symbols)) = load_rom_and_symbols("pokeemerald.gba", "pokeemerald.sym") else {
+    let Some((rom, symbols)) = load_rom("pokeemerald.gba") else {
         return;
     };
     let extractor = Extractor::new(&rom, &symbols);
@@ -73,7 +68,7 @@ fn species_names_match_known_count() {
 
 #[test]
 fn extracts_pikachu_sprite() {
-    let Some((rom, symbols)) = load_rom_and_symbols("pokeemerald.gba", "pokeemerald.sym") else {
+    let Some((rom, symbols)) = load_rom("pokeemerald.gba") else {
         return;
     };
     let extractor = Extractor::new(&rom, &symbols);

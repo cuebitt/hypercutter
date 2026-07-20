@@ -26,8 +26,8 @@ tests/reference/
 
 ```sh
 # 1. Build and run the CLI to produce current output.
-cargo build --release --bin hypercutter
-./target/release/hypercutter -y -e /tmp/out --tilesets --sprites tests/fixtures/pokeemerald.gba
+cargo build --release --bin hc
+./target/release/hc -y -e /tmp/out --tilesets --sprites tests/fixtures/pokeemerald.gba
 
 # 2. Compare a reference image against the current output.
 cargo run --example compare -- \

@@ -40,7 +40,7 @@ pub enum Error {
     },
 
     /// A ROM address fell outside the loaded bytes.
-    #[error("offset 0x{offset:#x} out of range (ROM size 0x{size:#x})")]
+    #[error("offset {offset:#x} out of range (ROM size {size:#x})")]
     OutOfRange {
         /// The address that was out of range.
         offset: u32,
@@ -86,6 +86,13 @@ pub enum Error {
         /// Description of the failure.
         message: String,
     },
+
+    /// Failed to parse symbol data (TOML or other format).
+    #[error("symbol table parse error: {message}")]
+    SymbolParse {
+        /// Description of the failure.
+        message: String,
+    },
 }
 
 impl From<std::io::Error> for Error {
@@ -100,6 +107,14 @@ impl From<std::io::Error> for Error {
 impl From<png::EncodingError> for Error {
     fn from(source: png::EncodingError) -> Self {
         Self::Png {
+            message: source.to_string(),
+        }
+    }
+}
+
+impl From<toml::de::Error> for Error {
+    fn from(source: toml::de::Error) -> Self {
+        Self::SymbolParse {
             message: source.to_string(),
         }
     }

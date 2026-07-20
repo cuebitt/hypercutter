@@ -11,21 +11,20 @@ fn fixtures_dir() -> Option<PathBuf> {
     dir.exists().then_some(dir)
 }
 
-fn load_rom_and_symbols(rom_name: &str, sym_name: &str) -> Option<(Rom, SymbolTable)> {
+fn load_rom(rom_name: &str) -> Option<(Rom, SymbolTable)> {
     let dir = fixtures_dir()?;
     let rom_path = dir.join(rom_name);
-    let sym_path = dir.join(sym_name);
-    if !rom_path.exists() || !sym_path.exists() {
+    if !rom_path.exists() {
         return None;
     }
     let rom = Rom::open(&rom_path).ok()?;
-    let symbols = SymbolTable::from_path(&sym_path).ok()?;
+    let symbols = SymbolTable::resolve_for_rom(&rom).ok()?;
     Some((rom, symbols))
 }
 
 #[test]
 fn renders_general_tileset_to_png() {
-    let Some((rom, symbols)) = load_rom_and_symbols("pokeemerald.gba", "pokeemerald.sym") else {
+    let Some((rom, symbols)) = load_rom("pokeemerald.gba") else {
         return;
     };
     let extractor = Extractor::new(&rom, &symbols);
@@ -45,7 +44,7 @@ fn renders_general_tileset_to_png() {
 
 #[test]
 fn rendered_png_writes_to_file() {
-    let Some((rom, symbols)) = load_rom_and_symbols("pokeemerald.gba", "pokeemerald.sym") else {
+    let Some((rom, symbols)) = load_rom("pokeemerald.gba") else {
         return;
     };
     let dir = fixtures_dir().unwrap();

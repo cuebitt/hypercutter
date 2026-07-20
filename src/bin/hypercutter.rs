@@ -1,4 +1,4 @@
-//! `hypercutter` command-line entry point.
+//! `hc` command-line entry point.
 
 #![cfg(not(target_arch = "wasm32"))]
 

@@ -204,9 +204,10 @@ impl<'rom> Extractor<'rom> {
         let mut metatiles = Metatiles::default();
 
         for sym in self.symbols.iter() {
-            let Some(name) = sym.name.strip_prefix("gMetatiles_") else {
+            let Some(stripped) = sym.name.strip_prefix("gMetatiles_") else {
                 continue;
             };
+            let name = sym.asset.as_deref().unwrap_or(stripped);
             if self.options.exclude_tilesets.iter().any(|n| n == name) {
                 continue;
             }
@@ -244,9 +245,10 @@ impl<'rom> Extractor<'rom> {
     pub fn tilesets(&self) -> Result<BTreeMap<String, Tileset>> {
         let mut out = BTreeMap::new();
         for sym in self.symbols.iter() {
-            let Some(name) = sym.name.strip_prefix("gTileset_") else {
+            let Some(stripped) = sym.name.strip_prefix("gTileset_") else {
                 continue;
             };
+            let name = sym.asset.as_deref().unwrap_or(stripped);
             if self.options.exclude_tilesets.iter().any(|n| n == name) {
                 continue;
             }
@@ -378,12 +380,18 @@ impl<'rom> Extractor<'rom> {
         let map_table_offset = map_table_sym.address - start;
         let map_pointers = read_ptr_table(self.rom, start + map_table_offset, map_count)?;
 
+        let rom_start = self.rom.base_address();
+        let rom_end = rom_start + self.rom.bytes().len() as u32;
+
         let mut primary_to_secondaries: BTreeMap<u32, BTreeSet<u32>> = BTreeMap::new();
         for &ptr in &map_pointers {
-            if ptr <= start {
+            if ptr <= start || ptr < rom_start || ptr >= rom_end {
                 continue;
             }
-            let layout = read_struct_at::<crate::tileset::MapLayout>(self.rom, ptr)?;
+            let Ok(layout) = read_struct_at::<crate::tileset::MapLayout>(self.rom, ptr) else {
+                eprintln!("  Warning: failed to read MapLayout at 0x{ptr:08x}");
+                continue;
+            };
             primary_to_secondaries
                 .entry(layout.primary_tileset_ptr)
                 .or_default()
@@ -395,19 +403,23 @@ impl<'rom> Extractor<'rom> {
             let Some(primary_sym) = self.symbols.by_address(primary_addr) else {
                 continue;
             };
-            let primary_name = primary_sym
+            let primary_stripped = primary_sym
                 .name
                 .strip_prefix("gTileset_")
-                .unwrap_or(&primary_sym.name)
+                .unwrap_or(&primary_sym.name);
+            let primary_name = primary_sym
+                .asset
+                .as_deref()
+                .unwrap_or(primary_stripped)
                 .to_owned();
             let mut names = Vec::new();
             for sec_addr in secondaries {
                 if let Some(sec_sym) = self.symbols.by_address(sec_addr) {
-                    let n = sec_sym
+                    let sec_stripped = sec_sym
                         .name
                         .strip_prefix("gTileset_")
-                        .unwrap_or(&sec_sym.name)
-                        .to_owned();
+                        .unwrap_or(&sec_sym.name);
+                    let n = sec_sym.asset.as_deref().unwrap_or(sec_stripped).to_owned();
                     names.push(n);
                 }
             }

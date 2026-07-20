@@ -9,7 +9,7 @@
 //! use hypercutter::{Extractor, Rom, SymbolTable};
 //!
 //! let rom = Rom::open("pokeemerald.gba")?;
-//! let symbols = SymbolTable::from_path("pokeemerald.sym")?;
+//! let symbols = SymbolTable::resolve_for_rom(&rom)?;
 //! let extractor = Extractor::new(&rom, &symbols);
 //! let metatiles = extractor.metatiles()?;
 //! # Ok::<(), hypercutter::Error>(())
@@ -27,6 +27,8 @@ mod lzss;
 mod render;
 mod rom;
 mod sprite;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod sprite_pack;
 mod symbols;
 mod tileset;
 
@@ -40,9 +42,7 @@ pub use extract::{pokemon_char, ExtractOptions, Extractor, MetatileEntry, Metati
 pub use graphics::{bgr555_to_rgba, decode_tile_4bpp, Rgba, RgbaImage};
 pub use lzss::{decompress as decompress_lzss, is_lzss};
 pub use render::{renderer_for_sprite, sprite_palette, SpriteRenderer, TilesetRenderer};
-pub use rom::{
-    Game, GameProfile, Rom, DEFAULT_ROM_BASE_ADDRESS, GAME_CODE_LENGTH, GAME_CODE_OFFSET,
-};
+pub use rom::{Game, Rom, DEFAULT_ROM_BASE_ADDRESS, GAME_CODE_LENGTH, GAME_CODE_OFFSET};
 pub use sprite::{
     FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteExport, SpriteSheet,
     MON_PIC_BYTES, MON_PIC_HEIGHT_TILES, MON_PIC_PIXELS, MON_PIC_WIDTH_TILES,
