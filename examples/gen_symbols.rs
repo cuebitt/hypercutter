@@ -126,6 +126,7 @@ fn group_symbols(symbols: &SymbolTable) -> GameData {
             "gMonShinyPaletteTable",
             "gMonFrontPicCoords",
             "gMonBackPicCoords",
+            "gMonFootprintTable",
         ];
         if pokemon_table_names.contains(&name) {
             data.pokemon_tables.push((name.to_owned(), addr));

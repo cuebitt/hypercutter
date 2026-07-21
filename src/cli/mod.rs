@@ -217,7 +217,7 @@ fn run_pack(
         .with_context(|| "writing sprite pack")?;
 
     // Pokemon battle sprites
-    let sprites_dir = cli.export.join("pokemon/sprites");
+    let sprites_dir = cli.export.join("pokemon");
     let sprites = extractor.sprites().with_context(|| "extracting sprites")?;
     let species_names = extractor
         .species_names()

@@ -772,6 +772,10 @@ offset = 3163192
 name = "gMonFrontPicTable"
 offset = 3187084
 
+[[pokemon_tables]]
+name = "gMonFootprintTable"
+offset = 5695124
+
 [[field_sprites]]
 name = "gObjectEventGraphicsInfoPointers"
 offset = 5264928

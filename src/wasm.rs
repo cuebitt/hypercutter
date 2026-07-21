@@ -20,6 +20,7 @@ const USED_SYMBOL_NAMES: &[&str] = &[
     "gMapLayouts",
     "gMonBackPicCoords",
     "gMonBackPicTable",
+    "gMonFootprintTable",
     "gMonFrontPicCoords",
     "gMonFrontPicTable",
     "gMonPaletteTable",
@@ -34,6 +35,7 @@ const USED_SYMBOL_NAMES: &[&str] = &[
 const USED_SYMBOL_PREFIXES: &[&str] = &[
     "gMetatiles_",
     "gMonBackPic_",
+    "gMonFootprint_",
     "gMonFrontPic_",
     "gMonPalette_",
     "gMonShinyPalette_",
