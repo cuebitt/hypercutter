@@ -318,214 +318,267 @@ palettes = 2398760
 [[metatiles]]
 name = "gMetatiles_General"
 offset = 2464708
+length = 8192
 
 [[metatiles]]
 name = "gMetatiles_Petalburg"
 offset = 2473924
+length = 2304
 
 [[metatiles]]
 name = "gMetatiles_Rustboro"
 offset = 2476516
+length = 5600
 
 [[metatiles]]
 name = "gMetatiles_Dewford"
 offset = 2482816
+length = 2304
 
 [[metatiles]]
 name = "gMetatiles_Slateport"
 offset = 2485408
+length = 5824
 
 [[metatiles]]
 name = "gMetatiles_Mauville"
 offset = 2491960
+length = 6944
 
 [[metatiles]]
 name = "gMetatiles_Lavaridge"
 offset = 2499772
+length = 4576
 
 [[metatiles]]
 name = "gMetatiles_Fallarbor"
 offset = 2504920
+length = 5408
 
 [[metatiles]]
 name = "gMetatiles_Fortree"
 offset = 2511004
+length = 4272
 
 [[metatiles]]
 name = "gMetatiles_Lilycove"
 offset = 2515810
+length = 5616
 
 [[metatiles]]
 name = "gMetatiles_Mossdeep"
 offset = 2522128
+length = 5808
 
 [[metatiles]]
 name = "gMetatiles_EverGrande"
 offset = 2528662
+length = 2688
 
 [[metatiles]]
 name = "gMetatiles_Pacifidlog"
 offset = 2531686
+length = 3056
 
 [[metatiles]]
 name = "gMetatiles_Sootopolis"
 offset = 2535124
+length = 4064
 
 [[metatiles]]
 name = "gMetatiles_Building"
 offset = 2539696
+length = 128
 
 [[metatiles]]
 name = "gMetatiles_Shop"
 offset = 2539840
+length = 4480
 
 [[metatiles]]
 name = "gMetatiles_PokemonCenter"
 offset = 2544880
+length = 3168
 
 [[metatiles]]
 name = "gMetatiles_Cave"
 offset = 2548444
+length = 6624
 
 [[metatiles]]
 name = "gMetatiles_PokemonSchool"
 offset = 2555896
+length = 928
 
 [[metatiles]]
 name = "gMetatiles_PokemonFanClub"
 offset = 2556940
+length = 1664
 
 [[metatiles]]
 name = "gMetatiles_Unused1"
 offset = 2558812
+length = 32
 
 [[metatiles]]
 name = "gMetatiles_MeteorFalls"
 offset = 2558848
+length = 2544
 
 [[metatiles]]
 name = "gMetatiles_OceanicMuseum"
 offset = 2561710
+length = 1616
 
 [[metatiles]]
 name = "gMetatiles_CableClub"
 offset = 2563528
+length = 4096
 
 [[metatiles]]
 name = "gMetatiles_SeashoreHouse"
 offset = 2568136
+length = 896
 
 [[metatiles]]
 name = "gMetatiles_PrettyPetalFlowerShop"
 offset = 2569144
+length = 1152
 
 [[metatiles]]
 name = "gMetatiles_PokemonDayCare"
 offset = 2570440
+length = 1088
 
 [[metatiles]]
 name = "gMetatiles_Facility"
 offset = 2571664
+length = 8160
 
 [[metatiles]]
 name = "gMetatiles_BikeShop"
 offset = 2580844
+length = 3968
 
 [[metatiles]]
 name = "gMetatiles_RusturfTunnel"
 offset = 2585308
+length = 1328
 
 [[metatiles]]
 name = "gMetatiles_SecretBaseSecondary"
 offset = 2586802
+length = 5184
 
 [[metatiles]]
 name = "gMetatiles_InsideOfTruck"
 offset = 2592634
+length = 608
 
 [[metatiles]]
 name = "gMetatiles_Contest"
 offset = 2593318
+length = 3584
 
 [[metatiles]]
 name = "gMetatiles_LilycoveMuseum"
 offset = 2597350
+length = 2288
 
 [[metatiles]]
 name = "gMetatiles_BrendansMaysHouse"
 offset = 2599924
+length = 2736
 
 [[metatiles]]
 name = "gMetatiles_Lab"
 offset = 2603002
+length = 2464
 
 [[metatiles]]
 name = "gMetatiles_Underwater"
 offset = 2605774
+length = 3776
 
 [[metatiles]]
 name = "gMetatiles_GenericBuilding"
 offset = 2610022
+length = 8192
 
 [[metatiles]]
 name = "gMetatiles_MauvilleGameCorner"
 offset = 2619238
+length = 1536
 
 [[metatiles]]
 name = "gMetatiles_Unused2"
 offset = 2620966
+length = 928
 
 [[metatiles]]
 name = "gMetatiles_RustboroGym"
 offset = 2622010
+length = 896
 
 [[metatiles]]
 name = "gMetatiles_DewfordGym"
 offset = 2623018
+length = 976
 
 [[metatiles]]
 name = "gMetatiles_MauvilleGym"
 offset = 2624116
+length = 1872
 
 [[metatiles]]
 name = "gMetatiles_LavaridgeGym"
 offset = 2626222
+length = 672
 
 [[metatiles]]
 name = "gMetatiles_PetalburgGym"
 offset = 2626978
+length = 2240
 
 [[metatiles]]
 name = "gMetatiles_FortreeGym"
 offset = 2629498
+length = 848
 
 [[metatiles]]
 name = "gMetatiles_MossdeepGym"
 offset = 2630452
+length = 1280
 
 [[metatiles]]
 name = "gMetatiles_SootopolisGym"
 offset = 2631892
+length = 1584
 
 [[metatiles]]
 name = "gMetatiles_TrickHousePuzzle"
 offset = 2633674
+length = 2384
 
 [[metatiles]]
 name = "gMetatiles_Ship"
 offset = 2636356
+length = 4032
 
 [[metatiles]]
 name = "gMetatiles_SecretBasePrimary"
 offset = 2640892
+length = 32
 
 [[metatiles]]
 name = "gMetatiles_EliteFour"
 offset = 2640928
+length = 5296
 
 [[metatiles]]
 name = "gMetatiles_BattleTower"
 offset = 2646886
+length = 2096
 
 [[pokemon_tables]]
 name = "gMonFrontPicCoords"

@@ -69,7 +69,7 @@ struct GameData {
     start: u32,
     tables: Vec<(String, u32)>,
     tilesets: BTreeMap<String, TilesetEntry>,
-    metatiles: Vec<(String, u32)>,
+    metatiles: Vec<(String, u32, u32)>,
     pokemon_tables: Vec<(String, u32)>,
     field_sprites: Vec<(String, u32)>,
     field_sprite_palettes: Vec<(String, u32)>,
@@ -172,7 +172,7 @@ fn group_symbols(symbols: &SymbolTable) -> GameData {
 
         // Metatiles
         if let Some(stripped) = name.strip_prefix("gMetatiles_") {
-            data.metatiles.push((stripped.to_owned(), addr));
+            data.metatiles.push((stripped.to_owned(), addr, sym.length));
             continue;
         }
 
@@ -263,13 +263,17 @@ fn emit_toml(data: &GameData, game: &str, revision: &str) -> String {
     }
 
     // Metatiles
-    for (name, addr) in &data.metatiles {
+    for (name, addr, length) in &data.metatiles {
         let Some(offset) = rel(*addr) else { continue };
-        writeln!(
+        write!(
             out,
             "\n[[metatiles]]\nname = \"gMetatiles_{name}\"\noffset = {offset}"
         )
         .unwrap();
+        if *length != 0 {
+            write!(out, "\nlength = {length}").unwrap();
+        }
+        writeln!(out).unwrap();
     }
 
     // Pokemon tables

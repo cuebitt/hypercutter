@@ -362,274 +362,342 @@ palettes = 2649144
 [[metatiles]]
 name = "gMetatiles_General"
 offset = 2750264
+length = 10240
 
 [[metatiles]]
 name = "gMetatiles_PalletTown"
 offset = 2763064
+length = 1424
 
 [[metatiles]]
 name = "gMetatiles_ViridianCity"
 offset = 2764844
+length = 1520
 
 [[metatiles]]
 name = "gMetatiles_PewterCity"
 offset = 2766744
+length = 1264
 
 [[metatiles]]
 name = "gMetatiles_CeruleanCity"
 offset = 2768324
+length = 2144
 
 [[metatiles]]
 name = "gMetatiles_LavenderTown"
 offset = 2771004
+length = 3488
 
 [[metatiles]]
 name = "gMetatiles_VermilionCity"
 offset = 2775364
+length = 2688
 
 [[metatiles]]
 name = "gMetatiles_CeladonCity"
 offset = 2778724
+length = 3840
 
 [[metatiles]]
 name = "gMetatiles_FuchsiaCity"
 offset = 2783524
+length = 3072
 
 [[metatiles]]
 name = "gMetatiles_CinnabarIsland"
 offset = 2787364
+length = 1024
 
 [[metatiles]]
 name = "gMetatiles_IndigoPlateau"
 offset = 2788644
+length = 2816
 
 [[metatiles]]
 name = "gMetatiles_SaffronCity"
 offset = 2792164
+length = 3200
 
 [[metatiles]]
 name = "gMetatiles_PewterGym"
 offset = 2796164
+length = 1616
 
 [[metatiles]]
 name = "gMetatiles_CeruleanGym"
 offset = 2798184
+length = 1344
 
 [[metatiles]]
 name = "gMetatiles_VermilionGym"
 offset = 2799864
+length = 1200
 
 [[metatiles]]
 name = "gMetatiles_CeladonGym"
 offset = 2801364
+length = 1024
 
 [[metatiles]]
 name = "gMetatiles_FuchsiaGym"
 offset = 2802644
+length = 544
 
 [[metatiles]]
 name = "gMetatiles_SaffronGym"
 offset = 2803324
+length = 736
 
 [[metatiles]]
 name = "gMetatiles_CinnabarGym"
 offset = 2804244
+length = 1536
 
 [[metatiles]]
 name = "gMetatiles_ViridianGym"
 offset = 2806164
+length = 1344
 
 [[metatiles]]
 name = "gMetatiles_Building"
 offset = 2807844
+length = 10240
 
 [[metatiles]]
 name = "gMetatiles_Dummy1"
 offset = 2820644
+length = 32
 
 [[metatiles]]
 name = "gMetatiles_HoennBuilding"
 offset = 2820684
+length = 8192
 
 [[metatiles]]
 name = "gMetatiles_BikeShop"
 offset = 2830924
+length = 672
 
 [[metatiles]]
 name = "gMetatiles_Mart"
 offset = 2831764
+length = 1072
 
 [[metatiles]]
 name = "gMetatiles_PokemonCenter"
 offset = 2833104
+length = 4080
 
 [[metatiles]]
 name = "gMetatiles_GenericBuilding1"
 offset = 2838204
+length = 384
 
 [[metatiles]]
 name = "gMetatiles_Cave"
 offset = 2838684
+length = 2576
 
 [[metatiles]]
 name = "gMetatiles_GameCorner"
 offset = 2841904
+length = 2432
 
 [[metatiles]]
 name = "gMetatiles_Lab"
 offset = 2844944
+length = 2800
 
 [[metatiles]]
 name = "gMetatiles_SSAnne"
 offset = 2848444
+length = 5376
 
 [[metatiles]]
 name = "gMetatiles_Dummy2"
 offset = 2855164
+length = 32
 
 [[metatiles]]
 name = "gMetatiles_ViridianForest"
 offset = 2855204
+length = 688
 
 [[metatiles]]
 name = "gMetatiles_UnusedGatehouse1"
 offset = 2856064
+length = 1824
 
 [[metatiles]]
 name = "gMetatiles_RockTunnel"
 offset = 2858344
+length = 2432
 
 [[metatiles]]
 name = "gMetatiles_DiglettsCave"
 offset = 2861384
+length = 2512
 
 [[metatiles]]
 name = "gMetatiles_SeafoamIslands"
 offset = 2864524
+length = 3968
 
 [[metatiles]]
 name = "gMetatiles_UnusedGatehouse2"
 offset = 2869484
+length = 1824
 
 [[metatiles]]
 name = "gMetatiles_CeruleanCave"
 offset = 2871764
+length = 2144
 
 [[metatiles]]
 name = "gMetatiles_DepartmentStore"
 offset = 2874444
+length = 3936
 
 [[metatiles]]
 name = "gMetatiles_GenericBuilding2"
 offset = 2879364
+length = 2944
 
 [[metatiles]]
 name = "gMetatiles_PowerPlant"
 offset = 2883044
+length = 2448
 
 [[metatiles]]
 name = "gMetatiles_SeaCottage"
 offset = 2886104
+length = 944
 
 [[metatiles]]
 name = "gMetatiles_SilphCo"
 offset = 2887284
+length = 6048
 
 [[metatiles]]
 name = "gMetatiles_UndergroundPath"
 offset = 2894844
+length = 1152
 
 [[metatiles]]
 name = "gMetatiles_PokemonTower"
 offset = 2896284
+length = 1616
 
 [[metatiles]]
 name = "gMetatiles_SafariZoneBuilding"
 offset = 2898304
+length = 2048
 
 [[metatiles]]
 name = "gMetatiles_PokemonMansion"
 offset = 2900864
+length = 4128
 
 [[metatiles]]
 name = "gMetatiles_Museum"
 offset = 2906024
+length = 2160
 
 [[metatiles]]
 name = "gMetatiles_CableClub"
 offset = 2908724
+length = 4096
 
 [[metatiles]]
 name = "gMetatiles_RestaurantHotel"
 offset = 2913844
+length = 1664
 
 [[metatiles]]
 name = "gMetatiles_School"
 offset = 2915924
+length = 736
 
 [[metatiles]]
 name = "gMetatiles_FanClubDaycare"
 offset = 2916844
+length = 2720
 
 [[metatiles]]
 name = "gMetatiles_Condominiums"
 offset = 2920244
+length = 3440
 
 [[metatiles]]
 name = "gMetatiles_BurgledHouse"
 offset = 2924544
+length = 912
 
 [[metatiles]]
 name = "gMetatiles_Dummy3"
 offset = 2925684
+length = 32
 
 [[metatiles]]
 name = "gMetatiles_Dummy4"
 offset = 2925724
+length = 32
 
 [[metatiles]]
 name = "gMetatiles_MtEmber"
 offset = 2925764
+length = 3616
 
 [[metatiles]]
 name = "gMetatiles_BerryForest"
 offset = 2930284
+length = 672
 
 [[metatiles]]
 name = "gMetatiles_NavelRock"
 offset = 2931124
+length = 3520
 
 [[metatiles]]
 name = "gMetatiles_TanobyRuins"
 offset = 2935524
+length = 1504
 
 [[metatiles]]
 name = "gMetatiles_SeviiIslands123"
 offset = 2937404
+length = 4560
 
 [[metatiles]]
 name = "gMetatiles_SeviiIslands45"
 offset = 2943104
+length = 2432
 
 [[metatiles]]
 name = "gMetatiles_SeviiIslands67"
 offset = 2946144
+length = 3840
 
 [[metatiles]]
 name = "gMetatiles_TrainerTower"
 offset = 2950944
+length = 4608
 
 [[metatiles]]
 name = "gMetatiles_IslandHarbor"
 offset = 2956704
+length = 1264
 
 [[metatiles]]
 name = "gMetatiles_PokemonLeague"
 offset = 2958284
+length = 6144
 
 [[metatiles]]
 name = "gMetatiles_HallOfFame"
 offset = 2965964
+length = 1888
 
 [[pokemon_tables]]
 name = "gMonFrontPicCoords"
