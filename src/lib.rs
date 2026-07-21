@@ -44,9 +44,9 @@ pub use lzss::{decompress as decompress_lzss, is_lzss};
 pub use render::{renderer_for_sprite, sprite_palette, SpriteRenderer, TilesetRenderer};
 pub use rom::{Game, Rom, DEFAULT_ROM_BASE_ADDRESS, GAME_CODE_LENGTH, GAME_CODE_OFFSET};
 pub use sprite::{
-    FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteExport, SpriteSheet,
-    MON_PIC_BYTES, MON_PIC_HEIGHT_TILES, MON_PIC_PIXELS, MON_PIC_WIDTH_TILES,
-    POKEMON_PALETTE_BYTES, POKEMON_PIC_BYTES,
+    FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteSheet, MON_PIC_BYTES,
+    MON_PIC_HEIGHT_TILES, MON_PIC_PIXELS, MON_PIC_WIDTH_TILES, POKEMON_PALETTE_BYTES,
+    POKEMON_PIC_BYTES,
 };
 pub use symbols::{Scope, Symbol, SymbolTable};
 pub use tileset::{

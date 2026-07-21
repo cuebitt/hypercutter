@@ -2,7 +2,6 @@
 
 use binrw::BinRead;
 
-use crate::graphics::Rgba;
 use crate::tileset::PaletteData;
 use crate::tileset::TileData;
 
@@ -132,21 +131,6 @@ pub struct FormSprite {
     pub palette: Option<PaletteData>,
     /// Shiny palette, if any.
     pub shiny_palette: Option<PaletteData>,
-}
-
-/// Sprite data returned to JS via the WASM boundary.
-#[derive(Debug, Clone)]
-pub struct SpriteExport {
-    /// `id`
-    pub id: u16,
-    /// `name`
-    pub name: String,
-    /// RGBA pixel data for the front sprite (64×64×4 bytes), if any.
-    pub front_rgba: Option<Vec<u8>>,
-    /// RGBA pixel data for the back sprite (64×64×4 bytes), if any.
-    pub back_rgba: Option<Vec<u8>>,
-    /// RGBA bytes for the normal palette (16 colors × 4 bytes), if any.
-    pub palette_rgba: Option<Vec<Rgba>>,
 }
 
 #[cfg(test)]
