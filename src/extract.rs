@@ -9,8 +9,8 @@ use crate::lzss::decompress as decompress_lzss;
 use crate::lzss::is_lzss;
 use crate::rom::Rom;
 use crate::sprite::{
-    FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteSheet,
-    POKEMON_PALETTE_BYTES, POKEMON_PIC_BYTES,
+    FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteSheet, POKEMON_PALETTE_BYTES,
+    POKEMON_PIC_BYTES,
 };
 use crate::symbols::SymbolTable;
 use crate::tileset::{
@@ -906,7 +906,6 @@ impl<'rom> Extractor<'rom> {
 
         Ok(by_key.into_values().collect())
     }
-
 }
 
 /// Tileset-related byte lengths read from the symbol table.

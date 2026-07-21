@@ -510,7 +510,6 @@ shiny_palette = 0xB600
         assert_eq!(s.address, 0x0800_B000);
         let s = table.get("gMonBackPic_Pikachu").unwrap();
         assert_eq!(s.address, 0x0800_B200);
-
     }
 
     #[test]
