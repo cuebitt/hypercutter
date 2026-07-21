@@ -42,9 +42,26 @@ impl<'a> TilesetRenderer<'a> {
         self
     }
 
-    /// Render the tileset to an RGBA image.
+    /// Render the tileset to an RGBA image, showing all layers.
     #[must_use]
     pub fn render(&self) -> RgbaImage {
+        self.render_layers(0..8)
+    }
+
+    /// Render only the bottom layers (indices 0–3).
+    #[must_use]
+    pub fn render_bottom(&self) -> RgbaImage {
+        self.render_layers(0..4)
+    }
+
+    /// Render only the top layers (indices 4–7).
+    #[must_use]
+    pub fn render_top(&self) -> RgbaImage {
+        self.render_layers(4..8)
+    }
+
+    /// Render a subset of metatile layers.
+    fn render_layers(&self, layer_range: std::ops::Range<usize>) -> RgbaImage {
         let combined_palettes: Vec<&Palette> = if let Some(secondary) = self.secondary {
             let mut v = Vec::with_capacity(16);
             v.extend(self.primary.palettes.iter().take(6));
@@ -70,7 +87,12 @@ impl<'a> TilesetRenderer<'a> {
             let gx = (mt_idx as u32 % GRID_WIDTH) * METATILE_PX;
             let gy = (mt_idx as u32 / GRID_WIDTH) * METATILE_PX;
 
-            for (layer_idx, layer) in metatile.layers.iter().enumerate() {
+            for (layer_idx, layer) in metatile
+                .layers
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| layer_range.contains(i))
+            {
                 let tile_index = layer.tile_index;
                 let h_flip = layer.h_flip;
                 let v_flip = layer.v_flip;

@@ -154,10 +154,23 @@ pub(crate) mod output {
                     TilesetRenderer::new(&entry.primary).with_primary_tile_count(primary_tile_count)
                 }
             };
-            let img = renderer.render();
-            let path = export_dir.join(format!("{name}.png"));
-            img.save_png(&path)
-                .with_context(|| format!("saving {}", path.display()))?;
+            let tileset_dir = export_dir.join(name);
+            std::fs::create_dir_all(&tileset_dir)
+                .with_context(|| format!("creating {}", tileset_dir.display()))?;
+            renderer
+                .render()
+                .save_png(tileset_dir.join("combined.png"))
+                .with_context(|| {
+                    format!("saving {}", tileset_dir.join("combined.png").display())
+                })?;
+            renderer
+                .render_bottom()
+                .save_png(tileset_dir.join("bottom.png"))
+                .with_context(|| format!("saving {}", tileset_dir.join("bottom.png").display()))?;
+            renderer
+                .render_top()
+                .save_png(tileset_dir.join("top.png"))
+                .with_context(|| format!("saving {}", tileset_dir.join("top.png").display()))?;
             pb.inc(1);
             Ok::<(), anyhow::Error>(())
         })?;
