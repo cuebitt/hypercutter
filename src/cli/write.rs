@@ -7,7 +7,7 @@ use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
-use crate::{Extractor, SpriteRenderer, TilesetRenderer};
+use crate::{render_footprint, Extractor, SpriteRenderer, TilesetRenderer};
 
 use super::{Cli, Summary};
 
@@ -55,7 +55,7 @@ pub(crate) fn run(
         let national_map = extractor
             .national_dex_map()
             .with_context(|| "loading national dex map")?;
-        let sprites_dir = cli.export.join("pokemon/sprites");
+        let sprites_dir = cli.export.join("pokemon");
         if !q {
             println!(
                 "  {} Extracting sprites...",
@@ -271,7 +271,7 @@ pub(crate) mod output {
             })
             .collect();
 
-        let pb = progress_bar(filtered.len() as u64 * 4, cli.quiet);
+        let pb = progress_bar(filtered.len() as u64 * 5, cli.quiet);
         let count = filtered.len();
 
         filtered.par_iter().try_for_each(|sprite| {
@@ -301,6 +301,12 @@ pub(crate) mod output {
                     }
                     pb.inc(1);
                 }
+            }
+            if let Some(fp) = &sprite.footprint {
+                let img = render_footprint(fp);
+                let path = species_dir.join("footprint.png");
+                img.save_png(&path)
+                    .with_context(|| format!("saving {}", path.display()))?;
             }
             Ok::<(), anyhow::Error>(())
         })?;

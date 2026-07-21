@@ -179,6 +179,7 @@ struct PokemonGroup {
     back: Option<Component>,
     palette: Option<Component>,
     shiny_palette: Option<Component>,
+    footprint: Option<Component>,
 }
 
 #[derive(Deserialize)]
@@ -197,11 +198,12 @@ enum Component {
 }
 
 /// Prefixes used to reconstruct pokemon-component symbol names.
-const POKEMON_COMPONENT_PREFIXES: [(&str, &str); 4] = [
+const POKEMON_COMPONENT_PREFIXES: [(&str, &str); 5] = [
     ("front", "gMonFrontPic_"),
     ("back", "gMonBackPic_"),
     ("palette", "gMonPalette_"),
     ("shiny_palette", "gMonShinyPalette_"),
+    ("footprint", "gMonFootprint_"),
 ];
 
 impl SymbolTable {
@@ -267,6 +269,7 @@ impl SymbolTable {
                     "back" => &group.back,
                     "palette" => &group.palette,
                     "shiny_palette" => &group.shiny_palette,
+                    "footprint" => &group.footprint,
                     _ => continue,
                 };
                 let Some(comp) = comp else { continue };
@@ -503,13 +506,16 @@ front = 0xB000
 back = 0xB200
 palette = 0xB400
 shiny_palette = 0xB600
+footprint = 0xB800
 "#;
         let table = SymbolTable::from_toml(toml).unwrap();
-        assert_eq!(table.len(), 4);
+        assert_eq!(table.len(), 5);
         let s = table.get("gMonFrontPic_Pikachu").unwrap();
         assert_eq!(s.address, 0x0800_B000);
         let s = table.get("gMonBackPic_Pikachu").unwrap();
         assert_eq!(s.address, 0x0800_B200);
+        let s = table.get("gMonFootprint_Pikachu").unwrap();
+        assert_eq!(s.address, 0x0800_B800);
     }
 
     #[test]

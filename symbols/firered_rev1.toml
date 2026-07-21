@@ -723,6 +723,10 @@ offset = 2323324
 name = "gMonShinyPaletteTable"
 offset = 2326844
 
+[[pokemon_tables]]
+name = "gMonFootprintTable"
+offset = 4455200
+
 [[field_sprites]]
 name = "gObjectEventGraphicsInfoPointers"
 offset = 3800608

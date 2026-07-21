@@ -9,8 +9,8 @@ use crate::lzss::decompress as decompress_lzss;
 use crate::lzss::is_lzss;
 use crate::rom::Rom;
 use crate::sprite::{
-    FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteSheet, POKEMON_PALETTE_BYTES,
-    POKEMON_PIC_BYTES,
+    Footprint, FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteSheet,
+    POKEMON_PALETTE_BYTES, POKEMON_PIC_BYTES,
 };
 use crate::symbols::SymbolTable;
 use crate::tileset::{
@@ -448,13 +448,17 @@ impl<'rom> Extractor<'rom> {
             .ok_or(Error::SymbolNotFound { name: "Start" })?;
         let start = start_sym.address;
 
-        let mut addrs = BTreeMap::new();
+        let mut addrs: BTreeMap<&'static str, usize> = BTreeMap::new();
         for &name in SPRITE_SYMBOL_NAMES {
             let sym = self
                 .symbols
                 .get(name)
                 .ok_or(Error::SymbolNotFound { name })?;
             addrs.insert(name, (sym.address - start) as usize);
+        }
+        // gMonFootprintTable is optional (absent in Ruby/Sapphire).
+        if let Some(sym) = self.symbols.get("gMonFootprintTable") {
+            addrs.insert("gMonFootprintTable", (sym.address - start) as usize);
         }
 
         let front_len = self
@@ -468,13 +472,22 @@ impl<'rom> Extractor<'rom> {
         let species_names = self.species_names()?;
         let real_count = self.species_count();
 
-        let mut out = Vec::with_capacity(real_count);
-        for species_id in 0..max_species.min(real_count + 1) {
-            if species_id == 0 {
-                continue;
+        // Build per-species footprint address map for games without
+        // a gMonFootprintTable pointer table (Ruby/Sapphire).
+        let mut footprint_addrs: BTreeMap<String, u32> = BTreeMap::new();
+        for sym in self.symbols.iter() {
+            if let Some(name) = sym.name.strip_prefix("gMonFootprint_") {
+                let lower = name.to_ascii_lowercase();
+                footprint_addrs.insert(lower, sym.address);
             }
+        }
+
+        let mut out = Vec::with_capacity(real_count + 1);
+        for species_id in 0..max_species.min(real_count + 1) {
             let id = SpeciesId(species_id as u16);
-            if let Some(sprite) = self.read_base_sprite(id, &addrs, &species_names)? {
+            if let Some(sprite) =
+                self.read_base_sprite(id, &addrs, &species_names, &footprint_addrs)?
+            {
                 out.push(sprite);
             }
         }
@@ -486,6 +499,7 @@ impl<'rom> Extractor<'rom> {
         id: SpeciesId,
         addrs: &BTreeMap<&'static str, usize>,
         species_names: &[String],
+        footprint_addrs: &BTreeMap<String, u32>,
     ) -> Result<Option<Sprite>> {
         let front_offset = addrs["gMonFrontPicTable"];
         let back_offset = addrs["gMonBackPicTable"];
@@ -505,19 +519,15 @@ impl<'rom> Extractor<'rom> {
             .cloned()
             .unwrap_or_default();
 
-        // Species 412 is the Egg slot: its name in the ROM is `?` or may
-        // be absent from the name table entirely.
-        let name = if id.0 == 412 && (name == "?" || name.is_empty()) {
-            "egg".to_owned()
-        } else if name.is_empty() {
-            return Ok(None);
+        let name = if name.trim().is_empty() || name.trim_start().starts_with('?') {
+            match id.0 {
+                0 => "question".to_owned(),
+                412 => "egg".to_owned(),
+                _ => return Ok(None),
+            }
         } else {
             name
         };
-
-        if name.starts_with("old_unown") {
-            return Ok(None);
-        }
 
         let front = match front {
             Some(f) => f,
@@ -542,6 +552,8 @@ impl<'rom> Extractor<'rom> {
             .read_mon_coords(back_coords_offset, id.0 as usize)?
             .unwrap_or_default();
 
+        let footprint = self.read_footprint(id, addrs, footprint_addrs, &name);
+
         let front_sheet = SpriteSheet {
             tiles: TileData::from_bytes(front),
             coords: front_coords,
@@ -560,6 +572,7 @@ impl<'rom> Extractor<'rom> {
             shiny_palette,
             front_coords,
             back_coords,
+            footprint,
         }))
     }
 
@@ -613,6 +626,46 @@ impl<'rom> Extractor<'rom> {
         let mut cursor = std::io::Cursor::new(&self.rom.bytes()[elem_offset..elem_offset + 4]);
         let disk = MonCoordsOnDisk::read_le(&mut cursor)?;
         Ok(Some(MonCoords::from_disk(&disk)))
+    }
+
+    /// Read a footprint image for a species.
+    ///
+    /// Footprints are 16×16 1bpp images (32 bytes uncompressed).
+    ///
+    /// In Emerald / FireRed / LeafGreen the footprint data is referenced
+    /// through the `gMonFootprintTable` pointer table.  Ruby / Sapphire
+    /// store each footprint as a standalone `gMonFootprint_<Name>` symbol.
+    /// Both are tried in order, returning `None` when unavailable.
+    fn read_footprint(
+        &self,
+        id: SpeciesId,
+        addrs: &BTreeMap<&'static str, usize>,
+        footprint_addrs: &BTreeMap<String, u32>,
+        species_name: &str,
+    ) -> Option<Footprint> {
+        let data_addr = addrs
+            .get("gMonFootprintTable")
+            .and_then(|&table_offset| {
+                let elem_offset = table_offset + id.0 as usize * 4;
+                if elem_offset + 4 > self.rom.bytes().len() {
+                    return None;
+                }
+                let b = &self.rom.bytes()[elem_offset..elem_offset + 4];
+                let data_ptr = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
+                if data_ptr == 0 {
+                    None
+                } else {
+                    Some(data_ptr)
+                }
+            })
+            .or_else(|| footprint_addrs.get(species_name).copied())?;
+        let data_offset = self.rom.offset_of(data_addr).ok()?;
+        if data_offset + 32 > self.rom.bytes().len() {
+            return None;
+        }
+        let mut data = [0u8; 32];
+        data.copy_from_slice(&self.rom.bytes()[data_offset..data_offset + 32]);
+        Some(Footprint { data })
     }
 
     /// Read all species names from the `gSpeciesNames` table.

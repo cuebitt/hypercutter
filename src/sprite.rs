@@ -95,6 +95,13 @@ pub struct SpriteSheet {
     pub coords: MonCoords,
 }
 
+/// A 16×16 1bpp footprint image (32 bytes: 4 GBA tiles of 1bpp × 8 bytes each).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Footprint {
+    /// Raw 1bpp tile data.
+    pub data: [u8; 32],
+}
+
 /// A full base-species sprite (front, back, normal and shiny palettes).
 #[derive(Debug, Clone)]
 pub struct Sprite {
@@ -114,6 +121,8 @@ pub struct Sprite {
     pub front_coords: MonCoords,
     /// Back sprite coords.
     pub back_coords: MonCoords,
+    /// Footprint image, if present.
+    pub footprint: Option<Footprint>,
 }
 
 /// An alternate-form sprite (e.g. Unown B, Deoxys Attack).

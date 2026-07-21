@@ -1,7 +1,7 @@
 //! Render tilesets and Pokemon sprites into [`RgbaImage`] buffers.
 
 use crate::graphics::{decode_tile_4bpp, Rgba, RgbaImage};
-use crate::sprite::{Sprite, SpriteSheet};
+use crate::sprite::{Footprint, Sprite, SpriteSheet};
 use crate::tileset::{Palette, PaletteData, Tileset, TILE_SIZE};
 
 /// Width and height of a single metatile in pixels.
@@ -279,6 +279,34 @@ pub fn renderer_for_sprite(sprite: &Sprite, is_front: bool) -> Option<SpriteRend
     };
     let palette = sprite_palette(&sprite.palette)?;
     Some(SpriteRenderer::new(sheet, palette))
+}
+
+/// Render a Pokemon footprint (16×16 1bpp) into an RGBA image.
+///
+/// Pixels are black on transparent background.
+#[must_use]
+pub fn render_footprint(fp: &Footprint) -> RgbaImage {
+    const W: u32 = 16;
+    const H: u32 = 16;
+    let mut img = RgbaImage::new(W, H);
+    for y in 0..H {
+        for x in 0..W {
+            let tile_x = (x / 8) as usize;
+            let tile_y = (y / 8) as usize;
+            let tile_idx = tile_y * 2 + tile_x;
+            let in_tile_x = (x % 8) as usize;
+            let in_tile_y = (y % 8) as usize;
+            let byte_idx = tile_idx * 8 + in_tile_y;
+            let bit = 1 << in_tile_x;
+            let pixel = if fp.data[byte_idx] & bit != 0 {
+                Rgba(0, 0, 0, 255)
+            } else {
+                Rgba::TRANSPARENT
+            };
+            img.set_pixel(x, y, pixel);
+        }
+    }
+    img
 }
 
 #[cfg(test)]
