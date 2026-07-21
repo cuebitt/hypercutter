@@ -193,6 +193,26 @@ fn run_pack(
 
     ensure_clear(cli)?;
 
+    if !q {
+        println!(
+            "  {} Extracting tilesets...",
+            style("\u{2192}").cyan().bold(),
+        );
+    }
+    let extractor = crate::Extractor::new(rom, symbols);
+    let metatiles = extractor
+        .metatiles()
+        .with_context(|| "extracting metatiles")?;
+    let tilesets_dir = cli.export.join("tilesets");
+    write::output::write_tileset_pngs(&metatiles, &tilesets_dir, extractor.rom().game(), cli)?;
+    if !q {
+        println!(
+            "  {} Tilesets written to {}",
+            style("\u{2713}").green().bold(),
+            style(tilesets_dir.display()).bold(),
+        );
+    }
+
     crate::sprite_pack::write_pack(rom, symbols, &cli.export, cli.quiet)
         .with_context(|| "writing sprite pack")?;
 

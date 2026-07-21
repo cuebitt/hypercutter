@@ -113,7 +113,7 @@ pub(crate) mod output {
         pb
     }
 
-    pub(super) fn write_tileset_pngs(
+    pub(crate) fn write_tileset_pngs(
         metatiles: &Metatiles,
         export_dir: &Path,
         game: crate::Game,
