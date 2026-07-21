@@ -82,6 +82,7 @@ pub struct Cli {
     /// Use the flat export format (tileset PNGs + battle sprite PNGs).
     /// By default, hc exports a sprite pack (field/overworld sprites in a
     /// facing-frames grid layout with a manifest.json).
+    /// Note: --sprites and --tilesets imply --flat if not already set.
     #[arg(long)]
     pub flat: bool,
 }
@@ -192,7 +193,7 @@ fn run_pack(
 
     ensure_clear(cli)?;
 
-    crate::sprite_pack::write_pack(rom, symbols, &cli.export)
+    crate::sprite_pack::write_pack(rom, symbols, &cli.export, cli.quiet)
         .with_context(|| "writing sprite pack")?;
 
     if !q {

@@ -3,7 +3,7 @@
 //! Extracts Gen 3 overworld sprites from `gObjectEventGraphicsInfoPointers`
 //! and writes a sprite pack (RGBA PNGs + `manifest.json`).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -20,6 +20,9 @@ const SPRITE_FRAME_IMAGE_SIZE: usize = 8;
 const ANIM_CMD_SIZE: usize = 4;
 /// Size of a GBA palette (16 colors * 2 bytes each).
 const PALETTE_BYTES: usize = 32;
+/// GBA ROM address window (cartridge is mapped here).
+const GBA_LO: u32 = 0x0800_0000;
+const GBA_HI: u32 = 0x0A00_0000;
 
 // ---------------------------------------------------------------------------
 // ROM struct definitions
@@ -101,14 +104,14 @@ fn parse_anim_cmd(bytes: &[u8]) -> AnimCmd {
 // ---------------------------------------------------------------------------
 
 /// Build a palette tag → `[Rgba; 16]` map once, then use for all sprites.
-fn build_palette_map(rom: &Rom, symbols: &SymbolTable, _game: Game) -> BTreeMap<u16, [Rgba; 16]> {
+fn build_palette_map(rom: &Rom, symbols: &SymbolTable, game: Game) -> BTreeMap<u16, [Rgba; 16]> {
     if let Some(table) = symbols.get("sObjectEventSpritePalettes") {
         let map = read_palette_table(rom, table.address);
         if !map.is_empty() {
             return map;
         }
     }
-    palette_candidate_fallback(rom, symbols, _game)
+    palette_candidate_fallback(rom, symbols, game)
 }
 
 /// Read the runtime sprite-palette lookup table from ROM.
@@ -220,6 +223,31 @@ struct ExtractedOverworldSprite {
     frames: Vec<Vec<OverworldFrame>>,
 }
 
+/// Validate sprite dimensions and compute tile geometry.
+/// Returns `(width, height, tile_w, tile_h, max_frames)` or `None` if the sprite should be skipped.
+fn sprite_geometry(raw: &RawObjectEventGraphicsInfo) -> Option<(u32, u32, usize, usize, usize)> {
+    if raw.width <= 0 || raw.height <= 0 {
+        return None;
+    }
+    let w = raw.width as u32;
+    let h = raw.height as u32;
+    if w > 64 || h > 64 {
+        return None;
+    }
+    let tile_w = (w / 8) as usize;
+    let tile_h = (h / 8) as usize;
+    let tiles_per_frame = tile_w * tile_h;
+    let max_frames = if tiles_per_frame > 0 && raw.size > 0 {
+        (raw.size as usize).div_ceil(tiles_per_frame)
+    } else {
+        0
+    };
+    if max_frames == 0 || raw.images_ptr == 0 {
+        return None;
+    }
+    Some((w, h, tile_w, tile_h, max_frames))
+}
+
 /// Extract all overworld sprites from the ROM.
 fn extract_overworld_sprites(
     rom: &Rom,
@@ -270,25 +298,9 @@ fn extract_overworld_sprites(
         let Ok(raw) = read_struct_at::<RawObjectEventGraphicsInfo>(rom, ptr) else {
             continue;
         };
-        if raw.width <= 0 || raw.height <= 0 {
+        let Some((_w, _h, _tile_w, _tile_h, max_frames)) = sprite_geometry(&raw) else {
             continue;
-        }
-        let w = raw.width as u32;
-        let h = raw.height as u32;
-        if w > 64 || h > 64 {
-            continue;
-        }
-        let tile_w = (w / 8) as usize;
-        let tile_h = (h / 8) as usize;
-        let tiles_per_frame = tile_w * tile_h;
-        let max_frames = if tiles_per_frame > 0 && raw.size > 0 {
-            (raw.size as usize).div_ceil(tiles_per_frame)
-        } else {
-            0
         };
-        if max_frames == 0 || raw.images_ptr == 0 {
-            continue;
-        }
         sprites_by_images_ptr.push((raw.images_ptr, ptr, max_frames));
     }
     sprites_by_images_ptr.sort_by_key(|&(ip, _, _)| ip);
@@ -307,22 +319,8 @@ fn extract_overworld_sprites(
         let raw: RawObjectEventGraphicsInfo = read_struct_at(rom, ptr)
             .with_context(|| format!("reading ObjectEventGraphicsInfo for {name}"))?;
 
-        if raw.width <= 0 || raw.height <= 0 {
+        let Some((_w, _h, tile_w, tile_h, max_frames)) = sprite_geometry(&raw) else {
             continue;
-        }
-        let w = raw.width as u32;
-        let h = raw.height as u32;
-        // Skip sprites with unreasonably large dimensions (corrupted data).
-        if w > 64 || h > 64 {
-            continue;
-        }
-        let tile_w = (w / 8) as usize;
-        let tile_h = (h / 8) as usize;
-        let tiles_per_frame = tile_w * tile_h;
-        let max_frames = if tiles_per_frame > 0 && raw.size > 0 {
-            (raw.size as usize).div_ceil(tiles_per_frame)
-        } else {
-            0
         };
 
         let palette = palette_map
@@ -331,7 +329,7 @@ fn extract_overworld_sprites(
             .unwrap_or(default_palette);
 
         // Read animation direction pointers.
-        let anim_dir_ptrs = read_anim_direction_ptrs(rom, raw.anims_ptr, max_frames)?;
+        let anim_dir_ptrs = read_anim_direction_ptrs(rom, raw.anims_ptr, max_frames);
 
         if anim_dir_ptrs.is_empty() || raw.images_ptr == 0 {
             continue;
@@ -374,13 +372,19 @@ fn extract_overworld_sprites(
                     // Check if this entry is owned by another sprite — when image
                     // tables overlap, a closer images_ptr means that sprite owns
                     // the entry and the tile data belongs to it, not us.
-                    let is_foreign = sprites_by_images_ptr.iter().any(|&(ip, other_ptr, mf)| {
-                        ip > raw.images_ptr
-                            && ip <= img_entry_addr
-                            && other_ptr != ptr
-                            && img_entry_addr
-                                < ip.wrapping_add((mf * SPRITE_FRAME_IMAGE_SIZE) as u32)
-                    });
+                    let is_foreign = {
+                        let idx = sprites_by_images_ptr
+                            .partition_point(|&(ip, _, _)| ip <= img_entry_addr);
+                        if idx > 0 {
+                            let &(ip, other_ptr, mf) = &sprites_by_images_ptr[idx - 1];
+                            ip > raw.images_ptr
+                                && other_ptr != ptr
+                                && img_entry_addr
+                                    < ip.wrapping_add((mf * SPRITE_FRAME_IMAGE_SIZE) as u32)
+                        } else {
+                            false
+                        }
+                    };
                     if is_foreign {
                         continue;
                     }
@@ -415,15 +419,8 @@ fn extract_overworld_sprites(
 
             if !frames_for_dir.is_empty() {
                 // Deduplicate frames by image_value (keep first occurrence order).
-                let mut seen_values = Vec::new();
-                frames_for_dir.retain(|f| {
-                    if seen_values.contains(&f.image_value) {
-                        false
-                    } else {
-                        seen_values.push(f.image_value);
-                        true
-                    }
-                });
+                let mut seen_values = HashSet::new();
+                frames_for_dir.retain(|f| seen_values.insert(f.image_value));
                 direction_frames.push(frames_for_dir);
             }
         }
@@ -448,9 +445,9 @@ fn extract_overworld_sprites(
 /// Read the animation direction pointers from `anims_ptr`.
 /// Reads up to 8 entries: first 4 are standing (FACE), next 4 are walking (GO).
 /// Returns all valid pointers found.
-fn read_anim_direction_ptrs(rom: &Rom, anims_ptr: u32, max_frames: usize) -> Result<Vec<u32>> {
+fn read_anim_direction_ptrs(rom: &Rom, anims_ptr: u32, max_frames: usize) -> Vec<u32> {
     if anims_ptr == 0 {
-        return Ok(Vec::new());
+        return Vec::new();
     }
     let mut ptrs = Vec::new();
     // Read up to 8 to cover both FACE (0-3) and GO (4-7) direction tables.
@@ -460,7 +457,7 @@ fn read_anim_direction_ptrs(rom: &Rom, anims_ptr: u32, max_frames: usize) -> Res
             Ok(p) => p,
             Err(_) => break,
         };
-        if ptr == 0 || !(0x0800_0000..0x0A00_0000).contains(&ptr) {
+        if ptr == 0 || !(GBA_LO..GBA_HI).contains(&ptr) {
             break;
         }
         if !direction_is_valid(rom, ptr, max_frames) {
@@ -468,7 +465,7 @@ fn read_anim_direction_ptrs(rom: &Rom, anims_ptr: u32, max_frames: usize) -> Res
         }
         ptrs.push(ptr);
     }
-    Ok(ptrs)
+    ptrs
 }
 
 /// Read animation commands from a direction's command array.
@@ -612,7 +609,7 @@ enum SpriteCategory {
 ///
 /// Returns an error if reading from the ROM, writing files, or validating
 /// the output fails.
-pub fn write_pack(rom: &Rom, symbols: &SymbolTable, dir: &Path) -> Result<()> {
+pub fn write_pack(rom: &Rom, symbols: &SymbolTable, dir: &Path, quiet: bool) -> Result<()> {
     let palette_map = build_palette_map(rom, symbols, rom.game());
     let sprites = extract_overworld_sprites(rom, symbols, &palette_map)
         .context("extracting overworld sprites")?;
@@ -637,9 +634,6 @@ pub fn write_pack(rom: &Rom, symbols: &SymbolTable, dir: &Path) -> Result<()> {
 
     for sprite in &sprites {
         let category = classify_sprite(&sprite.name);
-        if matches!(category, SpriteCategory::Skip) {
-            continue;
-        }
 
         // Frames per direction = max across all directions after dedup.
         let frames = sprite
@@ -687,7 +681,7 @@ pub fn write_pack(rom: &Rom, symbols: &SymbolTable, dir: &Path) -> Result<()> {
         let sprite_id = derive_sprite_id(&sprite.name);
 
         let (folder, target_map) = match category {
-            SpriteCategory::Skip => unreachable!(),
+            SpriteCategory::Skip => continue,
             SpriteCategory::CharacterSprite => ("sprites", &mut manifest_sprites),
             SpriteCategory::FieldObject => ("objects", &mut manifest_objects),
         };
@@ -723,10 +717,12 @@ pub fn write_pack(rom: &Rom, symbols: &SymbolTable, dir: &Path) -> Result<()> {
     std::fs::write(&manifest_path, &manifest_json)
         .with_context(|| format!("writing {}", manifest_path.display()))?;
 
-    validate_pack(dir)?;
+    validate_pack(dir, &manifest)?;
 
-    println!("  Sprite pack written to {}", dir.display());
-    println!("    tile_size: {tile_size}, sprites: {sprite_count}, objects: {object_count}");
+    if !quiet {
+        println!("  Sprite pack written to {}", dir.display());
+        println!("    tile_size: {tile_size}, sprites: {sprite_count}, objects: {object_count}");
+    }
 
     Ok(())
 }
@@ -857,13 +853,7 @@ fn classify_sprite(name: &str) -> SpriteCategory {
 // Validation
 // ---------------------------------------------------------------------------
 
-fn validate_pack(dir: &Path) -> Result<()> {
-    let manifest_path = dir.join("manifest.json");
-    let content = std::fs::read_to_string(&manifest_path)
-        .with_context(|| format!("reading {}", manifest_path.display()))?;
-    let manifest: Manifest =
-        serde_json::from_str(&content).with_context(|| "parsing manifest.json")?;
-
+fn validate_pack(dir: &Path, manifest: &Manifest) -> Result<()> {
     for (category, entries) in [
         ("sprites", &manifest.sprites),
         ("objects", &manifest.objects),
@@ -894,14 +884,10 @@ fn validate_pack(dir: &Path) -> Result<()> {
                         );
                     }
                 }
-                "single" if w != manifest.tile_size || h != manifest.tile_size => {
-                    anyhow::bail!(
-                        "PNG {id}: {w}×{h} (expected single cell {}×{})",
-                        manifest.tile_size,
-                        manifest.tile_size
-                    );
-                }
-                _ => {}
+                _ => anyhow::bail!(
+                    "PNG {id} ({category}): unknown layout \"{}\"",
+                    sprite_def.layout
+                ),
             }
         }
     }

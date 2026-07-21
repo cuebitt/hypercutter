@@ -40,7 +40,7 @@ field/overworld sprites in a facing-frames grid layout with a `manifest.json`.
 Common flags:
 
 - `-e, --export`: Directory to export data to (default: `out`)
-- `--flat`: Use the flat export format (tileset PNGs + battle sprite PNGs)
+- `--flat`: Use the flat export format (tileset PNGs + battle sprite PNGs). Note: `--tilesets` and `--sprites` imply `--flat` if not already set.
 - `--sym-file`: Path to a symbol file (TOML, falling back to legacy `.sym`). By default, bundled symbol tables are used.
 - `-v, --verbose`: Verbose output
 - `-q, --quiet`: Suppress all non-error output

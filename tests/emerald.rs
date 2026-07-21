@@ -23,7 +23,8 @@ fn load_rom(rom_name: &str) -> Option<(Rom, SymbolTable)> {
         return None;
     }
     let rom = Rom::open(&rom_path).ok()?;
-    let symbols = SymbolTable::resolve_for_rom(&rom).ok()?;
+    let symbols = SymbolTable::resolve_for_rom(&rom)
+        .expect("bundled symbol table must validate against fixture ROM");
     Some((rom, symbols))
 }
 
