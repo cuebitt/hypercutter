@@ -216,6 +216,37 @@ fn run_pack(
     crate::sprite_pack::write_pack(rom, symbols, &cli.export, cli.quiet)
         .with_context(|| "writing sprite pack")?;
 
+    // Pokemon battle sprites
+    let sprites_dir = cli.export.join("pokemon/sprites");
+    let sprites = extractor.sprites().with_context(|| "extracting sprites")?;
+    let species_names = extractor
+        .species_names()
+        .with_context(|| "loading species names")?;
+    let national_map = extractor
+        .national_dex_map()
+        .with_context(|| "loading national dex map")?;
+    let count = write::output::write_sprites(&sprites, &national_map, &sprites_dir, cli)?;
+    if !q {
+        println!(
+            "  {} Extracted {} pokemon sprites to {}",
+            style("\u{2713}").green().bold(),
+            style(count).bold(),
+            style(sprites_dir.display()).bold(),
+        );
+    }
+    let forms = extractor.forms().with_context(|| "extracting forms")?;
+    if !forms.is_empty() {
+        let form_count =
+            write::output::write_forms(&forms, &species_names, &national_map, &sprites_dir, cli)?;
+        if !q {
+            println!(
+                "  {} Extracted {} form sprites",
+                style("\u{2713}").green().bold(),
+                style(form_count).bold(),
+            );
+        }
+    }
+
     if !q {
         let elapsed = start.elapsed();
         println!(

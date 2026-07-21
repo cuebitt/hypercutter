@@ -93,12 +93,26 @@ pub(crate) fn run(
             }
         }
     }
+
     Ok(summary)
 }
 
 pub(crate) mod output {
     use super::*;
     use crate::{Metatiles, Sprite, SpriteSheet};
+
+    /// Replace characters unsafe for filesystem paths with underscores.
+    fn sanitize_name(name: &str) -> String {
+        name.chars()
+            .map(|c| {
+                if c.is_alphanumeric() || c == '_' || c == '-' {
+                    c
+                } else {
+                    '_'
+                }
+            })
+            .collect()
+    }
 
     fn progress_bar(len: u64, quiet: bool) -> ProgressBar {
         if quiet {
@@ -179,7 +193,7 @@ pub(crate) mod output {
         Ok(count)
     }
 
-    pub(super) fn write_sprites(
+    pub(crate) fn write_sprites(
         sprites: &[Sprite],
         national_map: &[u16],
         out_dir: &Path,
@@ -262,9 +276,9 @@ pub(crate) mod output {
 
         filtered.par_iter().try_for_each(|sprite| {
             let display_name = if sprite.name == "?" || sprite.name.is_empty() {
-                "egg"
+                "egg".to_owned()
             } else {
-                &sprite.name
+                sanitize_name(&sprite.name)
             };
             let dex_num = national_map
                 .get(sprite.id.0 as usize)
@@ -318,7 +332,7 @@ pub(crate) mod output {
         Some(SpriteRenderer::new(sheet, palette).render())
     }
 
-    pub(super) fn write_forms(
+    pub(crate) fn write_forms(
         forms: &[crate::FormSprite],
         species_names: &[String],
         national_map: &[u16],
@@ -363,11 +377,12 @@ pub(crate) mod output {
                 .copied()
                 .filter(|&n| n != 0)
                 .unwrap_or(*base_id);
-            let species_dir = sprites_dir.join(format!("{:03}_{}", dex_num, base_name));
+            let species_dir =
+                sprites_dir.join(format!("{:03}_{}", dex_num, sanitize_name(&base_name)));
             let forms_dir = species_dir.join("forms");
 
             for form in form_list {
-                let form_dir = forms_dir.join(&form.form);
+                let form_dir = forms_dir.join(sanitize_name(&form.form));
                 work.push((form, form_dir));
             }
         }
@@ -433,4 +448,5 @@ pub(crate) mod output {
         }
         sheet
     }
+
 }

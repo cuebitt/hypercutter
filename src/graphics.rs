@@ -1,6 +1,5 @@
 //! GBA graphics primitives: BGR555 decoding, 4bpp tile decoding, RGBA buffers.
 
-use std::io::Write;
 use std::path::Path;
 
 use crate::error::{Error, Result};
@@ -152,16 +151,22 @@ impl RgbaImage {
 
     /// Encode the image as PNG and write it to `writer`.
     ///
+    /// Encode the image as PNG and write to a stream.
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::Png`] if the PNG encoder fails, or [`Error::Io`] if
-    /// writing to the underlying stream fails.
-    pub fn write_png(&self, mut writer: impl Write) -> Result<()> {
+    /// Returns [`Error::Io`] if writing to the stream fails, or
+    /// [`Error::Png`] if encoding fails.
+    pub fn write_png(&self, mut writer: impl std::io::Write) -> Result<()> {
         let mut encoder = png::Encoder::new(&mut writer, self.width, self.height);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
+        // Disable filters to avoid any encoder-side corruption
+        use png::FilterType;
+        encoder.set_filter(FilterType::NoFilter);
         let mut writer = encoder.write_header()?;
         writer.write_image_data(&self.pixels)?;
+        writer.finish()?;
         Ok(())
     }
 

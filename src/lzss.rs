@@ -79,4 +79,25 @@ mod tests {
         let out = decompress(&data).unwrap();
         assert_eq!(out, vec![0xAA]);
     }
+
+    #[test]
+    fn malformed_lzss_does_not_panic() {
+        // Header with valid magic but back-reference displacement > output size.
+        // Case 1: empty output, disp=0 → 0 - 0 - 1 overflows
+        let data = vec![0x10, 0x20, 0x00, 0x00, 0xFF, 0x10, 0x00];
+        assert!(decompress(&data).is_err());
+
+        // Case 2: small output, disp=2 → out.len() - disp - 1 = 1 - 2 - 1 overflows
+        let data = vec![
+            0x10, 0x20, 0x00, 0x00, 0x00, // flag: first slot is literal
+            0xAA, // literal byte → out=[0xAA]
+            0x80, // flag: first slot is backref (bit 7 set)
+            0x20, 0x00, // backref: len=2, disp=2 (out has 1 byte, disp=2 > 1)
+        ];
+        assert!(decompress(&data).is_err());
+
+        // Case 3: LZ11 header
+        let data = vec![0x11, 0x20, 0x00, 0x00, 0xFF, 0x10, 0x00];
+        assert!(decompress(&data).is_err());
+    }
 }

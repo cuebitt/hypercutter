@@ -9,8 +9,8 @@ use crate::lzss::decompress as decompress_lzss;
 use crate::lzss::is_lzss;
 use crate::rom::Rom;
 use crate::sprite::{
-    FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteSheet, POKEMON_PALETTE_BYTES,
-    POKEMON_PIC_BYTES,
+    FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteSheet,
+    POKEMON_PALETTE_BYTES, POKEMON_PIC_BYTES,
 };
 use crate::symbols::SymbolTable;
 use crate::tileset::{
@@ -464,18 +464,13 @@ impl<'rom> Extractor<'rom> {
                 name: "gMonFrontPicTable",
             })?
             .length as usize;
-        let count = front_len / 8;
+        let max_species = front_len / 8;
         let species_names = self.species_names()?;
+        let real_count = self.species_count();
 
-        let mut out = Vec::with_capacity(count);
-        for species_id in 0..count {
-            // Skip placeholder species 0.
+        let mut out = Vec::with_capacity(real_count);
+        for species_id in 0..max_species.min(real_count + 1) {
             if species_id == 0 {
-                continue;
-            }
-
-            // Species 413+ are alternate-form slots handled by forms().
-            if species_id >= 413 {
                 continue;
             }
             let id = SpeciesId(species_id as u16);
@@ -626,6 +621,35 @@ impl<'rom> Extractor<'rom> {
     ///
     /// Returns [`Error::SymbolNotFound`] if `gSpeciesNames` or `Start` is
     /// missing.
+    /// Count actual species by walking `gMonFrontPicTable` for non-zero
+    /// data pointers.  Returns `0` if the symbol is missing or empty.
+    fn species_count(&self) -> usize {
+        let table_sym = match self.symbols.get("gMonFrontPicTable") {
+            Some(s) => s,
+            None => return 0,
+        };
+        let Ok(table_offset) = self.rom.offset_of(table_sym.address) else {
+            return 0;
+        };
+        let max_entries = (table_sym.length as usize / 8).min(413);
+        let mut count = 0usize;
+        for i in 1..max_entries {
+            let elem_offset = table_offset + i * 8;
+            if elem_offset + 8 > self.rom.bytes().len() {
+                break;
+            }
+            let data_ptr = u32::from_le_bytes(
+                self.rom.bytes()[elem_offset..elem_offset + 4]
+                    .try_into()
+                    .unwrap(),
+            );
+            if data_ptr != 0 {
+                count = i + 1;
+            }
+        }
+        count
+    }
+
     pub fn species_names(&self) -> Result<Vec<String>> {
         let start_sym = self
             .symbols
@@ -640,7 +664,9 @@ impl<'rom> Extractor<'rom> {
             })?;
         let offset = (sym.address - start) as usize;
         let name_length: usize = 11;
-        let count = (sym.length as usize) / name_length;
+        let total = (sym.length as usize) / name_length;
+        let real_count = self.species_count();
+        let count = total.min(real_count + 1);
         let mut names = Vec::with_capacity(count);
         for i in 0..count {
             let pos = offset + i * name_length;
@@ -683,12 +709,14 @@ impl<'rom> Extractor<'rom> {
         let sym = candidates
             .iter()
             .filter_map(|name| self.symbols.get(name))
-            .max_by_key(|s| s.length)
+            .next()
             .ok_or(Error::SymbolNotFound {
                 name: "sSpeciesToNationalPokedexNum",
             })?;
         let offset = (sym.address - start) as usize;
-        let count = (sym.length as usize) / 2;
+        let total_entries = (sym.length as usize) / 2;
+        let real_count = self.species_count();
+        let count = total_entries.min(real_count);
         let mut map = vec![0u16; count + 1];
         for i in 0..count {
             let pos = offset + i * 2;
@@ -878,6 +906,7 @@ impl<'rom> Extractor<'rom> {
 
         Ok(by_key.into_values().collect())
     }
+
 }
 
 /// Tileset-related byte lengths read from the symbol table.
