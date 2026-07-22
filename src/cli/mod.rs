@@ -51,10 +51,6 @@ pub struct Cli {
     #[arg(long)]
     pub overwrite: bool,
 
-    /// List available tilesets or sprites without extracting.
-    #[arg(long)]
-    pub list: bool,
-
     /// Glob pattern to filter which tilesets to extract.
     #[arg(long, value_name = "PATTERN")]
     pub tileset_filter: Option<String>,
@@ -62,29 +58,6 @@ pub struct Cli {
     /// Glob pattern to filter which sprites to extract.
     #[arg(long, value_name = "PATTERN")]
     pub sprite_filter: Option<String>,
-
-    /// Dump Pokemon battle sprites (front/back, normal + shiny).
-    #[arg(long)]
-    pub sprites: bool,
-
-    /// Render and export tileset PNGs.
-    #[arg(long)]
-    pub tilesets: bool,
-
-    /// Output sprites as a spritesheet instead of individual PNGs.
-    #[arg(long)]
-    pub spritesheet: bool,
-
-    /// Columns in the spritesheet.
-    #[arg(long, default_value_t = 8)]
-    pub spritesheet_columns: usize,
-
-    /// Use the flat export format (tileset PNGs + battle sprite PNGs).
-    /// By default, hc exports a sprite pack (field/overworld sprites in a
-    /// facing-frames grid layout with a manifest.json).
-    /// Note: --sprites and --tilesets imply --flat if not already set.
-    #[arg(long)]
-    pub flat: bool,
 }
 
 /// Run the CLI with the given arguments.
@@ -115,68 +88,9 @@ pub fn run(cli: Cli) -> Result<()> {
         );
     }
 
-    let use_flat = cli.flat || cli.sprites || cli.tilesets;
     let symbols = sym::load_symbols(&cli, &rom).with_context(|| "loading symbols")?;
 
-    if use_flat {
-        run_flat(&cli, &rom, &symbols, start)?;
-    } else {
-        run_pack(&cli, &rom, &symbols, start)?;
-    }
-
-    Ok(())
-}
-
-fn run_flat(
-    cli: &Cli,
-    rom: &crate::Rom,
-    symbols: &crate::SymbolTable,
-    start: std::time::Instant,
-) -> Result<()> {
-    let q = cli.quiet;
-    let (dump_sprites, dump_tilesets) = resolve_flat_flags(cli);
-    let dump_any = dump_sprites || dump_tilesets;
-
-    if cli.list {
-        return list_contents(cli, rom, symbols, dump_sprites, dump_tilesets);
-    }
-
-    ensure_clear(cli)?;
-
-    let extractor = crate::Extractor::new(rom, symbols);
-    let summary = write::run(cli, &extractor, dump_sprites, dump_tilesets)?;
-    let elapsed = start.elapsed();
-
-    if !q && dump_any {
-        let mut parts = Vec::new();
-        if summary.tilesets > 0 {
-            parts.push(format!("{} tilesets", style(summary.tilesets).bold()));
-        }
-        if summary.sprites > 0 {
-            parts.push(format!("{} sprites", style(summary.sprites).bold()));
-        }
-        if summary.forms > 0 {
-            parts.push(format!("{} forms", style(summary.forms).bold()));
-        }
-        if !parts.is_empty() {
-            println!(
-                "  {} {} to {}",
-                style("\u{2713}").green().bold(),
-                parts.join(", "),
-                style(cli.export.display()).bold(),
-            );
-        }
-    }
-
-    if !q {
-        println!(
-            "  {} Done in {}",
-            style("\u{2192}").cyan().bold(),
-            style(format!("{:.2?}", elapsed)).bold(),
-        );
-    }
-
-    Ok(())
+    run_pack(&cli, &rom, &symbols, start)
 }
 
 fn run_pack(
@@ -186,10 +100,6 @@ fn run_pack(
     start: std::time::Instant,
 ) -> Result<()> {
     let q = cli.quiet;
-
-    if cli.list {
-        anyhow::bail!("--list is only supported with --flat (sprite pack mode has no tileset/battle-sprite listing)");
-    }
 
     ensure_clear(cli)?;
 
@@ -271,15 +181,6 @@ fn run_pack(
     Ok(())
 }
 
-fn resolve_flat_flags(cli: &Cli) -> (bool, bool) {
-    let any = cli.sprites || cli.tilesets;
-    if any {
-        (cli.sprites, cli.tilesets)
-    } else {
-        (true, true)
-    }
-}
-
 fn ensure_clear(cli: &Cli) -> Result<()> {
     if cli.clear {
         clear_dir(&cli.export)?;
@@ -295,75 +196,6 @@ fn ensure_clear(cli: &Cli) -> Result<()> {
             style(cli.export.display()).bold(),
         );
     }
-    Ok(())
-}
-
-pub(crate) struct Summary {
-    pub tilesets: usize,
-    pub sprites: usize,
-    pub forms: usize,
-}
-
-fn list_contents(
-    cli: &Cli,
-    rom: &crate::Rom,
-    symbols: &crate::SymbolTable,
-    dump_sprites: bool,
-    dump_tilesets: bool,
-) -> Result<()> {
-    let extractor = crate::Extractor::new(rom, symbols);
-
-    if dump_tilesets {
-        let metatiles = extractor
-            .metatiles()
-            .with_context(|| "extracting metatiles")?;
-        let exclude = game_exclude(rom.game());
-        let filter = cli
-            .tileset_filter
-            .as_deref()
-            .map(glob::Pattern::new)
-            .transpose()
-            .with_context(|| "invalid tileset filter pattern")?;
-
-        println!("{}", style("Tilesets:").bold());
-        for name in metatiles.names() {
-            if exclude.contains(&name) {
-                continue;
-            }
-            if let Some(ref pat) = filter {
-                if !pat.matches(name) {
-                    continue;
-                }
-            }
-            println!("  {name}");
-        }
-    }
-
-    if dump_sprites {
-        let species_names = extractor
-            .species_names()
-            .with_context(|| "loading species names")?;
-        let filter = cli
-            .sprite_filter
-            .as_deref()
-            .map(glob::Pattern::new)
-            .transpose()
-            .with_context(|| "invalid sprite filter pattern")?;
-
-        println!("{}", style("Sprites:").bold());
-        for (i, name) in species_names.iter().enumerate() {
-            if name.is_empty() || name == "?" {
-                continue;
-            }
-            if let Some(ref pat) = filter {
-                if !pat.matches(name) {
-                    continue;
-                }
-            }
-            println!("  {:03}: {name}", i);
-        }
-    }
-
     Ok(())
 }
 

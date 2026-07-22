@@ -34,32 +34,14 @@ By default this exports a sprite pack: overworld sprites in a facing-frames grid
 
 Common flags:
 
-| Flag                        | Description                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------ |
-| `-e, --export <DIR>`        | Output directory (default: `out`)                                              |
-| `--flat`                    | Flat output (tileset PNGs + sprite PNGs). Implied by `--tilesets`/`--sprites`. |
-| `--sym-file <FILE>`         | Custom symbol file (TOML or `.sym`). Bundled tables used by default.           |
-| `-v` / `-q`                 | Verbose / quiet output                                                         |
-| `-c` / `-y` / `--overwrite` | Output handling (clear, skip prompts, overwrite)                               |
-
-Flat-mode options (with `--flat`):
-
-| Flag                                          | Description                         |
-| --------------------------------------------- | ----------------------------------- |
-| `--tilesets` / `--sprites`                    | What to extract                     |
-| `--tileset-filter` / `--sprite-filter <PAT>`  | Glob pattern filter                 |
-| `--spritesheet` / `--spritesheet-columns <N>` | Spritesheet output (default 8 cols) |
-| `--list`                                      | List available tilesets or sprites  |
-
-### Flat output structure
-
-```
-out/
-├── field_effects/<name>.png
-├── tilesets/<group>/{combined,bottom,top}.png
-└── pokemon/sprites/<id>_<name>/{front,back}{,_shiny}.png
-    └── forms/<form>/{front,back}.png
-```
+| Flag                        | Description                                                     |
+| --------------------------- | --------------------------------------------------------------- |
+| `-e, --export <DIR>`        | Output directory (default: `out`)                               |
+| `--sym-file <FILE>`         | Custom symbol file (TOML or `.sym`). Bundled tables by default. |
+| `-v` / `-q`                 | Verbose / quiet output                                          |
+| `-c` / `-y` / `--overwrite` | Output handling (clear, skip prompts, overwrite)                |
+| `--tileset-filter <PAT>`    | Glob pattern to filter which tilesets to extract                |
+| `--sprite-filter <PAT>`     | Glob pattern to filter which sprites to extract                 |
 
 Symbol tables are bundled as TOML inside the binary. Use `--sym-file` to override for ROM hacks.
 

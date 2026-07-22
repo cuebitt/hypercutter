@@ -3,99 +3,12 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
-use crate::{render_footprint, Extractor, SpriteRenderer, TilesetRenderer};
+use crate::{render_footprint, SpriteRenderer, TilesetRenderer};
 
-use super::{Cli, Summary};
-
-/// Run the full output pipeline.
-pub(crate) fn run(
-    cli: &Cli,
-    extractor: &Extractor<'_>,
-    dump_sprites: bool,
-    dump_tilesets: bool,
-) -> Result<Summary> {
-    let q = cli.quiet;
-    let mut summary = Summary {
-        tilesets: 0,
-        sprites: 0,
-        forms: 0,
-    };
-
-    if dump_tilesets {
-        let metatiles = extractor
-            .metatiles()
-            .with_context(|| "extracting metatiles")?;
-        let tilesets_dir = cli.export.join("tilesets");
-        if !q {
-            println!(
-                "  {} Extracting tilesets...",
-                style("\u{2192}").cyan().bold(),
-            );
-        }
-        let count =
-            output::write_tileset_pngs(&metatiles, &tilesets_dir, extractor.rom().game(), cli)?;
-        summary.tilesets = count;
-        if !q {
-            println!(
-                "  {} Tilesets written to {}",
-                style("\u{2713}").green().bold(),
-                style(tilesets_dir.display()).bold(),
-            );
-        }
-    }
-    if dump_sprites {
-        let sprites = extractor.sprites().with_context(|| "extracting sprites")?;
-        let species_names = extractor
-            .species_names()
-            .with_context(|| "loading species names")?;
-        let national_map = extractor
-            .national_dex_map()
-            .with_context(|| "loading national dex map")?;
-        let sprites_dir = cli.export.join("pokemon");
-        if !q {
-            println!(
-                "  {} Extracting sprites...",
-                style("\u{2192}").cyan().bold(),
-            );
-        }
-        let count = output::write_sprites(&sprites, &national_map, &sprites_dir, cli)?;
-        summary.sprites = count;
-        if !q {
-            println!(
-                "  {} Extracted {} sprites to {}",
-                style("\u{2713}").green().bold(),
-                style(count).bold(),
-                style(sprites_dir.display()).bold(),
-            );
-        }
-        // Also extract and write alternate forms.
-        let forms = extractor.forms().with_context(|| "extracting forms")?;
-        if !forms.is_empty() {
-            if !q {
-                println!(
-                    "  {} Extracting alternate forms...",
-                    style("\u{2192}").cyan().bold(),
-                );
-            }
-            let form_count =
-                output::write_forms(&forms, &species_names, &national_map, &sprites_dir, cli)?;
-            summary.forms = form_count;
-            if !q {
-                println!(
-                    "  {} Extracted {} form sprites",
-                    style("\u{2713}").green().bold(),
-                    style(form_count).bold(),
-                );
-            }
-        }
-    }
-
-    Ok(summary)
-}
+use super::Cli;
 
 pub(crate) mod output {
     use super::*;
@@ -199,49 +112,7 @@ pub(crate) mod output {
         out_dir: &Path,
         cli: &Cli,
     ) -> Result<usize> {
-        if cli.spritesheet {
-            write_spritesheet(sprites, out_dir, cli.spritesheet_columns)?;
-            return Ok(sprites.len());
-        }
         write_individual(sprites, national_map, out_dir, cli)
-    }
-
-    fn write_spritesheet(sprites: &[Sprite], out_dir: &Path, columns: usize) -> Result<()> {
-        std::fs::create_dir_all(out_dir)
-            .with_context(|| format!("creating {}", out_dir.display()))?;
-        let mut front_imgs = Vec::new();
-        let mut back_imgs = Vec::new();
-        let mut species_list = Vec::new();
-        for sprite in sprites {
-            if let Some(img) = render_sprite(sprite, true) {
-                front_imgs.push(img);
-                species_list.push(sprite.name.clone());
-            }
-            if let Some(img) = render_sprite(sprite, false) {
-                back_imgs.push(img);
-            }
-        }
-        if !front_imgs.is_empty() {
-            let sheet = compose_spritesheet(&front_imgs, columns);
-            sheet
-                .save_png(out_dir.join("front_spritesheet.png"))
-                .with_context(|| "saving front spritesheet")?;
-        }
-        if !back_imgs.is_empty() {
-            let sheet = compose_spritesheet(&back_imgs, columns);
-            sheet
-                .save_png(out_dir.join("back_spritesheet.png"))
-                .with_context(|| "saving back spritesheet")?;
-        }
-        let list = species_list
-            .into_iter()
-            .enumerate()
-            .map(|(i, name)| format!("{}: {}", i + 1, name))
-            .collect::<Vec<_>>()
-            .join("\n");
-        std::fs::write(out_dir.join("species_list.txt"), list)
-            .with_context(|| "writing species_list.txt")?;
-        Ok(())
     }
 
     fn write_individual(
@@ -313,10 +184,6 @@ pub(crate) mod output {
 
         pb.finish_and_clear();
         Ok(count)
-    }
-
-    fn render_sprite(sprite: &Sprite, is_front: bool) -> Option<crate::RgbaImage> {
-        render_sprite_variant(sprite, is_front, false)
     }
 
     fn render_sprite_variant(
@@ -435,23 +302,5 @@ pub(crate) mod output {
 
         pb.finish_and_clear();
         Ok(count)
-    }
-
-    fn compose_spritesheet(images: &[crate::RgbaImage], columns: usize) -> crate::RgbaImage {
-        let max_w = images.iter().map(|i| i.width()).max().unwrap_or(64);
-        let max_h = images.iter().map(|i| i.height()).max().unwrap_or(64);
-        let rows = images.len().div_ceil(columns);
-        let pad = 1u32;
-        let sheet_w = columns as u32 * (max_w + pad) - pad;
-        let sheet_h = rows as u32 * (max_h + pad) - pad;
-        let mut sheet = crate::RgbaImage::new(sheet_w, sheet_h);
-        for (idx, img) in images.iter().enumerate() {
-            let col = idx % columns;
-            let row = idx / columns;
-            let x = col as u32 * (max_w + pad);
-            let y = row as u32 * (max_h + pad);
-            sheet.alpha_blit(img, (x, y));
-        }
-        sheet
     }
 }
