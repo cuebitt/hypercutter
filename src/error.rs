@@ -123,7 +123,7 @@ impl From<toml::de::Error> for Error {
 impl From<binrw::Error> for Error {
     fn from(source: binrw::Error) -> Self {
         Self::Io {
-            path: std::path::PathBuf::from("<binrw>"),
+            path: PathBuf::from("<binrw>"),
             source: std::io::Error::other(source.to_string()),
         }
     }

@@ -373,11 +373,17 @@ where
     T: BinRead<Args<'static> = ()> + 'static,
 {
     let elem_size = std::mem::size_of::<T>();
-    let _total = elem_size.checked_mul(count).ok_or(Error::OutOfRange {
+    let total = elem_size.checked_mul(count).ok_or(Error::OutOfRange {
         offset: address,
         size: 0,
     })?;
     let offset = rom.offset_of(address)?;
+    if offset + total > rom.bytes().len() {
+        return Err(Error::OutOfRange {
+            offset: address,
+            size: total as u32,
+        });
+    }
     let mut slice = Vec::with_capacity(count);
     let mut pos = offset;
     let bytes = rom.bytes();

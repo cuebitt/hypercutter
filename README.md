@@ -1,11 +1,16 @@
 # hypercutter
 
-Binary extraction tool for GBA Pokemon ROMs. Includes a Rust library, a CLI, and WebAssembly bindings.
+Extract tiles, palettes, sprites, and field effects from GBA Pokemon ROMs. Ships as a Rust library, a CLI binary, and WebAssembly bindings.
+
+Supports Emerald, FireRed, LeafGreen, Ruby, and Sapphire.
 
 ## Features
 
-- Extract tiles, palettes, metatiles, and battle sprites (front/back, normal/shiny, alternate forms) from Emerald, FireRed, LeafGreen, Ruby, Sapphire
-- LZSS decompression, PNG rendering, per-form palettes
+- Tilesets, metatiles, and palettes (with LZSS decompression)
+- Battle sprites: front/back, normal/shiny palette variants, alternate forms
+- Overworld character sprites, packed into facing-frames grids
+- Field effect sprites (tall grass, surf blob, shadows, etc.) with palettes resolved from the game's script bytecode
+- PNG rendering for everything
 
 ## Installation
 
@@ -13,7 +18,7 @@ Binary extraction tool for GBA Pokemon ROMs. Includes a Rust library, a CLI, and
 cargo install hypercutter
 ```
 
-Or from source:
+From source:
 
 ```bash
 git clone https://github.com/cuebitt/hypercutter && cd hypercutter && cargo build --release
@@ -25,7 +30,7 @@ git clone https://github.com/cuebitt/hypercutter && cd hypercutter && cargo buil
 hc pokeemerald.gba
 ```
 
-Exports a sprite pack by default: field/overworld sprites in a facing-frames grid with `manifest.json`.
+By default this exports a sprite pack: overworld sprites in a facing-frames grid with `manifest.json`. Field effects go to `out/field_effects/`.
 
 Common flags:
 
@@ -50,12 +55,13 @@ Flat-mode options (with `--flat`):
 
 ```
 out/
+├── field_effects/<name>.png
 ├── tilesets/<group>/{combined,bottom,top}.png
 └── pokemon/sprites/<id>_<name>/{front,back}{,_shiny}.png
     └── forms/<form>/{front,back}.png
 ```
 
-Symbol tables are bundled as TOML files in the binary. Override with `--sym-file` for ROM hacks.
+Symbol tables are bundled as TOML inside the binary. Use `--sym-file` to override for ROM hacks.
 
 ## Library
 
@@ -110,14 +116,13 @@ prek install
 prek run --all-files
 ```
 
-If another tool (e.g. bgit) sets `core.hooksPath` globally, use `prek install --git-dir .git` and copy that tool's hooks into `.git/hooks/`. Alternatively, use `pre-commit` (pip).
+If another tool (e.g. bgit) sets `core.hooksPath` globally, try `prek install --git-dir .git` and copy that tool's hooks into `.git/hooks/`. `pre-commit` (pip) works too.
 
 ### Publishing
 
-Releases publish to crates.io and npm automatically when a version tag is pushed. Forks need `CRATES_IO_TOKEN` and `NPM_TOKEN` secrets.
+Push a `v*` tag and GitHub Actions publishes to crates.io and npm automatically. Forks need `CRATES_IO_TOKEN` and `NPM_TOKEN` secrets.
 
 ```bash
-# Bump version in Cargo.toml, commit, then:
 git tag v0.4.0 && git push origin v0.4.0
 ```
 
@@ -127,7 +132,7 @@ MIT OR Apache-2.0
 
 ## Attribution
 
-The TOML memory maps are generated from [pret/pokeemerald](https://github.com/pret/pokeemerald/tree/symbols), [pret/pokefirered](https://github.com/pret/pokefirered/tree/symbols), and [pret/pokeruby](https://github.com/pret/pokeruby/tree/symbols).
+The TOML memory maps are built from the [pret/pokeemerald](https://github.com/pret/pokeemerald/tree/symbols), [pret/pokefirered](https://github.com/pret/pokefirered/tree/symbols), and [pret/pokeruby](https://github.com/pret/pokeruby/tree/symbols).
 
 This project contains no content from any Pokemon ROM dump.
 

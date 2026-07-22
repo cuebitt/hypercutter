@@ -148,6 +148,8 @@ struct SymbolFile {
     #[serde(default)]
     tables: Vec<FlatEntry>,
     #[serde(default)]
+    field_effects: Vec<FlatEntry>,
+    #[serde(default)]
     pokemon: std::collections::HashMap<String, PokemonGroup>,
 }
 
@@ -254,6 +256,7 @@ impl SymbolTable {
             .chain(file.pokemon_tables.iter())
             .chain(file.field_sprites.iter())
             .chain(file.field_sprite_palettes.iter())
+            .chain(file.field_effects.iter())
             .chain(file.tables.iter())
         {
             entries.push(flat_to_symbol(raw, start));
@@ -396,8 +399,8 @@ fn parse_scope(s: Option<&str>) -> Scope {
 }
 
 /// Fill zero-length entries using the next symbol's address.
+/// Assumes entries are already sorted by address.
 fn fill_lengths(entries: &mut [Symbol]) {
-    entries.sort_by_key(|s| s.address);
     for i in 0..entries.len() {
         if entries[i].length == 0 {
             if let Some(next) = entries.get(i + 1) {
@@ -410,7 +413,10 @@ fn fill_lengths(entries: &mut [Symbol]) {
 }
 
 fn parse_hex(s: &str) -> Option<u32> {
-    let s = s.strip_prefix("0x").unwrap_or(s);
+    let s = s
+        .strip_prefix("0x")
+        .or_else(|| s.strip_prefix("0X"))
+        .unwrap_or(s);
     u32::from_str_radix(s, 16).ok()
 }
 

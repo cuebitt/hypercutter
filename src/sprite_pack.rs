@@ -1,14 +1,22 @@
-//! Sprite pack output.
+//! Sprite and field effect extraction.
 //!
-//! Extracts Gen 3 overworld sprites from `gObjectEventGraphicsInfoPointers`
-//! and writes a sprite pack (RGBA PNGs + `manifest.json`).
+//! Two main jobs:
+//! - Overworld character sprites from `gObjectEventGraphicsInfoPointers`,
+//!   packed into RGBA PNGs with a `manifest.json`.
+//! - Field effect sprites (tall grass, surf blob, shadows, etc.) from
+//!   `gFieldEffectObjectPic_*` / `gFieldEffectPic_*` symbols, with palettes
+//!   resolved from the field effect script bytecode.
 
 use std::collections::{BTreeMap, HashSet};
 use std::path::Path;
 
 use anyhow::{Context, Result};
 use binrw::BinRead;
+use console::style;
 
+use log::warn;
+
+use crate::field_effect::{build_palette_map as build_fe_palette_map, read_template_palette_tag};
 use crate::graphics::{bgr555_to_rgba, decode_tile_4bpp, Rgba, RgbaImage};
 use crate::lzss::{decompress as decompress_lzss, is_lzss};
 use crate::tileset::read_struct_at;
@@ -391,7 +399,7 @@ fn extract_overworld_sprites(
                     let Ok(img_entry): Result<RawSpriteFrameImage, _> =
                         read_struct_at(rom, img_entry_addr)
                     else {
-                        eprintln!("  Warning: sprite {name} at 0x{ptr:08x}: failed to read frame entry at 0x{img_entry_addr:08x}");
+                        warn!("sprite {name} at 0x{ptr:08x}: failed to read frame entry at 0x{img_entry_addr:08x}");
                         continue;
                     };
 
@@ -402,7 +410,7 @@ fn extract_overworld_sprites(
                     let Ok(tile_data) =
                         read_sprite_tile_data(rom, img_entry.data_ptr, img_entry.size as usize)
                     else {
-                        eprintln!("  Warning: sprite {name} at 0x{ptr:08x}: failed to read tile data at 0x{:08x} (size {})", img_entry.data_ptr, img_entry.size);
+                        warn!("sprite {name} at 0x{ptr:08x}: failed to read tile data at 0x{:08x} (size {})", img_entry.data_ptr, img_entry.size);
                         continue;
                     };
 
@@ -474,7 +482,7 @@ fn read_anim_cmds(rom: &Rom, cmd_ptr: u32) -> Result<Vec<AnimCmd>> {
     let mut addr = cmd_ptr;
     loop {
         // Safety limit: no more than 256 commands per direction.
-        if cmds.len() >= 256 {
+        if cmds.len() > 255 {
             break;
         }
         let bytes = rom.slice_at(addr, ANIM_CMD_SIZE)?;
@@ -595,8 +603,6 @@ struct Manifest {
 
 /// Category for an overworld sprite.
 enum SpriteCategory {
-    /// Skip entirely (player animations that don't render well standalone).
-    Skip,
     /// Character NPC sprite (trainers, townsfolk, etc.).
     CharacterSprite,
     /// Field object (dolls, rocks, signs, pokemon encounters, etc.).
@@ -681,7 +687,6 @@ pub fn write_pack(rom: &Rom, symbols: &SymbolTable, dir: &Path, quiet: bool) -> 
         let sprite_id = derive_sprite_id(&sprite.name);
 
         let (folder, target_map) = match category {
-            SpriteCategory::Skip => continue,
             SpriteCategory::CharacterSprite => ("sprites", &mut manifest_sprites),
             SpriteCategory::FieldObject => ("objects", &mut manifest_objects),
         };
@@ -727,6 +732,249 @@ pub fn write_pack(rom: &Rom, symbols: &SymbolTable, dir: &Path, quiet: bool) -> 
     Ok(())
 }
 
+// ---------------------------------------------------------------------------
+// Field effect sprite extraction
+// ---------------------------------------------------------------------------
+
+/// Field effect pic symbol prefixes we extract.
+const FIELD_EFFECT_PIC_PREFIXES: &[&str] = &["gFieldEffectObjectPic_", "gFieldEffectPic_"];
+
+/// Decode a raw GBA packed OAM entry (6 bytes) into pixel dimensions.
+fn gba_oam_dims(oam_bytes: &[u8]) -> Option<(u32, u32)> {
+    if oam_bytes.len() < 6 {
+        return None;
+    }
+    let attr0 = u16::from_le_bytes([oam_bytes[0], oam_bytes[1]]);
+    let attr1 = u16::from_le_bytes([oam_bytes[2], oam_bytes[3]]);
+    let shape = (attr0 >> 14) & 3;
+    let size = (attr1 >> 14) & 3;
+    let dims = match (shape, size) {
+        (0, 0) => (8, 8),
+        (0, 1) => (16, 16),
+        (0, 2) => (32, 32),
+        (0, 3) => (64, 64),
+        (1, 0) => (16, 8),
+        (1, 1) => (32, 8),
+        (1, 2) => (32, 16),
+        (1, 3) => (64, 32),
+        (2, 0) => (8, 16),
+        (2, 1) => (8, 32),
+        (2, 2) => (16, 32),
+        (2, 3) => (32, 64),
+        _ => return None,
+    };
+    Some(dims)
+}
+
+/// Figure out which palette a field effect sprite should use.
+///
+/// Tries `gFieldEffectObjectTemplate_*` first (Emerald/FireRed), then
+/// `gFieldEffectSpriteTemplate_*` (Ruby/Sapphire). Falls back to the
+/// grayscale `default_palette` if there's no template, the `paletteTag` is
+/// 0xFFFF, or the tag isn't in the palette map.
+fn resolve_palette_for_effect(
+    rom: &Rom,
+    symbols: &SymbolTable,
+    palettes: &BTreeMap<u16, [Rgba; 16]>,
+    default_palette: &[Rgba; 16],
+    name: &str,
+) -> [Rgba; 16] {
+    for tmpl_name in [
+        format!("gFieldEffectObjectTemplate_{name}"),
+        format!("gFieldEffectSpriteTemplate_{name}"),
+    ] {
+        let sym = match symbols.get(&tmpl_name) {
+            Some(s) => s,
+            None => continue,
+        };
+        let tag = match read_template_palette_tag(rom, sym.address) {
+            Some(t) => t,
+            None => continue,
+        };
+        if tag == 0xFFFF {
+            continue;
+        }
+        if let Some(&pal) = palettes.get(&tag) {
+            return pal;
+        }
+    }
+    *default_palette
+}
+
+/// Read a field effect's sprite template and return per-frame pixel dimensions.
+///
+/// Tries `gFieldEffectObjectTemplate_*` first (Emerald/FireRed), then
+/// `gFieldEffectSpriteTemplate_*` (Ruby/Sapphire).
+fn field_effect_frame_dims(rom: &Rom, symbols: &SymbolTable, name: &str) -> Option<(u32, u32)> {
+    let tmpl_name = format!("gFieldEffectObjectTemplate_{name}");
+    let sym = symbols
+        .get(&tmpl_name)
+        .or_else(|| symbols.get(&format!("gFieldEffectSpriteTemplate_{name}")))?;
+    let oam_offset = sym.address.wrapping_add(4); // oamPtr is 4 bytes in
+    let oam_ptr_bytes = rom.slice_at(oam_offset, 4).ok()?;
+    let oam_ptr = u32::from_le_bytes([
+        oam_ptr_bytes[0],
+        oam_ptr_bytes[1],
+        oam_ptr_bytes[2],
+        oam_ptr_bytes[3],
+    ]);
+    let oam_data = rom.slice_at(oam_ptr, 6).ok()?;
+    gba_oam_dims(oam_data)
+}
+
+/// Render a single frame of tile data into an RGBA image at the given size.
+fn render_tile_grid(raw_tiles: &[u8], tile_w: u32, tile_h: u32, palette: &[Rgba; 16]) -> RgbaImage {
+    let w = tile_w * 8;
+    let h = tile_h * 8;
+    let mut img = RgbaImage::new(w, h);
+    for ty in 0..tile_h {
+        for tx in 0..tile_w {
+            let ti = (ty * tile_w + tx) as usize;
+            let start = ti * 32;
+            let chunk = if start + 32 <= raw_tiles.len() {
+                &raw_tiles[start..start + 32]
+            } else {
+                continue;
+            };
+            let indices = decode_tile_4bpp(chunk);
+            for (i, &idx) in indices.iter().enumerate() {
+                let x = tx * 8 + (i as u32 % 8);
+                let y = ty * 8 + (i as u32 / 8);
+                let color = palette[idx as usize % 16];
+                img.set_pixel(x, y, if idx == 0 { Rgba::TRANSPARENT } else { color });
+            }
+        }
+    }
+    img
+}
+
+/// Extract field effect sprites to `dir/field_effects/` as RGBA PNGs.
+///
+/// Palettes come from the field effect script bytecode. We walk
+/// `gFieldEffectScriptPointers`, find every `SpritePalette` reference in the
+/// scripts, and build a tag→palette map. Each sprite's palette is resolved
+/// by reading the `paletteTag` from its `SpriteTemplate` struct and looking
+/// up the tag in that map. Effects with `paletteTag = 0xFFFF` or no matching
+/// template get a grayscale fallback.
+///
+/// If a `gFieldEffectObjectTemplate_*` (or `gFieldEffectSpriteTemplate_*`)
+/// symbol exists, the OAM data determines per-frame dimensions. Multi-frame
+/// animations are split into separate PNGs. Without a template, tiles are
+/// laid out in a single horizontal strip.
+///
+/// # Errors
+///
+/// Returns an error if a PNG can't be written.
+pub fn write_field_effects(
+    rom: &Rom,
+    symbols: &SymbolTable,
+    dir: &Path,
+    quiet: bool,
+) -> Result<usize> {
+    let fx_dir = dir.join("field_effects");
+    std::fs::create_dir_all(&fx_dir).with_context(|| format!("creating {}", fx_dir.display()))?;
+
+    let palettes = build_fe_palette_map(rom, symbols);
+
+    let default_palette = {
+        let mut p = [Rgba::TRANSPARENT; 16];
+        for i in 1..16 {
+            let v = i as u8 * 17;
+            p[i as usize] = Rgba(v, v, v, 255);
+        }
+        p
+    };
+
+    let mut pics: Vec<(String, u32, usize)> = Vec::new();
+
+    if let Some(sym) = symbols.get("gObjectEventPic_SurfBlob") {
+        if sym.length > 0 {
+            pics.push(("SurfBlob".to_owned(), sym.address, sym.length as usize));
+        }
+    }
+
+    for sym in symbols.iter() {
+        if sym.length == 0 {
+            continue;
+        }
+        let short = FIELD_EFFECT_PIC_PREFIXES
+            .iter()
+            .find_map(|p| sym.name.strip_prefix(p))
+            .map(|s| s.to_owned());
+        if let Some(short) = short {
+            pics.push((short, sym.address, sym.length as usize));
+        }
+    }
+
+    if pics.is_empty() {
+        return Ok(0);
+    }
+
+    if !quiet {
+        println!(
+            "  {} Extracting {} field effects...",
+            style("\u{2192}").cyan().bold(),
+            pics.len(),
+        );
+    }
+
+    for (name, addr, byte_len) in &pics {
+        let Some(offset) = rom.offset_of(*addr).ok() else {
+            continue;
+        };
+        let end = (offset + byte_len).min(rom.bytes().len());
+        let raw = &rom.bytes()[offset..end];
+        let tile_count = raw.len() / 32;
+        if tile_count == 0 {
+            continue;
+        }
+
+        let palette = resolve_palette_for_effect(rom, symbols, &palettes, &default_palette, name);
+
+        if let Some((fw, fh)) = field_effect_frame_dims(rom, symbols, name) {
+            let fw_tiles = fw / 8;
+            let fh_tiles = fh / 8;
+            let tiles_per_frame = (fw_tiles * fh_tiles) as usize;
+            if tiles_per_frame == 0 {
+                continue;
+            }
+            let frame_count = tile_count.div_ceil(tiles_per_frame);
+            let sheet_w = fw * frame_count as u32;
+            let sheet_h = fh;
+            let mut sheet = RgbaImage::new(sheet_w, sheet_h);
+            for fi in 0..frame_count {
+                let start = fi * tiles_per_frame * 32;
+                let frame_end = (start + tiles_per_frame * 32).min(raw.len());
+                let frame_data = &raw[start..frame_end];
+                let img = render_tile_grid(frame_data, fw_tiles, fh_tiles, &palette);
+                sheet.alpha_blit(&img, (fi as u32 * fw, 0));
+            }
+            let path = fx_dir.join(format!("{name}.png"));
+            sheet
+                .save_png(&path)
+                .with_context(|| format!("saving {}", path.display()))?;
+        } else {
+            let width = tile_count as u32 * 8;
+            let height = 8u32;
+            let mut img = RgbaImage::new(width, height);
+            for (ti, chunk) in raw.chunks(32).enumerate() {
+                let indices = decode_tile_4bpp(chunk);
+                for (i, &idx) in indices.iter().enumerate() {
+                    let x = (ti as u32 * 8) + (i as u32 % 8);
+                    let y = i as u32 / 8;
+                    let color = palette[idx as usize % 16];
+                    img.set_pixel(x, y, if idx == 0 { Rgba::TRANSPARENT } else { color });
+                }
+            }
+            let path = fx_dir.join(format!("{name}.png"));
+            img.save_png(&path)
+                .with_context(|| format!("saving {}", path.display()))?;
+        }
+    }
+
+    Ok(pics.len())
+}
+
 fn derive_sprite_id(full_name: &str) -> String {
     let stripped = full_name
         .strip_prefix("gObjectEventGraphicsInfo_")
@@ -735,35 +983,6 @@ fn derive_sprite_id(full_name: &str) -> String {
 }
 
 fn classify_sprite(name: &str) -> SpriteCategory {
-    // Player animation variants — skip entirely (weird standalone renders).
-    let skip_exact = [
-        "gObjectEventGraphicsInfo_RedBike",
-        "gObjectEventGraphicsInfo_GreenBike",
-        "gObjectEventGraphicsInfo_RedSurf",
-        "gObjectEventGraphicsInfo_GreenSurf",
-        "gObjectEventGraphicsInfo_RedFieldMove",
-        "gObjectEventGraphicsInfo_GreenFieldMove",
-        "gObjectEventGraphicsInfo_RedFish",
-        "gObjectEventGraphicsInfo_GreenFish",
-        "gObjectEventGraphicsInfo_RedVSSeeker",
-        "gObjectEventGraphicsInfo_GreenVSSeeker",
-        "gObjectEventGraphicsInfo_RedItem",
-        "gObjectEventGraphicsInfo_GreenItem",
-    ];
-    if skip_exact.contains(&name) {
-        return SpriteCategory::Skip;
-    }
-
-    // Player action poses that look odd as standalone sprites.
-    if !name.contains("Red") && !name.contains("Green") {
-        let skip_contains = ["Bike", "Surf", "FieldMove", "Fish", "VSSeeker"];
-        for pat in &skip_contains {
-            if name.contains(pat) {
-                return SpriteCategory::Skip;
-            }
-        }
-    }
-
     // Field objects — interactables, dolls, wild pokemon encounters.
     // Match on the stripped sprite ID to avoid catching RubySapphire* characters.
     let sprite_id = derive_sprite_id(name);

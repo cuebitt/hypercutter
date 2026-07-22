@@ -12,9 +12,7 @@ pub const MON_PIC_HEIGHT_TILES: u8 = 8;
 
 /// Pixels per side of a 4bpp Pokemon frame.
 pub const MON_PIC_PIXELS: u16 = 64;
-/// Bytes in a fully-populated 64×64 4bpp sprite frame.
-pub const MON_PIC_BYTES: usize = 2048;
-/// Bytes in a fully-populated 64×64 4bpp sprite frame
+/// Bytes in a fully-populated 64Ã64 4bpp sprite frame
 /// (used by the form-packing heuristic).
 pub const POKEMON_PIC_BYTES: usize = 2048;
 

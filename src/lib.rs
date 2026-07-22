@@ -1,7 +1,5 @@
-//! Hypercutter core library.
-//!
-//! Extracts metatiles, tilesets, palettes, and Pokemon battle sprites from
-//! GBA Pokemon ROMs (Emerald, FireRed, LeafGreen, Ruby, Sapphire).
+//! Extract tilesets, palettes, sprites, and field effects from GBA Pokemon
+//! ROMs (Emerald, FireRed, LeafGreen, Ruby, Sapphire).
 //!
 //! # Quickstart
 //!
@@ -22,6 +20,7 @@
 pub mod cli;
 mod error;
 mod extract;
+mod field_effect;
 mod graphics;
 mod lzss;
 mod render;
@@ -47,8 +46,8 @@ pub use render::{
 pub use rom::{Game, Rom, DEFAULT_ROM_BASE_ADDRESS, GAME_CODE_LENGTH, GAME_CODE_OFFSET};
 pub use sprite::{
     Footprint, FormSprite, MonCoords, MonCoordsOnDisk, SpeciesId, Sprite, SpriteSheet,
-    MON_PIC_BYTES, MON_PIC_HEIGHT_TILES, MON_PIC_PIXELS, MON_PIC_WIDTH_TILES,
-    POKEMON_PALETTE_BYTES, POKEMON_PIC_BYTES,
+    MON_PIC_HEIGHT_TILES, MON_PIC_PIXELS, MON_PIC_WIDTH_TILES, POKEMON_PALETTE_BYTES,
+    POKEMON_PIC_BYTES,
 };
 pub use symbols::{Scope, Symbol, SymbolTable};
 pub use tileset::{

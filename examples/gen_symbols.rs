@@ -73,6 +73,7 @@ struct GameData {
     pokemon_tables: Vec<(String, u32)>,
     field_sprites: Vec<(String, u32)>,
     field_sprite_palettes: Vec<(String, u32)>,
+    field_effects: Vec<(String, u32, u32)>, // (name, address, length)
     pokemon_components: BTreeMap<String, BTreeMap<String, u32>>,
 }
 
@@ -90,6 +91,7 @@ fn group_symbols(symbols: &SymbolTable) -> GameData {
         pokemon_tables: Vec::new(),
         field_sprites: Vec::new(),
         field_sprite_palettes: Vec::new(),
+        field_effects: Vec::new(),
         pokemon_components: BTreeMap::new(),
     };
 
@@ -142,6 +144,27 @@ fn group_symbols(symbols: &SymbolTable) -> GameData {
         // Field sprite palettes
         if let Some(stripped) = name.strip_prefix("gObjectEventPal_") {
             data.field_sprite_palettes.push((stripped.to_owned(), addr));
+            continue;
+        }
+
+        // Field effect pics (surf blob, shadows, grass effects, etc.)
+        if name.starts_with("gFieldEffectObjectPic_")
+            || name.starts_with("gFieldEffectPic_")
+            || name == "gObjectEventPic_SurfBlob"
+        {
+            data.field_effects.push((name.to_owned(), addr, sym.length));
+            continue;
+        }
+        // Field effect templates, anim tables, sprite palettes,
+        // direct palette data, and Ruby's palette info entries.
+        if name.starts_with("gFieldEffectObjectTemplate_")
+            || name.starts_with("gFieldEffectSpriteTemplate_")
+            || name.starts_with("gFieldEffectAnimTable_")
+            || name.starts_with("gSpritePalette_")
+            || name.starts_with("gFieldEffectPal_")
+            || name.starts_with("gFieldEffectObjectPaletteInfo")
+        {
+            data.tables.push((name.to_owned(), addr));
             continue;
         }
 
@@ -310,6 +333,20 @@ fn emit_toml(data: &GameData, game: &str, revision: &str) -> String {
             "\n[[field_sprite_palettes]]\nname = \"gObjectEventPal_{name}\"\noffset = {offset}"
         )
         .unwrap();
+    }
+
+    // Field effects (surf blob, shadows, grass, etc.)
+    for (name, addr, length) in &data.field_effects {
+        let Some(offset) = rel(*addr) else { continue };
+        write!(
+            out,
+            "\n[[field_effects]]\nname = \"{name}\"\noffset = {offset}"
+        )
+        .unwrap();
+        if *length != 0 {
+            write!(out, "\nlength = {length}").unwrap();
+        }
+        writeln!(out).unwrap();
     }
 
     // Pokemon components

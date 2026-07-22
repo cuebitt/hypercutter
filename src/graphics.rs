@@ -149,24 +149,21 @@ impl RgbaImage {
         blit_inner(self, src, dst, true);
     }
 
-    /// Encode the image as PNG and write it to `writer`.
-    ///
-    /// Encode the image as PNG and write to a stream.
+    /// Write the image out as a PNG.
     ///
     /// # Errors
     ///
     /// Returns [`Error::Io`] if writing to the stream fails, or
     /// [`Error::Png`] if encoding fails.
-    pub fn write_png(&self, mut writer: impl std::io::Write) -> Result<()> {
-        let mut encoder = png::Encoder::new(&mut writer, self.width, self.height);
+    pub fn write_png(&self, writer: impl std::io::Write) -> Result<()> {
+        let mut encoder = png::Encoder::new(writer, self.width, self.height);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
-        // Disable filters to avoid any encoder-side corruption
         use png::FilterType;
         encoder.set_filter(FilterType::NoFilter);
-        let mut writer = encoder.write_header()?;
-        writer.write_image_data(&self.pixels)?;
-        writer.finish()?;
+        let mut png_writer = encoder.write_header()?;
+        png_writer.write_image_data(&self.pixels)?;
+        png_writer.finish()?;
         Ok(())
     }
 
@@ -186,21 +183,21 @@ impl RgbaImage {
     }
 }
 
-fn blit_inner(dst: &mut RgbaImage, src: &RgbaImage, (dx, dy): (u32, u32), alpha: bool) {
+fn blit_inner(dst: &mut RgbaImage, src: &RgbaImage, (dest_x, dest_y): (u32, u32), alpha: bool) {
     let sw = src.width;
     let sh = src.height;
     for sy in 0..sh {
-        let dy = dy + sy;
-        if dy >= dst.height {
+        let abs_y = dest_y + sy;
+        if abs_y >= dst.height {
             break;
         }
         for sx in 0..sw {
-            let dx = dx + sx;
-            if dx >= dst.width {
+            let abs_x = dest_x + sx;
+            if abs_x >= dst.width {
                 break;
             }
             let s_idx = ((sy * sw + sx) * 4) as usize;
-            let d_idx = ((dy * dst.width + dx) * 4) as usize;
+            let d_idx = ((abs_y * dst.width + abs_x) * 4) as usize;
             if alpha {
                 let sa = u32::from(src.pixels[s_idx + 3]);
                 if sa == 0 {

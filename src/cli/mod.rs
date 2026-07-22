@@ -216,6 +216,18 @@ fn run_pack(
     crate::sprite_pack::write_pack(rom, symbols, &cli.export, cli.quiet)
         .with_context(|| "writing sprite pack")?;
 
+    // Field effect sprites (surf blob, shadows, grass rustling, etc.)
+    let fx_count = crate::sprite_pack::write_field_effects(rom, symbols, &cli.export, cli.quiet)
+        .with_context(|| "writing field effects")?;
+    if !q && fx_count > 0 {
+        println!(
+            "  {} Extracted {} field effects to {}",
+            style("\u{2713}").green().bold(),
+            style(fx_count).bold(),
+            style(cli.export.join("field_effects").display()).bold(),
+        );
+    }
+
     // Pokemon battle sprites
     let sprites_dir = cli.export.join("pokemon");
     let sprites = extractor.sprites().with_context(|| "extracting sprites")?;

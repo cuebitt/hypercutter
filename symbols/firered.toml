@@ -23,8 +23,196 @@ name = "gMapLayouts"
 offset = 3468172
 
 [[tables]]
+name = "gFieldEffectPal_CutGrass"
+offset = 3769992
+
+[[tables]]
+name = "gFieldEffectPal_Ash"
+offset = 3786120
+
+[[tables]]
+name = "gFieldEffectPal_SmallSparkle"
+offset = 3789736
+
+[[tables]]
 name = "sObjectEventSpritePalettes"
 offset = 3821912
+
+[[tables]]
+name = "gSpritePalette_GeneralFieldEffect0"
+offset = 3822400
+
+[[tables]]
+name = "gSpritePalette_GeneralFieldEffect1"
+offset = 3822408
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_ShadowSmall"
+offset = 3822460
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_ShadowMedium"
+offset = 3822484
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_ShadowLarge"
+offset = 3822508
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_ShadowExtraLarge"
+offset = 3822532
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_TallGrass"
+offset = 3822624
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_Ripple"
+offset = 3822728
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_Ash"
+offset = 3822820
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_SurfBlob"
+offset = 3822956
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_Arrow"
+offset = 3823108
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_GroundImpactDust"
+offset = 3823176
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_JumpTallGrass"
+offset = 3823256
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_SandFootprints"
+offset = 3823348
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_DeepSandFootprints"
+offset = 3823440
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_BikeTireTracks"
+offset = 3823596
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_JumpBigSplash"
+offset = 3823676
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_Splash"
+offset = 3823772
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_JumpSmallSplash"
+offset = 3823840
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_LongGrass"
+offset = 3823932
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_JumpLongGrass"
+offset = 3824036
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_UnusedGrass"
+offset = 3824176
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_UnusedGrass2"
+offset = 3824264
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_UnusedSand"
+offset = 3824344
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_SandPile"
+offset = 3824412
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_WaterSurfacing"
+offset = 3824500
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_ReflectionDistortion"
+offset = 3824692
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_TreeDisguise"
+offset = 3824820
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_MountainDisguise"
+offset = 3824948
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_SandDisguisePlaceholder"
+offset = 3825028
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_Bird"
+offset = 3825152
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_ShortGrass"
+offset = 3825208
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_HotSpringsWater"
+offset = 3825252
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_AshPuff"
+offset = 3825344
+
+[[tables]]
+name = "gSpritePalette_Ash"
+offset = 3825368
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_AshLaunch"
+offset = 3825444
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_Bubbles"
+offset = 3825572
+
+[[tables]]
+name = "gFieldEffectObjectTemplate_SmallSparkle"
+offset = 3825632
+
+[[tables]]
+name = "gSpritePalette_SmallSparkle"
+offset = 3825656
+
+[[tables]]
+name = "gSpritePalette_PokeballGlow"
+offset = 3980956
+
+[[tables]]
+name = "gSpritePalette_HofMonitor"
+offset = 3980964
+
+[[tables]]
+name = "gSpritePalette_Bag"
+offset = 4014580
+
+[[tables]]
+name = "gSpritePalette_Pokeball"
+offset = 4171352
+
+[[tables]]
+name = "gFieldEffectScriptPointers"
+offset = 1939116
 
 [[tilesets]]
 name = "gTileset_BerryForest"
@@ -1414,6 +1602,196 @@ offset = 3768328
 [[field_sprite_palettes]]
 name = "gObjectEventPal_RSQuintyPlumpReflection"
 offset = 3768360
+
+[[field_effects]]
+name = "gObjectEventPic_SurfBlob"
+offset = 3762952
+length = 3072
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_ShadowSmall"
+offset = 3768392
+length = 32
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_ShadowMedium"
+offset = 3768424
+length = 64
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_ShadowLarge"
+offset = 3768488
+length = 128
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_ShadowExtraLarge"
+offset = 3768616
+length = 1024
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_CutGrass"
+offset = 3769928
+length = 32
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_CutGrass2"
+offset = 3769960
+length = 32
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_Ripple"
+offset = 3770024
+length = 640
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_Ash"
+offset = 3770664
+length = 640
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_Arrow"
+offset = 3771304
+length = 1024
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_GroundImpactDust"
+offset = 3772424
+length = 192
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_UnusedGrass3"
+offset = 3772616
+length = 192
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_JumpTallGrass"
+offset = 3772808
+length = 256
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_UnusedGrass4"
+offset = 3773064
+length = 512
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_JumpLongGrass"
+offset = 3773576
+length = 768
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_UnusedGrass"
+offset = 3774344
+length = 1152
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_UnusedGrass2"
+offset = 3775496
+length = 512
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_LongGrass"
+offset = 3776008
+length = 512
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_TallGrass"
+offset = 3776520
+length = 640
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_ShortGrass"
+offset = 3777160
+length = 256
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_SandFootprints"
+offset = 3777416
+length = 256
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_DeepSandFootprints"
+offset = 3777672
+length = 256
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_BikeTireTracks"
+offset = 3777928
+length = 512
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_UnusedSand"
+offset = 3778440
+length = 512
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_SandPile"
+offset = 3778952
+length = 192
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_JumpBigSplash"
+offset = 3779144
+length = 512
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_Splash"
+offset = 3779656
+length = 128
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_JumpSmallSplash"
+offset = 3779784
+length = 192
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_WaterSurfacing"
+offset = 3779976
+length = 640
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_TreeDisguise"
+offset = 3780616
+length = 1792
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_MountainDisguise"
+offset = 3782408
+length = 1792
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_SandDisguisePlaceholder"
+offset = 3784200
+length = 1792
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_HotSpringsWater"
+offset = 3785992
+length = 128
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_AshPuff"
+offset = 3786152
+length = 640
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_AshLaunch"
+offset = 3786792
+length = 640
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_Bubbles"
+offset = 3787432
+length = 2048
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_SmallSparkle"
+offset = 3789480
+length = 256
+
+[[field_effects]]
+name = "gFieldEffectObjectPic_Bird"
+offset = 3789768
+length = 10240
 
 [pokemon.Abra]
 back = 14000972

@@ -4,6 +4,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use binrw::BinRead;
 
+use log::warn;
+
 use crate::error::{Error, Result};
 use crate::lzss::decompress as decompress_lzss;
 use crate::lzss::is_lzss;
@@ -389,7 +391,7 @@ impl<'rom> Extractor<'rom> {
                 continue;
             }
             let Ok(layout) = read_struct_at::<crate::tileset::MapLayout>(self.rom, ptr) else {
-                eprintln!("  Warning: failed to read MapLayout at 0x{ptr:08x}");
+                warn!("failed to read MapLayout at 0x{ptr:08x}");
                 continue;
             };
             primary_to_secondaries

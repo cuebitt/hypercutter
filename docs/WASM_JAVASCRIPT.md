@@ -4,10 +4,11 @@ Build the WASM package with [wasm-pack](https://github.com/rustwasm/wasm-pack):
 
 ```bash
 cargo install wasm-pack
-wasm-pack build --release
+wasm-pack build --release --target web       # general use / CI
+wasm-pack build --release --target bundler   # npm publish
 ```
 
-The build target is configured in `wasm-pack.toml`. This produces a `pkg/` directory with JS glue code, TypeScript types, and a `package.json` ready for npm publishing.
+Either command produces a `pkg/` directory with JS glue code, TypeScript types, and a `package.json`.
 
 Once published to npm, install with:
 
