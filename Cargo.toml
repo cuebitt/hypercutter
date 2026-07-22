@@ -31,7 +31,7 @@ nintendo_lz = { package = "nintendo-lz", version = "0.1" }
 sha2 = "0.10"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-png = "0.17"
+png = "0.18"
 log = "0.4"
 toml = "0.8"
 
