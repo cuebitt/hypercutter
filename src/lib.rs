@@ -20,6 +20,7 @@
 pub mod cli;
 mod error;
 mod extract;
+#[cfg(not(target_arch = "wasm32"))]
 mod field_effect;
 mod graphics;
 mod lzss;

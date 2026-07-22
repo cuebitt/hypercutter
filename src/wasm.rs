@@ -1,7 +1,4 @@
 //! WASM bindings for hypercutter.
-//!
-//! This is a skeleton: the exact JS surface will be finalized alongside the
-//! rebuilt web app.
 
 #![cfg(target_arch = "wasm32")]
 
@@ -82,6 +79,15 @@ impl HypercutterExtractor {
         self.rom.game().short_name().to_owned()
     }
 
+    /// Returns the national Pokédex number mapping.
+    ///
+    /// Index = internal species ID, value = National Dex number.
+    #[wasm_bindgen]
+    pub fn national_dex_map(&self) -> std::result::Result<Vec<u16>, JsError> {
+        let extractor = Extractor::new(&self.rom, &self.symbols);
+        extractor.national_dex_map().map_err(to_js)
+    }
+
     /// Returns the list of metatile names.
     #[wasm_bindgen]
     pub fn metatile_names(&self) -> std::result::Result<Vec<JsValue>, JsError> {
@@ -138,12 +144,125 @@ impl HypercutterExtractor {
         Ok(png_bytes)
     }
 
+    /// Returns the RGBA bytes for a single Pokemon sprite (back, normal).
+    #[wasm_bindgen]
+    pub fn render_sprite_back(&self, species_id: u16) -> std::result::Result<Vec<u8>, JsError> {
+        use crate::SpriteRenderer;
+        let extractor = Extractor::new(&self.rom, &self.symbols);
+        let sprites = extractor.sprites().map_err(to_js)?;
+        let Some(sprite) = sprites
+            .iter()
+            .find(|s| u32::from(s.id.0) == u32::from(species_id))
+        else {
+            return Err(JsError::new(&format!("unknown species: {species_id}")));
+        };
+        let Some(sheet) = sprite.back.as_ref() else {
+            return Err(JsError::new("species has no back sprite"));
+        };
+        let Some(palette) = sprite.palette.get(0) else {
+            return Err(JsError::new("species has no palette"));
+        };
+        let renderer = SpriteRenderer::new(sheet, palette);
+        let mut png_bytes: Vec<u8> = Vec::new();
+        renderer.render().write_png(&mut png_bytes).map_err(to_js)?;
+        Ok(png_bytes)
+    }
+
+    /// Returns the RGBA bytes for a Pokemon footprint PNG.
+    #[wasm_bindgen]
+    pub fn render_footprint(&self, species_id: u16) -> std::result::Result<Vec<u8>, JsError> {
+        let extractor = Extractor::new(&self.rom, &self.symbols);
+        let sprites = extractor.sprites().map_err(to_js)?;
+        let Some(sprite) = sprites
+            .iter()
+            .find(|s| u32::from(s.id.0) == u32::from(species_id))
+        else {
+            return Err(JsError::new(&format!("unknown species: {species_id}")));
+        };
+        let Some(ref fp) = sprite.footprint else {
+            return Err(JsError::new("species has no footprint"));
+        };
+        let img = crate::render::render_footprint(fp);
+        let mut png_bytes: Vec<u8> = Vec::new();
+        img.write_png(&mut png_bytes).map_err(to_js)?;
+        Ok(png_bytes)
+    }
+
     /// Returns all species names (lowercased), ordered by species id.
     #[wasm_bindgen]
     pub fn species_names(&self) -> std::result::Result<Vec<JsValue>, JsError> {
         let extractor = Extractor::new(&self.rom, &self.symbols);
         let names = extractor.species_names().map_err(to_js)?;
         Ok(names.into_iter().map(JsValue::from).collect())
+    }
+
+    /// Returns metadata for all alternate-form sprites.
+    ///
+    /// Each entry is `{base: number, form: string}`, where `base` is the
+    /// species ID and `form` is the form identifier (e.g. "B" for Unown B).
+    #[wasm_bindgen]
+    pub fn forms(&self) -> std::result::Result<Vec<JsValue>, JsError> {
+        let extractor = Extractor::new(&self.rom, &self.symbols);
+        let forms = extractor.forms().map_err(to_js)?;
+        Ok(forms
+            .into_iter()
+            .map(|f| {
+                let obj = js_sys::Object::new();
+                js_sys::Reflect::set(&obj, &JsValue::from("base"), &JsValue::from(f.base.0))
+                    .expect("Reflect::set should not fail on a fresh object");
+                js_sys::Reflect::set(
+                    &obj,
+                    &JsValue::from("form"),
+                    &JsValue::from(f.form.as_str()),
+                )
+                .expect("Reflect::set should not fail on a fresh object");
+                JsValue::from(obj)
+            })
+            .collect())
+    }
+
+    /// Render an alternate-form sprite (front) as PNG bytes.
+    ///
+    /// `base_species_id` is the internal species ID and `form` is the form
+    /// identifier returned by [`Self::forms`].
+    #[wasm_bindgen]
+    pub fn render_form_sprite(
+        &self,
+        base_species_id: u16,
+        form: &str,
+    ) -> std::result::Result<Vec<u8>, JsError> {
+        use crate::render::SpriteRenderer;
+        use crate::sprite::MonCoords;
+        use crate::tileset::TileData;
+        let extractor = Extractor::new(&self.rom, &self.symbols);
+        let forms = extractor.forms().map_err(to_js)?;
+        let form_sprite = forms
+            .iter()
+            .find(|f| u32::from(f.base.0) == u32::from(base_species_id) && f.form == form)
+            .ok_or_else(|| JsError::new(&format!("unknown form: {base_species_id}/{form}")))?;
+        let tiles = form_sprite
+            .front_tiles
+            .as_ref()
+            .ok_or_else(|| JsError::new("form has no front sprite"))?;
+        let palette = form_sprite
+            .palette
+            .as_ref()
+            .ok_or_else(|| JsError::new("form has no palette"))?;
+        let pal_entry = palette
+            .get(0)
+            .ok_or_else(|| JsError::new("form palette is empty"))?;
+        let sheet = crate::SpriteSheet {
+            tiles: TileData::from_bytes(tiles.clone()),
+            coords: MonCoords {
+                width_tiles: 8,
+                height_tiles: 8,
+                y_offset: 0,
+            },
+        };
+        let renderer = SpriteRenderer::new(&sheet, pal_entry);
+        let mut png_bytes: Vec<u8> = Vec::new();
+        renderer.render().write_png(&mut png_bytes).map_err(to_js)?;
+        Ok(png_bytes)
     }
 
     /// Returns the names of every symbol from the memory map that

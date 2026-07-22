@@ -58,8 +58,23 @@ console.log(symbols); // ["Start", "gMonFrontPicTable", "gTileset_Overworld", ..
 const species = ex.species_names();
 console.log(species); // ["bulbasaur", "ivysaur", ...]
 
-// Render a Pokemon sprite (by national dex ID) to PNG bytes
+// Render a Pokemon sprite (by species ID) to PNG bytes
 const spritePng = ex.render_sprite(1); // Bulbasaur front sprite
+const backPng = ex.render_sprite_back(1); // Bulbasaur back sprite
+
+// Render a Pokemon footprint to PNG bytes
+const footprintPng = ex.render_footprint(1); // Bulbasaur footprint
+
+// List alternate-form sprites
+const altForms = ex.forms();
+console.log(altForms); // [{base: 201, form: "B"}, {base: 386, form: "Attack"}, ...]
+
+// Render an alternate-form sprite
+const unownBPng = ex.render_form_sprite(201, "B");
+
+// National Dex mapping
+const dexMap = ex.national_dex_map();
+console.log(dexMap[1]); // 1 (Bulbasaur = National Dex #1)
 ```
 
 ## Vite
@@ -95,3 +110,8 @@ export default defineConfig({
 | `HypercutterExtractor.species_names()`          | `() => string[]`                                   | All species names by dex order                                      |
 | `HypercutterExtractor.symbol_names()`           | `() => string[]`                                   | Symbol names used by the extraction logic                           |
 | `HypercutterExtractor.render_sprite(speciesId)` | `(number) => Uint8Array`                           | Render a Pokemon front sprite as PNG bytes                          |
+| `HypercutterExtractor.render_sprite_back(speciesId)` | `(number) => Uint8Array`                     | Render a Pokemon back sprite as PNG bytes                           |
+| `HypercutterExtractor.render_footprint(speciesId)` | `(number) => Uint8Array`                     | Render a Pokemon footprint as PNG bytes                             |
+| `HypercutterExtractor.forms()`                  | `() => {base: number, form: string}[]`           | List alternate-form sprites                                         |
+| `HypercutterExtractor.render_form_sprite(baseSpeciesId, form)` | `(number, string) => Uint8Array`     | Render an alternate-form front sprite as PNG bytes                  |
+| `HypercutterExtractor.national_dex_map()`       | `() => Uint16Array`                                | National Dex mapping (index = species ID, value = dex number)       |

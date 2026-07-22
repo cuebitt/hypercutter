@@ -3,7 +3,7 @@ name: Publish WASM to npm
 on:
   push:
     tags:
-      - "v*"
+      - "v[0-9]*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,7 +31,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - uses: jetli/wasm-pack-action@v0.4.0
         with:
-          version: "latest"
+          version: "0.15.0"
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -43,6 +43,14 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - name: Build WASM package
         run: wasm-pack build --release --target bundler
+      - name: Patch package.json for modern exports
+        run: |
+          node -e '
+            const pkg = require("./pkg/package.json");
+            pkg.module = "hypercutter.js";
+            pkg.exports = { ".": { "import": "./hypercutter.js", "types": "./hypercutter.d.ts" } };
+            require("fs").writeFileSync("./pkg/package.json", JSON.stringify(pkg, null, 2) + "\n");
+          '
       - name: Publish to npm
-        run: pnpm publish --no-git-checks --access public
+        run: pnpm publish --provenance --no-git-checks --access public
         working-directory: pkg
