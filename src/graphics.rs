@@ -1,6 +1,7 @@
 //! GBA graphics primitives: BGR555 decoding, 4bpp tile decoding, RGBA buffers.
 
 use std::path::Path;
+use png::FilterType;
 
 use crate::error::{Error, Result};
 
@@ -159,7 +160,7 @@ impl RgbaImage {
         let mut encoder = png::Encoder::new(writer, self.width, self.height);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
-        use png::FilterType;
+        
         encoder.set_filter(FilterType::NoFilter);
         let mut png_writer = encoder.write_header()?;
         png_writer.write_image_data(&self.pixels)?;
