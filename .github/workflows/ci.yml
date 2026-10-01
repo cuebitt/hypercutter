@@ -30,7 +30,7 @@ jobs:
         with:
           components: rustfmt, clippy
       - name: Run sccache-cache
-        uses: Mozilla-Actions/sccache-action@v0.0.10
+        uses: Mozilla-Actions/sccache-action@v0.0.11
       - name: Cache cargo registry and target
         uses: Swatinem/rust-cache@v2
       - name: cargo fmt --check
@@ -53,7 +53,7 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
       - name: Run sccache-cache
-        uses: Mozilla-Actions/sccache-action@v0.0.10
+        uses: Mozilla-Actions/sccache-action@v0.0.11
       - name: Cache cargo registry and target
         uses: Swatinem/rust-cache@v2
       - name: cargo test
@@ -69,7 +69,7 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
       - name: Run sccache-cache
-        uses: Mozilla-Actions/sccache-action@v0.0.10
+        uses: Mozilla-Actions/sccache-action@v0.0.11
       - name: Cache cargo registry and target
         uses: Swatinem/rust-cache@v2
       - uses: jetli/wasm-pack-action@v0.4.0
